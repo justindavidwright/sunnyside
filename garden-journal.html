@@ -309,7 +309,48 @@
   .btn-cancel { background: none; border: 1.5px solid var(--parch-dk); color: var(--stone); padding: 9px 18px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: border-color 0.15s; }
   .btn-cancel:hover { border-color: var(--stone); }
 
-  /* ── Lightbox ── */
+  /* ── Care Calendar ── */
+  .cal-month-block { margin-bottom: 28px; }
+  .cal-month-title {
+    font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 20px;
+    padding: 10px 16px; background: var(--forest); color: var(--parch-lt);
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cal-month-title.current-month { background: var(--rust); }
+  .cal-month-task-count { font-size: 12px; font-weight: 400; color: var(--sage-lt); }
+  .cal-task-list { background: var(--parch-lt); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--sh); overflow: hidden; }
+  .cal-task-empty { padding: 16px 20px; font-size: 13px; color: var(--stone); font-style: italic; }
+  .cal-task-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px; border-top: 1px solid var(--parch-dk);
+    transition: background 0.12s;
+  }
+  .cal-task-item:first-child { border-top: none; }
+  .cal-task-item.done { opacity: 0.5; }
+  .cal-task-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--parch-dk); background: #fff;
+    flex-shrink: 0; cursor: pointer; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .cal-task-check:hover { border-color: var(--forest-mid); }
+  .cal-task-check.checked { background: var(--forest-mid); border-color: var(--forest-mid); }
+  .cal-task-check.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+  .cal-task-body { flex: 1; }
+  .cal-task-title { font-size: 14px; font-weight: 500; color: var(--bark); margin-bottom: 2px; }
+  .cal-task-item.done .cal-task-title { text-decoration: line-through; }
+  .cal-task-desc { font-size: 13px; color: var(--stone); line-height: 1.5; }
+  .cal-task-zone { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: var(--radius); margin-top: 5px; }
+  .cal-task-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .cal-task-del { background: none; border: none; color: var(--stone-lt); font-size: 16px; cursor: pointer; padding: 2px 4px; line-height: 1; }
+  .cal-task-del:hover { color: var(--rust); }
+
+  /* Seed some default tasks styling */
+  .cal-month-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .cal-month-jump { background: var(--parch-lt); border: 1.5px solid var(--parch-dk); color: var(--stone); padding: 5px 12px; border-radius: var(--radius); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.12s; }
+  .cal-month-jump:hover, .cal-month-jump.active { background: var(--forest); color: var(--parch-lt); border-color: var(--forest); }
   .lightbox { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(38,32,15,0.92); align-items: center; justify-content: center; padding: 20px; }
   .lightbox.open { display: flex; }
   .lightbox img { max-width: 100%; max-height: 90vh; border-radius: var(--radius); }
@@ -352,7 +393,8 @@
       <button class="tab-btn"        onclick="switchTab('bloom',this)">Bloom Calendar</button>
       <button class="tab-btn"        onclick="switchTab('inventory',this)">Species Inventory</button>
       <button class="tab-btn"        onclick="switchTab('mystery',this)">Mystery Log</button>
-      <button class="tab-btn"        onclick="switchTab('maintenance',this)">Maintenance</button>
+      <button class="tab-btn"        onclick="switchTab('maintenance',this)">Maintenance Log</button>
+      <button class="tab-btn"        onclick="switchTab('calendar',this)">Care Calendar</button>
     </div>
   </div>
 </header>
@@ -401,9 +443,17 @@
     <div class="mystery-list" id="mystery-list"></div>
   </div>
 
+  <div class="view" id="view-calendar">
+    <div class="section-head">
+      <div><h2>Care Calendar</h2><p>Monthly tasks — what to do and when</p></div>
+      <button class="btn-primary" onclick="openTaskModal()">+ Add Task</button>
+    </div>
+    <div id="calendar-wrap"></div>
+  </div>
+
   <div class="view" id="view-maintenance">
     <div class="section-head">
-      <div><h2>Maintenance Log</h2><p>Your seasonal playbook, built from field entries</p></div>
+      <div><h2>Maintenance Log</h2><p>Actions logged in field entries, organized by zone</p></div>
     </div>
     <div id="maintenance-wrap"></div>
   </div>
@@ -473,7 +523,7 @@
         </label>
         <div class="sp-ref-wrap" id="sp-ref-wrap">
           <div class="sp-ref-placeholder" id="sp-ref-placeholder">Enter the scientific name, then tap "Look up from Wikipedia"</div>
-          <img class="sp-ref-img" id="sp-ref-img" src="" alt="">
+          <img class="sp-ref-img" id="sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
           <span class="sp-ref-credit" id="sp-ref-credit"></span>
         </div>
         <div class="ref-url-row">
@@ -532,7 +582,7 @@
         </label>
         <div class="sp-ref-wrap" id="edit-sp-ref-wrap">
           <div class="sp-ref-placeholder" id="edit-sp-ref-placeholder">No photo yet</div>
-          <img class="sp-ref-img" id="edit-sp-ref-img" src="" alt="">
+          <img class="sp-ref-img" id="edit-sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
           <span class="sp-ref-credit" id="edit-sp-ref-credit"></span>
         </div>
         <div class="ref-url-row">
@@ -606,6 +656,54 @@
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closeModal('modal-mystery')">Cancel</button>
       <button class="btn-primary" onclick="saveMystery()">Log Mystery</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Add Care Task</h2><p>A recurring monthly maintenance item</p></div>
+      <button class="modal-x" onclick="closeModal('modal-task')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Task name</label><input type="text" id="task-title" placeholder="e.g. Snap back bamboo shoots"></div>
+      <div class="fg"><label class="fl">Details / notes</label><textarea id="task-desc" placeholder="What to do, what to look for, tools needed..." rows="3"></textarea></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Month</label>
+          <select id="task-month">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Zone</label>
+          <select id="task-zone">
+            <option value="all">Whole property</option>
+            <option value="japanese">Japanese Garden</option>
+            <option value="road">Road</option>
+            <option value="driveway">Driveway</option>
+            <option value="frontyard">Front Yard</option>
+            <option value="midyard">Middle Yard</option>
+            <option value="backyard">Back Yard</option>
+            <option value="greenhouse">Greenhouse</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Add Task</button>
     </div>
   </div>
 </div>
@@ -689,6 +787,7 @@ async function loadAll(){
     entries   = (eRes.data || []).map(dbToEntry);
     species   = (sRes.data || []).map(dbToSpecies);
     mysteries = mRes.data || [];
+    await loadTasks();
     setSyncDot('ok');
     setLoading(100);
     setTimeout(()=>setLoading(0), 400);
@@ -714,6 +813,7 @@ function switchTab(id,btn){
   btn.classList.add('active');
   if(id==='bloom')renderBloom();
   if(id==='maintenance')renderMaintenance();
+  if(id==='calendar')renderCalendar();
 }
 
 // ── Modals ──
@@ -889,7 +989,7 @@ function renderSbsList(){
   if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?'No matches':'No species yet — add some first'}</div>`;return;}
   list.innerHTML=filtered.map(s=>{
     const sel=pendingBloomSp.includes(s.id);
-    const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="">`:`<div class="sbs-item-noimg">🌿</div>`;
+    const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="sbs-item-noimg">🌿</div>`;
     return`<div class="sbs-item${sel?' selected':''}" onclick="toggleBloomSp(${s.id})">
       ${thumb}
       <div class="sbs-item-info"><div class="sbs-item-sci">${s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.common}</div>`:''}</div>
@@ -1087,7 +1187,110 @@ async function confirmDeleteSpecies(id){
   renderSpecies(); renderStats(); renderSbsList();
 }
 
-// ── Lightbox ──
+// ── Tasks (Care Calendar) ──
+let tasks = [];
+
+function taskToDb(t){ return { id:t.id, title:t.title, description:t.description, zone:t.zone, month:t.month, recurring:t.recurring, completed_years:t.completedYears }; }
+function dbToTask(r){ return { id:r.id, title:r.title||'', description:r.description||'', zone:r.zone||'all', month:r.month, recurring:r.recurring!==false, completedYears:r.completed_years||[] }; }
+
+async function loadTasks(){
+  const {data,error}=await sb.from('tasks').select('*').order('month');
+  if(!error) tasks=(data||[]).map(dbToTask);
+}
+
+function openTaskModal(){
+  ['task-title','task-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('task-month').value=new Date().getMonth();
+  document.getElementById('task-zone').value='all';
+  document.getElementById('modal-task').classList.add('open');
+}
+
+async function saveTask(){
+  const t={
+    id:Date.now(),
+    title:document.getElementById('task-title').value.trim(),
+    description:document.getElementById('task-desc').value.trim(),
+    zone:document.getElementById('task-zone').value,
+    month:parseInt(document.getElementById('task-month').value),
+    recurring:true,
+    completedYears:[],
+  };
+  if(!t.title){toast('Please add a task name','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('tasks').insert(taskToDb(t));
+  if(error){setSyncDot('error');toast('Save failed','err');return;}
+  setSyncDot('ok');
+  tasks.push(t);
+  tasks.sort((a,b)=>a.month-b.month);
+  closeModal('modal-task');
+  toast('Task added ✓');
+  renderCalendar();
+}
+
+async function toggleTask(id){
+  const t=tasks.find(t=>t.id===id); if(!t)return;
+  const year=new Date().getFullYear();
+  const idx=t.completedYears.indexOf(year);
+  if(idx>=0) t.completedYears.splice(idx,1);
+  else t.completedYears.push(year);
+  await sb.from('tasks').update({completed_years:t.completedYears}).eq('id',id);
+  renderCalendar();
+}
+
+async function deleteTask(id){
+  tasks=tasks.filter(t=>t.id!==id);
+  await sb.from('tasks').delete().eq('id',id);
+  toast('Task removed');
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const wrap=document.getElementById('calendar-wrap');
+  const year=new Date().getFullYear();
+  const currentMonth=new Date().getMonth();
+
+  if(!tasks.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>No tasks yet</h3><p>Add recurring care tasks — bamboo shoot removal in April, greenhouse winterizing in October, Japanese maple pruning in March. Build your annual playbook.</p><button class="btn-primary" onclick="openTaskModal()">Add your first task</button></div>`;
+    return;
+  }
+
+  // Month jump nav
+  const activeMonths=new Set(tasks.map(t=>t.month));
+  const nav=MO.map((m,i)=>`<button class="cal-month-jump${i===currentMonth?' active':''}" onclick="document.getElementById('cal-month-${i}').scrollIntoView({behavior:'smooth',block:'start'})">${m}</button>`).join('');
+
+  const months=MO.map((monthName,mi)=>{
+    const monthTasks=tasks.filter(t=>t.month===mi);
+    const isCurrent=mi===currentMonth;
+    const taskRows=monthTasks.length ? monthTasks.map(t=>{
+      const done=t.completedYears.includes(year);
+      const zLabel=t.zone==='all'?'Whole property':zoneById(t.zone).label;
+      const zColor=t.zone==='all'?'var(--stone)':zoneById(t.zone).color;
+      return`<div class="cal-task-item${done?' done':''}">
+        <div class="cal-task-check${done?' checked':''}" onclick="toggleTask(${t.id})"></div>
+        <div class="cal-task-body">
+          <div class="cal-task-title">${t.title}</div>
+          ${t.description?`<div class="cal-task-desc">${t.description}</div>`:''}
+          <span class="cal-task-zone" style="background:${zColor}22;color:${zColor}">${zLabel}</span>
+        </div>
+        <div class="cal-task-actions">
+          <button class="cal-task-del" onclick="deleteTask(${t.id})" title="Remove task">×</button>
+        </div>
+      </div>`;
+    }).join('') : `<div class="cal-task-empty">No tasks for ${monthName}</div>`;
+
+    return`<div class="cal-month-block" id="cal-month-${mi}">
+      <div class="cal-month-title${isCurrent?' current-month':''}">
+        <span>${monthName} ${year}</span>
+        <span class="cal-month-task-count">${monthTasks.length} task${monthTasks.length!==1?'s':''}</span>
+      </div>
+      <div class="cal-task-list">${taskRows}</div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="cal-month-nav">${nav}</div>${months}`;
+}
+
+
 function openLightbox(src){ document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.add('open'); }
 function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); });
@@ -1172,7 +1375,7 @@ function renderSpecies(){
     const sLbl={confirmed:'Confirmed',suspected:'Suspected',unknown:'Unknown'}[s.status]||'Unknown';
     const obs=s.observationCount||0;
     const photoSection=s.refPhoto
-      ?`<div class="sp-photo-wrap"><img class="sp-photo" src="${s.refPhoto}" alt="${s.scientific}" onclick="openLightbox('${s.refPhoto}')"><span class="sp-photo-credit">${s.refCredit||'Wikipedia'}</span></div>`
+      ?`<div class="sp-photo-wrap"><img class="sp-photo" src="${s.refPhoto}" alt="${s.scientific}" referrerpolicy="no-referrer" onclick="openLightbox('${s.refPhoto}')"><span class="sp-photo-credit">${s.refCredit||'Wikipedia'}</span></div>`
       :`<div class="sp-photo-wrap"><div class="sp-photo-placeholder">🌿</div></div>`;
     return`<div class="sp-card ${cls}" id="sp-card-${s.id}">
       ${photoSection}
@@ -1226,7 +1429,7 @@ function renderBloom(){
   }
   const heads=MO.map(m=>`<div class="cal-col-head">${m}</div>`).join('');
   const rows=bloomSp.map(s=>{
-    const thumb=s.refPhoto?`<img class="cal-sp-thumb" src="${s.refPhoto}" alt="">`:`<div class="cal-sp-thumb-placeholder"></div>`;
+    const thumb=s.refPhoto?`<img class="cal-sp-thumb" src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="cal-sp-thumb-placeholder"></div>`;
     const cells=MO.map((_,i)=>{
       const exp=s.bloomMonths&&s.bloomMonths.includes(i);
       const obs=observedMonths[s.id]&&observedMonths[s.id].has(i);
