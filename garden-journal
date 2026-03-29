@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riegelsville Garden Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bark:       #26200f;
+    --bark-mid:   #44381e;
+    --bark-lt:    #7a6840;
+    --parchment:  #f2ead4;
+    --parch-lt:   #faf6ec;
+    --parch-dk:   #dfd5b8;
+    --forest:     #2d4a1e;
+    --forest-mid: #3d6628;
+    --forest-lt:  #5a8c3a;
+    --forest-pale:#daecd0;
+    --sage:       #6b8c5a;
+    --sage-lt:    #8aad76;
+    --sage-pale:  #e8f0e0;
+    --fern:       #4a6e3a;
+    --moss:       #3d5c2a;
+    --rust:       #a83c18;
+    --rust-lt:    #c85e38;
+    --rust-pale:  #f5ddd0;
+    --clay:       #7a4a28;
+    --clay-pale:  #eeddd0;
+    --gold:       #9a6e10;
+    --gold-pale:  #f0e0a8;
+    --teal:       #2a5e58;
+    --teal-pale:  #c8e4e0;
+    --stone:      #68605a;
+    --stone-lt:   #988e86;
+    --stone-pale: #e2ddd8;
+    --plum:       #5e3050;
+    --plum-pale:  #e8d0e0;
+    --radius: 4px;
+    --sh:  0 2px 10px rgba(38,32,15,0.10);
+    --shl: 0 6px 28px rgba(38,32,15,0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--parchment); color: var(--bark); min-height: 100vh; }
+
+  /* ── Header ── */
+  header { background: var(--forest); color: var(--parch-lt); position: sticky; top: 0; z-index: 100; box-shadow: 0 3px 0 var(--rust), 0 7px 24px rgba(38,32,15,0.35); }
+  .header-inner { max-width: 980px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .header-lockup { display: flex; align-items: center; gap: 14px; }
+  .header-badge { width: 44px; height: 44px; background: var(--rust); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .header-badge svg { width: 22px; height: 22px; fill: var(--parch-lt); }
+  .header-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sage-lt); margin-bottom: 2px; }
+  .header-title { font-family: 'Zilla Slab', serif; font-size: 24px; font-weight: 600; line-height: 1; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn-primary { background: var(--rust); color: #fff; border: none; padding: 9px 18px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .btn-primary:hover { background: var(--rust-lt); }
+  .btn-outline { background: transparent; color: var(--parch-lt); border: 1.5px solid rgba(242,234,212,0.28); padding: 8px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .btn-outline:hover { border-color: rgba(242,234,212,0.65); background: rgba(242,234,212,0.08); }
+
+  /* Sync indicator */
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage-lt); flex-shrink: 0; transition: background 0.3s; }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.error   { background: var(--rust-lt); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── Nav ── */
+  .nav-strip { background: var(--moss); border-top: 1px solid rgba(242,234,212,0.10); }
+  .nav-inner { max-width: 980px; margin: 0 auto; display: flex; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .tab-btn { background: none; border: none; border-bottom: 3px solid transparent; color: var(--sage-lt); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; padding: 11px 16px; cursor: pointer; transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
+  .tab-btn:hover { color: var(--parch-lt); }
+  .tab-btn.active { color: var(--parch-lt); border-bottom-color: var(--rust); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 28px 16px 80px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Loading overlay */
+  .loading-bar { height: 3px; background: var(--forest-pale); position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
+  .loading-bar-fill { height: 100%; background: var(--sage-lt); width: 0; transition: width 0.3s; }
+
+  /* Toast notifications */
+  .toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+  .toast { background: var(--bark); color: var(--parch-lt); font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 20px; box-shadow: var(--shl); opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: var(--forest); }
+  .toast.err     { background: var(--rust); }
+
+  /* ── Stats ── */
+  .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
+  .stat-card { background: var(--forest); color: var(--parch-lt); border-radius: var(--radius); padding: 14px 16px; position: relative; overflow: hidden; }
+  .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--sage-lt); }
+  .stat-n { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 34px; line-height: 1; }
+  .stat-l { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--sage-lt); margin-top: 5px; }
+
+  /* ── Section header ── */
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; gap: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--forest); }
+  .section-head h2 { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 28px; line-height: 1; }
+  .section-head p { font-size: 13px; color: var(--stone); margin-top: 5px; }
+  .count-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; background: var(--forest); color: var(--parch-lt); padding: 4px 10px; border-radius: var(--radius); white-space: nowrap; margin-bottom: 4px; }
+
+  /* ── Zone tags ── */
+  .zone-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 7px; border-radius: var(--radius); white-space: nowrap; }
+  .zt-japanese   { background: var(--teal-pale);   color: var(--teal); }
+  .zt-road       { background: var(--stone-pale);  color: var(--stone); }
+  .zt-driveway   { background: var(--clay-pale);   color: var(--clay); }
+  .zt-frontyard  { background: var(--forest-pale); color: var(--forest); }
+  .zt-midyard    { background: var(--sage-pale);   color: var(--sage); }
+  .zt-backyard   { background: #d8eacc;            color: var(--fern); }
+  .zt-greenhouse { background: var(--plum-pale);   color: var(--plum); }
+
+  /* ── Entry cards ── */
+  .entries-list { display: flex; flex-direction: column; gap: 14px; }
+  .entry-card { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); overflow: hidden; border-left: 5px solid var(--parch-dk); transition: box-shadow 0.15s, transform 0.12s; }
+  .entry-card:hover { box-shadow: var(--shl); transform: translateY(-1px); }
+  .zl-japanese   { border-left-color: var(--teal); }
+  .zl-road       { border-left-color: var(--stone); }
+  .zl-driveway   { border-left-color: var(--clay); }
+  .zl-frontyard  { border-left-color: var(--forest-mid); }
+  .zl-midyard    { border-left-color: var(--sage); }
+  .zl-backyard   { border-left-color: var(--fern); }
+  .zl-greenhouse { border-left-color: var(--plum); }
+  .entry-top { padding: 14px 16px 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .entry-date { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 19px; color: var(--bark); line-height: 1.1; }
+  .entry-conditions { font-size: 12px; color: var(--stone); margin-top: 3px; font-weight: 300; }
+  .entry-zone-row { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; }
+  .entry-body { padding: 2px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .ef-label { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--stone); margin-bottom: 2px; }
+  .ef-text  { font-size: 14px; line-height: 1.6; color: var(--bark-mid); }
+  .entry-bloom-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .bloom-species-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; background: var(--forest-pale); color: var(--forest); border-radius: var(--radius); padding: 4px 9px; cursor: pointer; transition: background 0.12s; }
+  .bloom-species-tag:hover { background: #c4deb8; }
+  .bloom-species-tag .sp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .entry-photos-strip { padding: 0 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .entry-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius); border: 2px solid var(--parch-dk); cursor: pointer; transition: border-color 0.15s, transform 0.12s; }
+  .entry-thumb:hover { border-color: var(--forest-mid); transform: scale(1.04); }
+  .entry-pills { padding: 0 16px 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 3px 8px; border-radius: var(--radius); }
+  .p-action { background: var(--stone-pale);  color: var(--stone); }
+  .p-q      { background: var(--gold-pale);   color: var(--gold); }
+
+  /* ── Species bloom selector ── */
+  .species-bloom-selector { border: 1.5px solid var(--parch-dk); border-radius: var(--radius); background: #fff; overflow: hidden; }
+  .sbs-search { border: none; border-bottom: 1.5px solid var(--parch-dk); width: 100%; padding: 9px 11px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--bark); }
+  .sbs-search:focus { outline: none; border-bottom-color: var(--forest-mid); }
+  .sbs-list { max-height: 160px; overflow-y: auto; }
+  .sbs-item { display: flex; align-items: center; gap: 10px; padding: 8px 11px; cursor: pointer; font-size: 13px; color: var(--bark-mid); transition: background 0.1s; border-bottom: 1px solid var(--parch-dk); }
+  .sbs-item:last-child { border-bottom: none; }
+  .sbs-item:hover { background: var(--forest-pale); }
+  .sbs-item.selected { background: var(--forest-pale); color: var(--forest); font-weight: 500; }
+  .sbs-item img { width: 32px; height: 32px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
+  .sbs-item-noimg { width: 32px; height: 32px; border-radius: 2px; background: var(--parch-dk); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .sbs-item-info { flex: 1; }
+  .sbs-item-sci { font-style: italic; font-size: 13px; }
+  .sbs-item-comm { font-size: 11px; color: var(--stone); }
+  .sbs-item-check { color: var(--forest-mid); font-size: 16px; flex-shrink: 0; }
+  .sbs-empty { padding: 14px; font-size: 13px; color: var(--stone); text-align: center; }
+  .sbs-selected-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .sbs-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; background: var(--forest-pale); color: var(--forest); border-radius: var(--radius); padding: 3px 8px; cursor: pointer; }
+  .sbs-pill:hover { background: #c4deb8; }
+
+  /* ── Empty state ── */
+  .empty-state { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); padding: 56px 24px; text-align: center; border: 2px dashed var(--parch-dk); }
+  .empty-icon { font-size: 44px; margin-bottom: 12px; opacity: 0.28; }
+  .empty-state h3 { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 22px; margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; color: var(--stone); max-width: 320px; margin: 0 auto 20px; line-height: 1.65; font-weight: 300; }
+
+  /* ── Bloom calendar ── */
+  .bloom-wrap { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); overflow-x: auto; }
+  .bloom-head { background: var(--forest); color: var(--parch-lt); padding: 16px 20px; }
+  .bloom-head h3 { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 20px; }
+  .bloom-head p  { font-size: 12px; color: var(--sage-lt); margin-top: 3px; }
+  .cal-grid { display: grid; grid-template-columns: 200px repeat(12,1fr); min-width: 680px; }
+  .cal-col-head { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stone); padding: 9px 4px; text-align: center; border-left: 1px solid var(--parch-dk); }
+  .cal-col-head:first-child { border-left: none; text-align: left; padding-left: 12px; }
+  .cal-sp-name { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--bark-mid); padding: 5px 12px; border-top: 1px solid var(--parch-dk); overflow: hidden; cursor: pointer; transition: background 0.12s; }
+  .cal-sp-name:hover { background: var(--sage-pale); }
+  .cal-sp-thumb { width: 28px; height: 28px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+  .cal-sp-thumb-placeholder { width: 28px; height: 28px; border-radius: 2px; background: var(--parch-dk); flex-shrink: 0; }
+  .cal-sp-sci { font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-sp-comm { font-size: 11px; color: var(--stone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-cell { border-top: 1px solid var(--parch-dk); border-left: 1px solid var(--parch-dk); display: flex; align-items: center; justify-content: center; padding: 5px 2px; }
+  .bloom-pip { width: 10px; height: 10px; border-radius: 50%; }
+  .bloom-pip.on       { background: var(--forest-mid); }
+  .bloom-pip.observed { background: var(--rust); }
+  .cal-legend { padding: 10px 20px; font-size: 12px; color: var(--stone); display: flex; gap: 20px; flex-wrap: wrap; border-top: 1px solid var(--parch-dk); }
+  .leg-item { display: flex; align-items: center; gap: 6px; }
+  .leg-pip  { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── Species inventory ── */
+  .inv-filters { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filter-btn { background: var(--parch-lt); border: 1.5px solid var(--parch-dk); color: var(--stone); padding: 6px 13px; border-radius: var(--radius); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--forest); color: var(--parch-lt); border-color: var(--forest); }
+  .sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 12px; }
+  .sp-card { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); overflow: hidden; border-top: 4px solid var(--parch-dk); transition: box-shadow 0.15s, transform 0.12s; }
+  .sp-card:hover { box-shadow: var(--shl); transform: translateY(-1px); }
+  .sc-japanese   { border-top-color: var(--teal); }
+  .sc-road       { border-top-color: var(--stone); }
+  .sc-driveway   { border-top-color: var(--clay); }
+  .sc-frontyard  { border-top-color: var(--forest-mid); }
+  .sc-midyard    { border-top-color: var(--sage); }
+  .sc-backyard   { border-top-color: var(--fern); }
+  .sc-greenhouse { border-top-color: var(--plum); }
+  .sc-mystery    { border-top-style: dashed; border-top-color: var(--stone-lt); }
+  .sp-photo-wrap { position: relative; height: 140px; background: var(--parch-dk); overflow: hidden; }
+  .sp-photo { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+  .sp-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; opacity: 0.2; }
+  .sp-photo-credit { position: absolute; bottom: 4px; right: 6px; font-size: 9px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 2px; }
+  .sp-body { padding: 12px 14px 14px; }
+  .sp-sci  { font-family: 'Zilla Slab', serif; font-style: italic; font-size: 15px; color: var(--bark); margin-bottom: 2px; }
+  .sp-comm { font-size: 12px; color: var(--stone); margin-bottom: 8px; font-weight: 300; }
+  .sp-bloom-str { font-size: 12px; color: var(--bark-mid); margin-bottom: 10px; }
+  .sp-foot { display: flex; justify-content: space-between; align-items: center; }
+  .sp-status { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: var(--radius); }
+  .ss-confirmed { background: var(--forest-pale); color: var(--forest); }
+  .ss-suspected { background: var(--gold-pale);   color: var(--gold); }
+  .ss-unknown   { background: var(--stone-pale);  color: var(--stone); }
+  .sp-added { font-size: 11px; color: var(--stone-lt); }
+  .sp-observed-count { font-size: 11px; color: var(--forest-mid); font-weight: 700; margin-top: 6px; }
+  .sp-card-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--parch-dk); }
+  .sp-btn-edit { flex: 1; background: var(--forest-pale); color: var(--forest); border: 1px solid var(--forest-pale); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 0; cursor: pointer; transition: background 0.12s; }
+  .sp-btn-edit:hover { background: #c4deb8; }
+  .sp-btn-delete { background: var(--rust-pale); color: var(--rust); border: 1px solid var(--rust-pale); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 10px; cursor: pointer; transition: background 0.12s; }
+  .sp-btn-delete:hover { background: #ecc8bc; }
+
+  /* ── Mystery log ── */
+  .mystery-list { display: flex; flex-direction: column; gap: 10px; }
+  .myst-card { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); padding: 16px 18px; border-left: 5px solid var(--stone-lt); display: flex; gap: 14px; transition: box-shadow 0.15s; }
+  .myst-card:hover { box-shadow: var(--shl); }
+  .myst-num { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 34px; color: var(--parch-dk); line-height: 1; min-width: 42px; margin-top: -2px; }
+  .myst-body { flex: 1; }
+  .myst-date { font-size: 11px; color: var(--stone-lt); margin-bottom: 4px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .myst-desc { font-size: 14px; color: var(--bark-mid); line-height: 1.6; margin-bottom: 8px; }
+  .myst-guess{ font-size: 13px; color: var(--stone); font-style: italic; margin-bottom: 8px; }
+  .myst-loc  { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stone); }
+  .myst-badge{ display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: var(--radius); margin-top: 6px; }
+  .mb-open   { background: var(--stone-pale); color: var(--stone); }
+  .mb-solving{ background: var(--gold-pale);  color: var(--gold); }
+  .mb-solved { background: var(--forest-pale);color: var(--forest); }
+
+  /* ── Maintenance ── */
+  .maint-section { margin-bottom: 28px; }
+  .maint-zone-head { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 19px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--forest); display: flex; align-items: center; gap: 10px; }
+  .maint-pip { width: 12px; height: 12px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+  .maint-items { display: flex; flex-direction: column; gap: 8px; }
+  .maint-item { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); padding: 11px 16px; display: flex; gap: 14px; align-items: flex-start; font-size: 14px; color: var(--bark-mid); line-height: 1.55; }
+  .maint-date { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stone-lt); min-width: 52px; padding-top: 2px; flex-shrink: 0; }
+
+  /* ── Modals ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(38,32,15,0.65); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px 16px; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--parch-lt); border-radius: var(--radius); box-shadow: 0 20px 72px rgba(38,32,15,0.35); width: 100%; max-width: 600px; margin: auto; overflow: hidden; }
+  .modal-head { background: var(--forest); color: var(--parch-lt); padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 3px solid var(--rust); }
+  .modal-head h2 { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 22px; }
+  .modal-head p  { font-size: 12px; color: var(--sage-lt); margin-top: 3px; font-weight: 300; }
+  .modal-x { background: none; border: none; color: var(--sage-lt); font-size: 26px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
+  .modal-x:hover { color: var(--parch-lt); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 72vh; overflow-y: auto; }
+  .modal-foot { padding: 14px 20px; border-top: 1px solid var(--parch-dk); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label.fl { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--stone); }
+  input[type="text"], input[type="date"], input[type="url"], select, textarea { background: #fff; border: 1.5px solid var(--parch-dk); border-radius: var(--radius); padding: 9px 11px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--bark); width: 100%; transition: border-color 0.15s; -webkit-appearance: none; appearance: none; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--forest-mid); }
+  textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
+
+  /* Photo upload */
+  .photo-upload-area { border: 2px dashed var(--parch-dk); border-radius: var(--radius); padding: 16px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
+  .photo-upload-area:hover { border-color: var(--forest-mid); background: var(--sage-pale); }
+  .photo-upload-area input[type="file"] { display: none; }
+  .upload-label { font-size: 13px; color: var(--stone); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .upload-icon { font-size: 28px; opacity: 0.4; }
+  .photo-preview-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .photo-preview-item { position: relative; }
+  .photo-preview-img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius); border: 2px solid var(--parch-dk); display: block; }
+  .photo-remove-btn { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--rust); color: #fff; border: none; font-size: 11px; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
+
+  /* Species ref photo */
+  .sp-ref-wrap { border-radius: var(--radius); overflow: hidden; background: var(--parch-dk); height: 130px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .sp-ref-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .sp-ref-placeholder { font-size: 12px; color: var(--stone); text-align: center; padding: 12px; line-height: 1.5; }
+  .sp-ref-credit { position: absolute; bottom: 4px; right: 6px; font-size: 9px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 2px; display: none; }
+  .btn-sm { background: var(--forest); color: var(--parch-lt); border: none; padding: 6px 12px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.15s; }
+  .btn-sm:hover { background: var(--forest-mid); }
+  .ref-url-row { display: flex; gap: 8px; margin-top: 6px; }
+  .ref-url-row input { flex: 1; font-size: 12px; }
+  .ref-url-row button { flex-shrink: 0; }
+
+  .zone-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+  .zone-pill { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 11px; border-radius: var(--radius); border: 1.5px solid var(--parch-dk); background: #fff; cursor: pointer; transition: all 0.12s; user-select: none; }
+  .zone-pill input { display: none; }
+  .zone-pill:hover { border-color: var(--stone); }
+  .zp-japanese   { background: var(--teal-pale);   border-color: var(--teal);       color: var(--teal); }
+  .zp-road       { background: var(--stone-pale);  border-color: var(--stone);      color: var(--stone); }
+  .zp-driveway   { background: var(--clay-pale);   border-color: var(--clay);       color: var(--clay); }
+  .zp-frontyard  { background: var(--forest-pale); border-color: var(--forest-mid); color: var(--forest); }
+  .zp-midyard    { background: var(--sage-pale);   border-color: var(--sage);       color: var(--sage); }
+  .zp-backyard   { background: #d8eacc;            border-color: var(--fern);       color: var(--fern); }
+  .zp-greenhouse { background: var(--plum-pale);   border-color: var(--plum);       color: var(--plum); }
+
+  .month-checks { display: flex; flex-wrap: wrap; gap: 5px; }
+  .mo-pill { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 5px 9px; border-radius: var(--radius); border: 1.5px solid var(--parch-dk); background: #fff; cursor: pointer; user-select: none; transition: all 0.12s; }
+  .mo-pill input { display: none; }
+  .mo-pill.mo-on { background: var(--forest-pale); border-color: var(--forest-mid); color: var(--forest); }
+
+  .btn-cancel { background: none; border: 1.5px solid var(--parch-dk); color: var(--stone); padding: 9px 18px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: border-color 0.15s; }
+  .btn-cancel:hover { border-color: var(--stone); }
+
+  /* ── Care Calendar ── */
+  .cal-month-block { margin-bottom: 28px; }
+  .cal-month-title {
+    font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 20px;
+    padding: 10px 16px; background: var(--forest); color: var(--parch-lt);
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cal-month-title.current-month { background: var(--rust); }
+  .cal-month-task-count { font-size: 12px; font-weight: 400; color: var(--sage-lt); }
+  .cal-task-list { background: var(--parch-lt); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--sh); overflow: hidden; }
+  .cal-task-empty { padding: 16px 20px; font-size: 13px; color: var(--stone); font-style: italic; }
+  .cal-task-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px; border-top: 1px solid var(--parch-dk);
+    transition: background 0.12s;
+  }
+  .cal-task-item:first-child { border-top: none; }
+  .cal-task-item.done { opacity: 0.5; }
+  .cal-task-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--parch-dk); background: #fff;
+    flex-shrink: 0; cursor: pointer; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .cal-task-check:hover { border-color: var(--forest-mid); }
+  .cal-task-check.checked { background: var(--forest-mid); border-color: var(--forest-mid); }
+  .cal-task-check.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+  .cal-task-body { flex: 1; }
+  .cal-task-title { font-size: 14px; font-weight: 500; color: var(--bark); margin-bottom: 2px; }
+  .cal-task-item.done .cal-task-title { text-decoration: line-through; }
+  .cal-task-desc { font-size: 13px; color: var(--stone); line-height: 1.5; }
+  .cal-task-zone { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: var(--radius); margin-top: 5px; }
+  .cal-task-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .cal-task-del { background: none; border: none; color: var(--stone-lt); font-size: 16px; cursor: pointer; padding: 2px 4px; line-height: 1; }
+  .cal-task-del:hover { color: var(--rust); }
+
+  /* Seed some default tasks styling */
+  .cal-month-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .cal-month-jump { background: var(--parch-lt); border: 1.5px solid var(--parch-dk); color: var(--stone); padding: 5px 12px; border-radius: var(--radius); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.12s; }
+  .cal-month-jump:hover, .cal-month-jump.active { background: var(--forest); color: var(--parch-lt); border-color: var(--forest); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(38,32,15,0.92); align-items: center; justify-content: center; padding: 20px; }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 90vh; border-radius: var(--radius); }
+  .lightbox-close { position: fixed; top: 16px; right: 20px; background: none; border: none; color: var(--parch-lt); font-size: 36px; cursor: pointer; line-height: 1; padding: 0; }
+
+  @media (max-width: 600px) {
+    .stats-bar { grid-template-columns: repeat(2,1fr); }
+    .fr { grid-template-columns: 1fr; }
+    .sp-grid { grid-template-columns: 1fr; }
+    .header-badge { display: none; }
+    .header-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-bar"><div class="loading-bar-fill" id="loading-bar"></div></div>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-lockup">
+      <div class="header-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 5.5 4 10c0 3.2 1.7 6 4.5 7.6V20h7v-2.4C18.3 16 20 13.2 20 10c0-4.5-4-8-8-8zm0 2c3.3 0 6 2.8 6 6 0 2.6-1.4 4.8-3.8 6.1l-.7.4V18h-3v-1.5l-.7-.4C7.4 14.8 6 12.6 6 10c0-3.2 2.7-6 6-6z"/></svg>
+      </div>
+      <div>
+        <div class="header-eyebrow">Riegelsville, PA · Zone 6b</div>
+        <div class="header-title">Garden Journal</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="sync-dot" id="sync-dot" title="Database sync status"></div>
+      <button class="btn-outline" onclick="openSpeciesModal()">+ Species</button>
+      <button class="btn-primary"  onclick="openEntryModal()">+ New Entry</button>
+    </div>
+  </div>
+  <div class="nav-strip">
+    <div class="nav-inner">
+      <button class="tab-btn active" onclick="switchTab('entries',this)">Field Notes</button>
+      <button class="tab-btn"        onclick="switchTab('bloom',this)">Bloom Calendar</button>
+      <button class="tab-btn"        onclick="switchTab('inventory',this)">Species Inventory</button>
+      <button class="tab-btn"        onclick="switchTab('mystery',this)">Mystery Log</button>
+      <button class="tab-btn"        onclick="switchTab('maintenance',this)">Maintenance Log</button>
+      <button class="tab-btn"        onclick="switchTab('calendar',this)">Care Calendar</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="view active" id="view-entries">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="section-head">
+      <div><h2>Field Notes</h2><p id="today-display"></p></div>
+      <span class="count-tag" id="entry-count">0 entries</span>
+    </div>
+    <div class="entries-list" id="entries-list"></div>
+  </div>
+
+  <div class="view" id="view-bloom">
+    <div class="section-head">
+      <div><h2>Bloom Calendar</h2><p>Click any row to jump to that species</p></div>
+    </div>
+    <div class="bloom-wrap" id="bloom-wrap"></div>
+  </div>
+
+  <div class="view" id="view-inventory">
+    <div class="section-head">
+      <div><h2>Species Inventory</h2><p>Everything growing on the property</p></div>
+      <span class="count-tag" id="species-count">0 species</span>
+    </div>
+    <div class="inv-filters">
+      <button class="filter-btn active" onclick="filterSpecies('all',this)">All</button>
+      <button class="filter-btn" onclick="filterSpecies('japanese',this)">Japanese Garden</button>
+      <button class="filter-btn" onclick="filterSpecies('road',this)">Road</button>
+      <button class="filter-btn" onclick="filterSpecies('driveway',this)">Driveway</button>
+      <button class="filter-btn" onclick="filterSpecies('frontyard',this)">Front Yard</button>
+      <button class="filter-btn" onclick="filterSpecies('midyard',this)">Middle Yard</button>
+      <button class="filter-btn" onclick="filterSpecies('backyard',this)">Back Yard</button>
+      <button class="filter-btn" onclick="filterSpecies('greenhouse',this)">Greenhouse</button>
+      <button class="filter-btn" onclick="filterSpecies('mystery',this)">Mysteries</button>
+    </div>
+    <div class="sp-grid" id="sp-grid"></div>
+  </div>
+
+  <div class="view" id="view-mystery">
+    <div class="section-head">
+      <div><h2>Mystery Log</h2><p>Things you can't identify yet — this list will shrink</p></div>
+      <span class="count-tag" id="mystery-count">0 open</span>
+    </div>
+    <div class="mystery-list" id="mystery-list"></div>
+  </div>
+
+  <div class="view" id="view-calendar">
+    <div class="section-head">
+      <div><h2>Care Calendar</h2><p>Monthly tasks — what to do and when</p></div>
+      <button class="btn-primary" onclick="openTaskModal()">+ Add Task</button>
+    </div>
+    <div id="calendar-wrap"></div>
+  </div>
+
+  <div class="view" id="view-maintenance">
+    <div class="section-head">
+      <div><h2>Maintenance Log</h2><p>Actions logged in field entries, organized by zone</p></div>
+    </div>
+    <div id="maintenance-wrap"></div>
+  </div>
+</main>
+
+<!-- ENTRY MODAL -->
+<div class="modal-overlay" id="modal-entry">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>New Field Entry</h2><p id="modal-date-label"></p></div>
+      <button class="modal-x" onclick="closeModal('modal-entry')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Date</label><input type="date" id="e-date"></div>
+        <div class="fg"><label class="fl">Temperature</label><input type="text" id="e-temp" placeholder="e.g. 54°F / 38°F overnight"></div>
+      </div>
+      <div class="fg"><label class="fl">Conditions</label><input type="text" id="e-conditions" placeholder="e.g. Partly cloudy, dry past week"></div>
+      <div class="fg"><label class="fl">Zones observed</label><div class="zone-pills" id="zone-pill-group"></div></div>
+      <div class="fg"><label class="fl">What I observed</label><textarea id="e-observed" placeholder="New shoots, blooms, colors, unusual behavior, anything notable..."></textarea></div>
+      <div class="fg">
+        <label class="fl">Species blooming / notable today</label>
+        <div class="species-bloom-selector">
+          <input class="sbs-search" type="text" id="sbs-search" placeholder="Search your inventory…" oninput="renderSbsList()" autocomplete="off">
+          <div class="sbs-list" id="sbs-list"></div>
+        </div>
+        <div class="sbs-selected-pills" id="sbs-selected-pills"></div>
+      </div>
+      <div class="fg"><label class="fl">Additional notes</label><textarea id="e-bloom-text" placeholder="Anything else noteworthy — pests, wildlife, soil conditions..." rows="2"></textarea></div>
+      <div class="fg"><label class="fl">Actions taken</label><textarea id="e-actions" placeholder="Pruning, watering, bamboo shoot removal, fertilizing..." rows="2"></textarea></div>
+      <div class="fg"><label class="fl">Open questions</label><textarea id="e-questions" placeholder="Things to research, plants to identify, things to watch..." rows="2"></textarea></div>
+      <div class="fg">
+        <label class="fl">Photos</label>
+        <div class="photo-upload-area" onclick="document.getElementById('photo-file-input').click()">
+          <label class="upload-label">
+            <span class="upload-icon">⊕</span>
+            <span><strong>Tap to add photos</strong> — jpg, png, heic</span>
+          </label>
+          <input type="file" id="photo-file-input" accept="image/*" multiple onchange="handlePhotoUpload(this)">
+        </div>
+        <div class="photo-preview-row" id="photo-preview-row"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-entry')">Cancel</button>
+      <button class="btn-primary" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPECIES MODAL -->
+<div class="modal-overlay" id="modal-species">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Add Species</h2><p>Confirmed ID, suspected, or completely unknown</p></div>
+      <button class="modal-x" onclick="closeModal('modal-species')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Scientific name</label><input type="text" id="sp-sci" placeholder="e.g. Phyllostachys aurea"></div>
+        <div class="fg"><label class="fl">Common name</label><input type="text" id="sp-common" placeholder="e.g. Golden bamboo"></div>
+      </div>
+      <div class="fg">
+        <label class="fl" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Reference photo</span>
+          <button class="btn-sm" onclick="fetchRefPhoto()" type="button">Look up from Wikipedia</button>
+        </label>
+        <div class="sp-ref-wrap" id="sp-ref-wrap">
+          <div class="sp-ref-placeholder" id="sp-ref-placeholder">Enter the scientific name, then tap "Look up from Wikipedia"</div>
+          <img class="sp-ref-img" id="sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
+          <span class="sp-ref-credit" id="sp-ref-credit"></span>
+        </div>
+        <div class="ref-url-row">
+          <input type="url" id="sp-ref-url" placeholder="Or paste an image URL directly (right-click any web image → Copy Image Address)">
+          <button class="btn-sm" onclick="applyManualUrl('sp-ref-url','sp-ref-img','sp-ref-placeholder','sp-ref-credit')">Use URL</button>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Zone</label>
+          <select id="sp-zone">
+            <option value="japanese">Japanese Garden</option>
+            <option value="road">Road</option>
+            <option value="driveway">Driveway</option>
+            <option value="frontyard">Front Yard</option>
+            <option value="midyard">Middle Yard</option>
+            <option value="backyard">Back Yard</option>
+            <option value="greenhouse">Greenhouse</option>
+            <option value="mystery">Unknown / Mystery</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">ID Status</label>
+          <select id="sp-status">
+            <option value="confirmed">Confirmed ID</option>
+            <option value="suspected">Suspected ID</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Bloom months</label><div class="month-checks" id="month-checks"></div></div>
+      <div class="fg"><label class="fl">Notes</label><textarea id="sp-notes" placeholder="Location, features, care notes, ID source..." rows="3"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-species')">Cancel</button>
+      <button class="btn-primary" onclick="saveSpecies()">Add to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SPECIES MODAL -->
+<div class="modal-overlay" id="modal-edit-species">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Edit Species</h2><p id="edit-sp-subtitle"></p></div>
+      <button class="modal-x" onclick="closeModal('modal-edit-species')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-sp-id">
+      <div class="fr">
+        <div class="fg"><label class="fl">Scientific name</label><input type="text" id="edit-sp-sci"></div>
+        <div class="fg"><label class="fl">Common name</label><input type="text" id="edit-sp-common"></div>
+      </div>
+      <div class="fg">
+        <label class="fl" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Reference photo</span>
+          <button class="btn-sm" onclick="fetchEditRefPhoto()" type="button">Look up from Wikipedia</button>
+        </label>
+        <div class="sp-ref-wrap" id="edit-sp-ref-wrap">
+          <div class="sp-ref-placeholder" id="edit-sp-ref-placeholder">No photo yet</div>
+          <img class="sp-ref-img" id="edit-sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
+          <span class="sp-ref-credit" id="edit-sp-ref-credit"></span>
+        </div>
+        <div class="ref-url-row">
+          <input type="url" id="edit-sp-ref-url" placeholder="Or paste an image URL directly">
+          <button class="btn-sm" onclick="applyManualUrl('edit-sp-ref-url','edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit')">Use URL</button>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Zone</label>
+          <select id="edit-sp-zone">
+            <option value="japanese">Japanese Garden</option>
+            <option value="road">Road</option>
+            <option value="driveway">Driveway</option>
+            <option value="frontyard">Front Yard</option>
+            <option value="midyard">Middle Yard</option>
+            <option value="backyard">Back Yard</option>
+            <option value="greenhouse">Greenhouse</option>
+            <option value="mystery">Unknown / Mystery</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">ID Status</label>
+          <select id="edit-sp-status">
+            <option value="confirmed">Confirmed ID</option>
+            <option value="suspected">Suspected ID</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Bloom months</label><div class="month-checks" id="edit-month-checks"></div></div>
+      <div class="fg"><label class="fl">Notes</label><textarea id="edit-sp-notes" rows="3"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-edit-species')">Cancel</button>
+      <button class="btn-primary" onclick="saveEditSpecies()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- MYSTERY MODAL -->
+<div class="modal-overlay" id="modal-mystery">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Log a Mystery</h2><p>Something you can't identify yet</p></div>
+      <button class="modal-x" onclick="closeModal('modal-mystery')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fr">
+        <div class="fg"><label class="fl">Date found</label><input type="date" id="my-date"></div>
+        <div class="fg"><label class="fl">Zone / Location</label>
+          <select id="my-zone">
+            <option value="Japanese Garden">Japanese Garden</option>
+            <option value="Road">Road</option>
+            <option value="Driveway">Driveway</option>
+            <option value="Front Yard">Front Yard</option>
+            <option value="Middle Yard">Middle Yard</option>
+            <option value="Back Yard">Back Yard</option>
+            <option value="Greenhouse">Greenhouse</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Description</label><textarea id="my-desc" placeholder="Leaf shape, height, bark, smell, color, growth habit — detail is everything..."></textarea></div>
+      <div class="fg"><label class="fl">Best guess</label><input type="text" id="my-guess" placeholder="e.g. Possibly a Fargesia species?"></div>
+      <div class="fg"><label class="fl">Status</label>
+        <select id="my-status">
+          <option value="open">Open — no idea yet</option>
+          <option value="solving">Working on it</option>
+          <option value="solved">Solved</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-mystery')">Cancel</button>
+      <button class="btn-primary" onclick="saveMystery()">Log Mystery</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Add Care Task</h2><p>A recurring monthly maintenance item</p></div>
+      <button class="modal-x" onclick="closeModal('modal-task')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Task name</label><input type="text" id="task-title" placeholder="e.g. Snap back bamboo shoots"></div>
+      <div class="fg"><label class="fl">Details / notes</label><textarea id="task-desc" placeholder="What to do, what to look for, tools needed..." rows="3"></textarea></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Month</label>
+          <select id="task-month">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Zone</label>
+          <select id="task-zone">
+            <option value="all">Whole property</option>
+            <option value="japanese">Japanese Garden</option>
+            <option value="road">Road</option>
+            <option value="driveway">Driveway</option>
+            <option value="frontyard">Front Yard</option>
+            <option value="midyard">Middle Yard</option>
+            <option value="backyard">Back Yard</option>
+            <option value="greenhouse">Greenhouse</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+// ── Supabase init ──
+const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── Constants ──
+const ZONES = [
+  { id:'japanese',   label:'Japanese Garden', color:'#2a5e58' },
+  { id:'road',       label:'Road',            color:'#68605a' },
+  { id:'driveway',   label:'Driveway',        color:'#44381e' },
+  { id:'frontyard',  label:'Front Yard',      color:'#3d6628' },
+  { id:'midyard',    label:'Middle Yard',     color:'#6b8c5a' },
+  { id:'backyard',   label:'Back Yard',       color:'#4a6e3a' },
+  { id:'greenhouse', label:'Greenhouse',      color:'#5e3050' },
+];
+const MO  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MOF = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── In-memory store ──
+let entries   = [];
+let species   = [];
+let mysteries = [];
+
+// ── Modal state ──
+let pendingPhotos   = [];
+let pendingBloomSp  = [];
+let pendingRefPhoto = null; // {url, credit} | 'keep' | null
+let editingSpId     = null;
+
+// ── Utilities ──
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){ if(!iso)return''; const[y,m,d]=iso.split('-'); return`${MOF[parseInt(m)-1]} ${parseInt(d)}, ${y}`; }
+function fmtShort(iso){ if(!iso)return''; const[,m,d]=iso.split('-'); return`${MO[parseInt(m)-1]} ${parseInt(d)}`; }
+function zoneById(id){ return ZONES.find(z=>z.id===id)||{label:id,color:'#68605a'}; }
+function spById(id){ return species.find(s=>s.id===id); }
+
+// ── Loading bar ──
+function setLoading(pct){ document.getElementById('loading-bar').style.width = pct+'%'; }
+
+// ── Sync dot ──
+function setSyncDot(state){
+  const d = document.getElementById('sync-dot');
+  d.className = 'sync-dot' + (state==='syncing'?' syncing':state==='error'?' error':'');
+  d.title = state==='ok'?'Synced with database':state==='syncing'?'Saving…':'Sync error';
+}
+
+// ── Toast ──
+function toast(msg, type='success'){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ el.classList.add('show'); }); });
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(), 300); }, 2500);
+}
+
+// ── Supabase load ──
+async function loadAll(){
+  setSyncDot('syncing');
+  setLoading(20);
+  try {
+    const [eRes, sRes, mRes] = await Promise.all([
+      sb.from('entries').select('*').order('date', {ascending:false}),
+      sb.from('species').select('*').order('scientific'),
+      sb.from('mysteries').select('*').order('id', {ascending:false}),
+    ]);
+    setLoading(80);
+    if(eRes.error || sRes.error || mRes.error) throw new Error('Load error');
+    entries   = (eRes.data || []).map(dbToEntry);
+    species   = (sRes.data || []).map(dbToSpecies);
+    mysteries = mRes.data || [];
+    await loadTasks();
+    setSyncDot('ok');
+    setLoading(100);
+    setTimeout(()=>setLoading(0), 400);
+    renderAll();
+  } catch(e){
+    setSyncDot('error');
+    setLoading(0);
+    toast('Could not reach database — check your connection', 'err');
+  }
+}
+
+// ── DB row mappers ──
+function dbToEntry(r){ return { id:r.id, date:r.date, temp:r.temp||'', conditions:r.conditions||'', zones:r.zones||[], observed:r.observed||'', bloomSpeciesIds:r.bloom_species_ids||[], bloomText:r.bloom_text||'', actions:r.actions||'', questions:r.questions||'', photos:r.photos||[] }; }
+function dbToSpecies(r){ return { id:r.id, scientific:r.scientific||'', common:r.common||'', zone:r.zone||'', status:r.status||'unknown', bloomMonths:r.bloom_months||[], notes:r.notes||'', dateAdded:r.date_added||'', observationCount:r.observation_count||0, refPhoto:r.ref_photo||null, refCredit:r.ref_credit||null }; }
+function entryToDb(e){ return { id:e.id, date:e.date, temp:e.temp, conditions:e.conditions, zones:e.zones, observed:e.observed, bloom_species_ids:e.bloomSpeciesIds, bloom_text:e.bloomText, actions:e.actions, questions:e.questions, photos:e.photos }; }
+function speciesToDb(s){ return { id:s.id, scientific:s.scientific, common:s.common, zone:s.zone, status:s.status, bloom_months:s.bloomMonths, notes:s.notes, date_added:s.dateAdded, observation_count:s.observationCount, ref_photo:s.refPhoto, ref_credit:s.refCredit }; }
+
+// ── Tabs ──
+function switchTab(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='bloom')renderBloom();
+  if(id==='maintenance')renderMaintenance();
+  if(id==='calendar')renderCalendar();
+}
+
+// ── Modals ──
+function openEntryModal(){
+  pendingPhotos=[];pendingBloomSp=[];
+  document.getElementById('e-date').value=today();
+  document.getElementById('modal-date-label').textContent=fmtDate(today());
+  ['e-temp','e-conditions','e-observed','e-bloom-text','e-actions','e-questions'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('photo-preview-row').innerHTML='';
+  document.getElementById('sbs-search').value='';
+  renderSbsList(); renderSbsSelectedPills();
+  buildZonePills();
+  document.getElementById('modal-entry').classList.add('open');
+}
+function openSpeciesModal(){
+  ['sp-sci','sp-common','sp-notes','sp-ref-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sp-zone').value='japanese';
+  document.getElementById('sp-status').value='confirmed';
+  pendingRefPhoto=null;
+  resetRefPhotoUI('sp-ref-img','sp-ref-placeholder','sp-ref-credit','Enter the scientific name, then tap "Look up from Wikipedia"');
+  buildMonthChecks('month-checks',[]);
+  document.getElementById('modal-species').classList.add('open');
+}
+function openMysteryModal(){
+  document.getElementById('my-date').value=today();
+  ['my-desc','my-guess'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-mystery').classList.add('open');
+}
+function openEditSpecies(id){
+  const s=spById(id); if(!s)return;
+  editingSpId=id;
+  pendingRefPhoto='keep';
+  document.getElementById('edit-sp-id').value=id;
+  document.getElementById('edit-sp-subtitle').textContent=s.scientific;
+  document.getElementById('edit-sp-sci').value=s.scientific;
+  document.getElementById('edit-sp-common').value=s.common||'';
+  document.getElementById('edit-sp-zone').value=s.zone||'japanese';
+  document.getElementById('edit-sp-status').value=s.status||'confirmed';
+  document.getElementById('edit-sp-notes').value=s.notes||'';
+  document.getElementById('edit-sp-ref-url').value='';
+  if(s.refPhoto){
+    showRefPhotoUI('edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit', s.refPhoto, s.refCredit||'Wikipedia');
+  } else {
+    resetRefPhotoUI('edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit','No photo yet — look up or paste a URL');
+  }
+  buildMonthChecks('edit-month-checks', s.bloomMonths||[]);
+  document.getElementById('modal-edit-species').classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+// ── Ref photo UI helpers ──
+function showRefPhotoUI(imgId, phId, crId, url, credit){
+  const img=document.getElementById(imgId);
+  const ph=document.getElementById(phId);
+  const cr=document.getElementById(crId);
+  img.src=url; img.style.display='block';
+  ph.style.display='none';
+  cr.textContent=credit; cr.style.display='';
+}
+function resetRefPhotoUI(imgId, phId, crId, msg){
+  const img=document.getElementById(imgId);
+  const ph=document.getElementById(phId);
+  const cr=document.getElementById(crId);
+  img.src=''; img.style.display='none';
+  ph.textContent=msg; ph.style.display='';
+  cr.style.display='none';
+}
+function applyManualUrl(urlInputId, imgId, phId, crId){
+  const url = document.getElementById(urlInputId).value.trim();
+  if(!url){ toast('Paste an image URL first','err'); return; }
+  pendingRefPhoto={url, credit:'Custom photo'};
+  showRefPhotoUI(imgId, phId, crId, url, 'Custom photo');
+  toast('Photo URL applied ✓');
+}
+
+// ── Wikipedia lookup (JSONP — works from https://) ──
+async function wikiImageLookup(sciName){
+  return new Promise((resolve)=>{
+    const cb = `_wikiCB_${Date.now()}`;
+    const enc = encodeURIComponent(sciName);
+    let done = false;
+    function finish(r){ if(!done){ done=true; cleanup(); resolve(r); } }
+    function cleanup(){
+      try{ delete window[cb]; delete window[cb+'_s']; delete window[cb+'_i']; }catch{}
+      ['_ws1','_ws2','_ws3'].forEach(id=>{ const s=document.getElementById(id); if(s)s.remove(); });
+    }
+    const timer=setTimeout(()=>finish(null), 10000);
+
+    window[cb]=function(data){
+      clearTimeout(timer);
+      const pages=data.query&&data.query.pages;
+      if(pages){
+        const pg=Object.values(pages)[0];
+        if(pg&&pg.thumbnail&&pg.thumbnail.source){
+          finish({url:pg.thumbnail.source.replace(/\/\d+px-/,'/800px-'), credit:`Wikipedia · ${pg.title||sciName}`});
+          return;
+        }
+      }
+      // No image on exact match — try search
+      const cb2=cb+'_s';
+      const t2=setTimeout(()=>finish(null),8000);
+      window[cb2]=function(sd){
+        clearTimeout(t2);
+        const hits=sd.query&&sd.query.search;
+        if(!hits||!hits.length){ finish(null); return; }
+        const cb3=cb+'_i';
+        const t3=setTimeout(()=>finish(null),8000);
+        window[cb3]=function(id2){
+          clearTimeout(t3);
+          const p2=id2.query&&id2.query.pages;
+          if(p2){const pg2=Object.values(p2)[0];if(pg2&&pg2.thumbnail&&pg2.thumbnail.source){finish({url:pg2.thumbnail.source.replace(/\/\d+px-/,'/800px-'),credit:`Wikipedia · ${pg2.title||hits[0].title}`});return;}}
+          finish(null);
+        };
+        const s3=document.createElement('script');s3.id='_ws3';
+        s3.src=`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(hits[0].title)}&prop=pageimages&pithumbsize=600&pilicense=any&format=json&callback=${cb3}`;
+        s3.onerror=()=>finish(null);
+        document.head.appendChild(s3);
+      };
+      const s2=document.createElement('script');s2.id='_ws2';
+      s2.src=`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${enc}&srlimit=3&srnamespace=0&format=json&callback=${cb2}`;
+      s2.onerror=()=>finish(null);
+      document.head.appendChild(s2);
+    };
+
+    const s1=document.createElement('script');s1.id='_ws1';
+    s1.src=`https://en.wikipedia.org/w/api.php?action=query&titles=${enc}&prop=pageimages&pithumbsize=600&pilicense=any&format=json&callback=${cb}`;
+    s1.onerror=()=>{ clearTimeout(timer); finish(null); };
+    document.head.appendChild(s1);
+  });
+}
+
+async function fetchRefPhoto(){
+  const sci=document.getElementById('sp-sci').value.trim();
+  if(!sci){toast('Enter a scientific name first','err');return;}
+  const ph=document.getElementById('sp-ref-placeholder');
+  ph.textContent='Looking up…'; ph.style.display='';
+  document.getElementById('sp-ref-img').style.display='none';
+  const result=await wikiImageLookup(sci);
+  if(result){
+    pendingRefPhoto=result;
+    showRefPhotoUI('sp-ref-img','sp-ref-placeholder','sp-ref-credit',result.url,result.credit);
+    toast('Photo found ✓');
+  } else {
+    ph.textContent='No image found. Try pasting a URL below instead.';
+    toast('No Wikipedia image found','err');
+  }
+}
+async function fetchEditRefPhoto(){
+  const sci=document.getElementById('edit-sp-sci').value.trim();
+  if(!sci){toast('Enter a scientific name first','err');return;}
+  const ph=document.getElementById('edit-sp-ref-placeholder');
+  ph.textContent='Looking up…'; ph.style.display='';
+  document.getElementById('edit-sp-ref-img').style.display='none';
+  const result=await wikiImageLookup(sci);
+  if(result){
+    pendingRefPhoto=result;
+    showRefPhotoUI('edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit',result.url,result.credit);
+    toast('Photo found ✓');
+  } else {
+    ph.textContent='No image found. Try pasting a URL below instead.';
+    toast('No Wikipedia image found','err');
+  }
+}
+
+// ── Species bloom selector ──
+function renderSbsList(){
+  const q=(document.getElementById('sbs-search').value||'').toLowerCase();
+  const list=document.getElementById('sbs-list');
+  const filtered=species.filter(s=>!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)));
+  if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?'No matches':'No species yet — add some first'}</div>`;return;}
+  list.innerHTML=filtered.map(s=>{
+    const sel=pendingBloomSp.includes(s.id);
+    const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="sbs-item-noimg">🌿</div>`;
+    return`<div class="sbs-item${sel?' selected':''}" onclick="toggleBloomSp(${s.id})">
+      ${thumb}
+      <div class="sbs-item-info"><div class="sbs-item-sci">${s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.common}</div>`:''}</div>
+      ${sel?'<span class="sbs-item-check">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+function toggleBloomSp(id){
+  const idx=pendingBloomSp.indexOf(id);
+  if(idx>=0)pendingBloomSp.splice(idx,1); else pendingBloomSp.push(id);
+  renderSbsList(); renderSbsSelectedPills();
+}
+function renderSbsSelectedPills(){
+  document.getElementById('sbs-selected-pills').innerHTML=pendingBloomSp.map(id=>{
+    const s=spById(id); if(!s)return'';
+    return`<span class="sbs-pill" onclick="toggleBloomSp(${id})">${s.scientific} <span>×</span></span>`;
+  }).join('');
+}
+
+// ── Photo upload ──
+function handlePhotoUpload(input){
+  Array.from(input.files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const MAX=800; let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        pendingPhotos.push({dataUrl:canvas.toDataURL('image/jpeg',0.78),name:file.name});
+        renderPhotoPreviews();
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function renderPhotoPreviews(){
+  document.getElementById('photo-preview-row').innerHTML=
+    pendingPhotos.map((p,i)=>`<div class="photo-preview-item">
+      <img class="photo-preview-img" src="${p.dataUrl}">
+      <button class="photo-remove-btn" onclick="pendingPhotos.splice(${i},1);renderPhotoPreviews()">×</button>
+    </div>`).join('');
+}
+
+// ── Zone pills ──
+function buildZonePills(){
+  const wrap=document.getElementById('zone-pill-group'); wrap.innerHTML='';
+  ZONES.forEach(z=>{
+    const lbl=document.createElement('label');
+    lbl.className='zone-pill'; lbl.dataset.zone=z.id;
+    lbl.innerHTML=`<input type="checkbox" value="${z.id}"> ${z.label}`;
+    lbl.querySelector('input').addEventListener('change',function(){ lbl.className=this.checked?`zone-pill zp-${z.id}`:'zone-pill'; });
+    wrap.appendChild(lbl);
+  });
+}
+function buildMonthChecks(containerId, selectedMonths){
+  const wrap=document.getElementById(containerId); wrap.innerHTML='';
+  MO.forEach((m,i)=>{
+    const lbl=document.createElement('label');
+    const active=selectedMonths.includes(i);
+    lbl.className='mo-pill'+(active?' mo-on':'');
+    lbl.innerHTML=`<input type="checkbox" value="${i}"${active?' checked':''}> ${m}`;
+    lbl.querySelector('input').addEventListener('change',function(){ lbl.classList.toggle('mo-on',this.checked); });
+    wrap.appendChild(lbl);
+  });
+}
+
+// ── Save entry ──
+async function saveEntry(){
+  const zones=[...document.querySelectorAll('#zone-pill-group input:checked')].map(c=>c.value);
+  const entry={
+    id: Date.now(),
+    date: document.getElementById('e-date').value,
+    temp: document.getElementById('e-temp').value.trim(),
+    conditions: document.getElementById('e-conditions').value.trim(),
+    zones,
+    observed: document.getElementById('e-observed').value.trim(),
+    bloomSpeciesIds: [...pendingBloomSp],
+    bloomText: document.getElementById('e-bloom-text').value.trim(),
+    actions: document.getElementById('e-actions').value.trim(),
+    questions: document.getElementById('e-questions').value.trim(),
+    photos: pendingPhotos.map(p=>p.dataUrl),
+  };
+  if(!entry.date){toast('Please add a date','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('entries').insert(entryToDb(entry));
+  if(error){ setSyncDot('error'); toast('Save failed — try again','err'); return; }
+  // Update observation counts
+  for(const id of entry.bloomSpeciesIds){
+    const s=spById(id); if(!s)continue;
+    s.observationCount=(s.observationCount||0)+1;
+    await sb.from('species').update({observation_count:s.observationCount}).eq('id',id);
+  }
+  setSyncDot('ok');
+  entries.unshift(entry);
+  closeModal('modal-entry');
+  toast('Entry saved ✓');
+  renderEntries(); renderStats();
+}
+
+// ── Save species ──
+async function saveSpecies(){
+  const months=[...document.querySelectorAll('#month-checks input:checked')].map(c=>parseInt(c.value));
+  const refUrl = pendingRefPhoto && pendingRefPhoto.url ? pendingRefPhoto.url :
+                 document.getElementById('sp-ref-img').src || null;
+  const refCredit = pendingRefPhoto && pendingRefPhoto.credit ? pendingRefPhoto.credit : null;
+  const sp={
+    id: Date.now(),
+    scientific: document.getElementById('sp-sci').value.trim(),
+    common: document.getElementById('sp-common').value.trim(),
+    zone: document.getElementById('sp-zone').value,
+    status: document.getElementById('sp-status').value,
+    bloomMonths: months,
+    notes: document.getElementById('sp-notes').value.trim(),
+    dateAdded: today(),
+    observationCount: 0,
+    refPhoto: refUrl||null,
+    refCredit: refCredit,
+  };
+  if(!sp.scientific){toast('Please enter a scientific name','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('species').insert(speciesToDb(sp));
+  if(error){ setSyncDot('error'); toast('Save failed — try again','err'); return; }
+  setSyncDot('ok');
+  species.push(sp);
+  species.sort((a,b)=>a.scientific.localeCompare(b.scientific));
+  closeModal('modal-species');
+  toast(`${sp.scientific} added ✓`);
+  renderSpecies(); renderStats(); renderSbsList();
+}
+
+// ── Save mystery ──
+async function saveMystery(){
+  const m={id:Date.now(),date:document.getElementById('my-date').value,zone:document.getElementById('my-zone').value,description:document.getElementById('my-desc').value.trim(),guess:document.getElementById('my-guess').value.trim(),status:document.getElementById('my-status').value};
+  if(!m.description){toast('Please add a description','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('mysteries').insert(m);
+  if(error){ setSyncDot('error'); toast('Save failed — try again','err'); return; }
+  setSyncDot('ok');
+  mysteries.unshift(m);
+  closeModal('modal-mystery');
+  toast('Mystery logged ✓');
+  renderMysteries(); renderStats();
+}
+
+// ── Edit species ──
+async function saveEditSpecies(){
+  const id=editingSpId; if(!id)return;
+  const s=spById(id); if(!s)return;
+  const months=[...document.querySelectorAll('#edit-month-checks input:checked')].map(c=>parseInt(c.value));
+  s.scientific = document.getElementById('edit-sp-sci').value.trim();
+  s.common     = document.getElementById('edit-sp-common').value.trim();
+  s.zone       = document.getElementById('edit-sp-zone').value;
+  s.status     = document.getElementById('edit-sp-status').value;
+  s.notes      = document.getElementById('edit-sp-notes').value.trim();
+  s.bloomMonths= months;
+  if(pendingRefPhoto && pendingRefPhoto !== 'keep' && pendingRefPhoto.url){
+    s.refPhoto  = pendingRefPhoto.url;
+    s.refCredit = pendingRefPhoto.credit;
+  }
+  if(!s.scientific){toast('Scientific name is required','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('species').update(speciesToDb(s)).eq('id',id);
+  if(error){ setSyncDot('error'); toast('Save failed — try again','err'); return; }
+  setSyncDot('ok');
+  closeModal('modal-edit-species');
+  toast('Species updated ✓');
+  renderSpecies(); renderStats(); renderSbsList();
+}
+
+// ── Delete species ──
+function deleteSpecies(id){
+  const s=spById(id); if(!s)return;
+  const card=document.getElementById(`sp-card-${id}`);
+  if(!card||card.querySelector('.sp-confirm-row'))return;
+  const row=document.createElement('div');
+  row.className='sp-confirm-row';
+  row.style.cssText='display:flex;gap:6px;margin-top:8px;padding:8px;background:var(--rust-pale);border-radius:var(--radius);align-items:center;font-size:12px;color:var(--rust);font-weight:500;';
+  row.innerHTML=`<span style="flex:1">Delete <em>${s.scientific}</em>?</span>
+    <button onclick="confirmDeleteSpecies(${id})" style="background:var(--rust);color:#fff;border:none;border-radius:var(--radius);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Yes, delete</button>
+    <button onclick="this.closest('.sp-confirm-row').remove()" style="background:none;border:1px solid var(--rust);color:var(--rust);border-radius:var(--radius);padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Cancel</button>`;
+  card.querySelector('.sp-body').appendChild(row);
+}
+async function confirmDeleteSpecies(id){
+  setSyncDot('syncing');
+  const {error}=await sb.from('species').delete().eq('id',id);
+  if(error){ setSyncDot('error'); toast('Delete failed','err'); return; }
+  setSyncDot('ok');
+  species=species.filter(s=>s.id!==id);
+  toast('Species removed');
+  renderSpecies(); renderStats(); renderSbsList();
+}
+
+// ── Tasks (Care Calendar) ──
+let tasks = [];
+
+function taskToDb(t){ return { id:t.id, title:t.title, description:t.description, zone:t.zone, month:t.month, recurring:t.recurring, completed_years:t.completedYears }; }
+function dbToTask(r){ return { id:r.id, title:r.title||'', description:r.description||'', zone:r.zone||'all', month:r.month, recurring:r.recurring!==false, completedYears:r.completed_years||[] }; }
+
+async function loadTasks(){
+  const {data,error}=await sb.from('tasks').select('*').order('month');
+  if(!error) tasks=(data||[]).map(dbToTask);
+}
+
+function openTaskModal(){
+  ['task-title','task-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('task-month').value=new Date().getMonth();
+  document.getElementById('task-zone').value='all';
+  document.getElementById('modal-task').classList.add('open');
+}
+
+async function saveTask(){
+  const t={
+    id:Date.now(),
+    title:document.getElementById('task-title').value.trim(),
+    description:document.getElementById('task-desc').value.trim(),
+    zone:document.getElementById('task-zone').value,
+    month:parseInt(document.getElementById('task-month').value),
+    recurring:true,
+    completedYears:[],
+  };
+  if(!t.title){toast('Please add a task name','err');return;}
+  setSyncDot('syncing');
+  const {error}=await sb.from('tasks').insert(taskToDb(t));
+  if(error){setSyncDot('error');toast('Save failed','err');return;}
+  setSyncDot('ok');
+  tasks.push(t);
+  tasks.sort((a,b)=>a.month-b.month);
+  closeModal('modal-task');
+  toast('Task added ✓');
+  renderCalendar();
+}
+
+async function toggleTask(id){
+  const t=tasks.find(t=>t.id===id); if(!t)return;
+  const year=new Date().getFullYear();
+  const idx=t.completedYears.indexOf(year);
+  if(idx>=0) t.completedYears.splice(idx,1);
+  else t.completedYears.push(year);
+  await sb.from('tasks').update({completed_years:t.completedYears}).eq('id',id);
+  renderCalendar();
+}
+
+async function deleteTask(id){
+  tasks=tasks.filter(t=>t.id!==id);
+  await sb.from('tasks').delete().eq('id',id);
+  toast('Task removed');
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const wrap=document.getElementById('calendar-wrap');
+  const year=new Date().getFullYear();
+  const currentMonth=new Date().getMonth();
+
+  if(!tasks.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>No tasks yet</h3><p>Add recurring care tasks — bamboo shoot removal in April, greenhouse winterizing in October, Japanese maple pruning in March. Build your annual playbook.</p><button class="btn-primary" onclick="openTaskModal()">Add your first task</button></div>`;
+    return;
+  }
+
+  // Month jump nav
+  const activeMonths=new Set(tasks.map(t=>t.month));
+  const nav=MO.map((m,i)=>`<button class="cal-month-jump${i===currentMonth?' active':''}" onclick="document.getElementById('cal-month-${i}').scrollIntoView({behavior:'smooth',block:'start'})">${m}</button>`).join('');
+
+  const months=MO.map((monthName,mi)=>{
+    const monthTasks=tasks.filter(t=>t.month===mi);
+    const isCurrent=mi===currentMonth;
+    const taskRows=monthTasks.length ? monthTasks.map(t=>{
+      const done=t.completedYears.includes(year);
+      const zLabel=t.zone==='all'?'Whole property':zoneById(t.zone).label;
+      const zColor=t.zone==='all'?'var(--stone)':zoneById(t.zone).color;
+      return`<div class="cal-task-item${done?' done':''}">
+        <div class="cal-task-check${done?' checked':''}" onclick="toggleTask(${t.id})"></div>
+        <div class="cal-task-body">
+          <div class="cal-task-title">${t.title}</div>
+          ${t.description?`<div class="cal-task-desc">${t.description}</div>`:''}
+          <span class="cal-task-zone" style="background:${zColor}22;color:${zColor}">${zLabel}</span>
+        </div>
+        <div class="cal-task-actions">
+          <button class="cal-task-del" onclick="deleteTask(${t.id})" title="Remove task">×</button>
+        </div>
+      </div>`;
+    }).join('') : `<div class="cal-task-empty">No tasks for ${monthName}</div>`;
+
+    return`<div class="cal-month-block" id="cal-month-${mi}">
+      <div class="cal-month-title${isCurrent?' current-month':''}">
+        <span>${monthName} ${year}</span>
+        <span class="cal-month-task-count">${monthTasks.length} task${monthTasks.length!==1?'s':''}</span>
+      </div>
+      <div class="cal-task-list">${taskRows}</div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="cal-month-nav">${nav}</div>${months}`;
+}
+
+
+function openLightbox(src){ document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); });
+
+// ── Jump to species ──
+function jumpToSpecies(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-inventory').classList.add('active');
+  document.querySelectorAll('.tab-btn')[2].classList.add('active');
+  activeFilter='all';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn')[0].classList.add('active');
+  renderSpecies();
+  setTimeout(()=>{ const el=document.getElementById(`sp-card-${id}`); if(el)el.scrollIntoView({behavior:'smooth',block:'center'}); },100);
+}
+
+// ── Render entries ──
+function renderEntries(){
+  const el=document.getElementById('entries-list');
+  document.getElementById('entry-count').textContent=`${entries.length} entr${entries.length===1?'y':'ies'}`;
+  if(!entries.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">◈</div><h3>First season, first entry</h3><p>Start documenting what you find. By next spring you'll have a map of this property's rhythm.</p><button class="btn-primary" onclick="openEntryModal()">Write your first entry</button></div>`;
+    return;
+  }
+  el.innerHTML=entries.map(e=>{
+    const primary=e.zones&&e.zones.length?e.zones[0]:'';
+    const zoneTags=(e.zones||[]).map(z=>`<span class="zone-tag zt-${z}">${zoneById(z).label}</span>`).join('');
+    const weather=[e.temp,e.conditions].filter(Boolean).join(' · ');
+    const photos=(e.photos&&e.photos.length)?`<div class="entry-photos-strip">${e.photos.map(src=>`<img class="entry-thumb" src="${src}" onclick="openLightbox('${src}')">`).join('')}</div>`:'';
+    const bloomTags=(e.bloomSpeciesIds&&e.bloomSpeciesIds.length)?`<div>
+      <div class="ef-label">In bloom / notable</div>
+      <div class="entry-bloom-tags">${e.bloomSpeciesIds.map(id=>{
+        const s=spById(id); if(!s)return'';
+        return`<span class="bloom-species-tag" onclick="jumpToSpecies(${s.id})"><span class="sp-dot" style="background:${zoneById(s.zone).color}"></span>${s.scientific}${s.common?` · ${s.common}`:''}</span>`;
+      }).join('')}</div></div>`:'';
+    const pills=[
+      e.actions?`<span class="pill p-action">Actions noted</span>`:'',
+      e.questions?`<span class="pill p-q">Follow-up</span>`:'',
+    ].filter(Boolean).join('');
+    return`<div class="entry-card${primary?` zl-${primary}`:''}">
+      <div class="entry-top">
+        <div><div class="entry-date">${fmtDate(e.date)}</div>${weather?`<div class="entry-conditions">${weather}</div>`:''}</div>
+        <div class="entry-zone-row">${zoneTags||'<span class="zone-tag" style="background:var(--stone-pale);color:var(--stone)">General</span>'}</div>
+      </div>
+      <div class="entry-body">
+        ${e.observed?`<div><div class="ef-label">Observed</div><div class="ef-text">${e.observed}</div></div>`:''}
+        ${bloomTags}
+        ${e.bloomText?`<div><div class="ef-label">Notes</div><div class="ef-text">${e.bloomText}</div></div>`:''}
+        ${e.actions?`<div><div class="ef-label">Actions</div><div class="ef-text">${e.actions}</div></div>`:''}
+        ${e.questions?`<div><div class="ef-label">Questions</div><div class="ef-text">${e.questions}</div></div>`:''}
+      </div>
+      ${photos}
+      ${pills?`<div class="entry-pills">${pills}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── Render species ──
+let activeFilter='all';
+function filterSpecies(zone,btn){
+  activeFilter=zone;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSpecies();
+}
+function renderSpecies(){
+  const grid=document.getElementById('sp-grid');
+  const list=activeFilter==='all'?species:
+    activeFilter==='mystery'?species.filter(s=>s.status==='unknown'||s.zone==='mystery'):
+    species.filter(s=>s.zone===activeFilter);
+  document.getElementById('species-count').textContent=`${species.length} species`;
+  if(!list.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⊕</div><h3>${activeFilter==='all'?'No species logged yet':'None in this zone yet'}</h3><p>Add species and look up Wikipedia photos — it works now that you're on a real URL.</p><button class="btn-primary" onclick="openSpeciesModal()">Add first species</button></div>`;
+    return;
+  }
+  grid.innerHTML=list.map(s=>{
+    const isMyst=s.status==='unknown'||s.zone==='mystery';
+    const cls=isMyst?'sc-mystery':`sc-${s.zone}`;
+    const bloomStr=s.bloomMonths&&s.bloomMonths.length?s.bloomMonths.map(m=>MO[m]).join(' · '):'';
+    const sCls={confirmed:'ss-confirmed',suspected:'ss-suspected',unknown:'ss-unknown'}[s.status]||'ss-unknown';
+    const sLbl={confirmed:'Confirmed',suspected:'Suspected',unknown:'Unknown'}[s.status]||'Unknown';
+    const obs=s.observationCount||0;
+    const photoSection=s.refPhoto
+      ?`<div class="sp-photo-wrap"><img class="sp-photo" src="${s.refPhoto}" alt="${s.scientific}" referrerpolicy="no-referrer" onclick="openLightbox('${s.refPhoto}')"><span class="sp-photo-credit">${s.refCredit||'Wikipedia'}</span></div>`
+      :`<div class="sp-photo-wrap"><div class="sp-photo-placeholder">🌿</div></div>`;
+    return`<div class="sp-card ${cls}" id="sp-card-${s.id}">
+      ${photoSection}
+      <div class="sp-body">
+        <div class="sp-sci">${s.scientific}</div>
+        <div class="sp-comm">${s.common||'—'}</div>
+        ${bloomStr?`<div class="sp-bloom-str">${bloomStr}</div>`:''}
+        <div class="sp-foot">
+          <span class="sp-status ${sCls}">${sLbl}</span>
+          <span class="sp-added">${fmtDate(s.dateAdded)}</span>
+        </div>
+        ${obs?`<div class="sp-observed-count">Noted in ${obs} entr${obs===1?'y':'ies'}</div>`:''}
+        <div class="sp-card-actions">
+          <button class="sp-btn-edit" onclick="openEditSpecies(${s.id})">Edit</button>
+          <button class="sp-btn-delete" onclick="deleteSpecies(${s.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Render mysteries ──
+function renderMysteries(){
+  const el=document.getElementById('mystery-list');
+  const open=mysteries.filter(m=>m.status!=='solved').length;
+  document.getElementById('mystery-count').textContent=`${open} open`;
+  if(!mysteries.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">?</div><h3>No mysteries yet</h3><p>When you find something unidentified, log it here. Snap a photo and submit to iNaturalist for community ID.</p><button class="btn-primary" onclick="openMysteryModal()">Log a mystery</button></div>`;
+    return;
+  }
+  el.innerHTML=mysteries.map((m,i)=>{
+    const bCls={open:'mb-open',solving:'mb-solving',solved:'mb-solved'}[m.status]||'mb-open';
+    const bLbl={open:'Open',solving:'Working on it',solved:'✓ Solved'}[m.status]||'Open';
+    return`<div class="myst-card"><div class="myst-num">#${mysteries.length-i}</div><div class="myst-body"><div class="myst-date">${fmtDate(m.date)}</div><div class="myst-desc">${m.description}</div>${m.guess?`<div class="myst-guess">Best guess: ${m.guess}</div>`:''}<div class="myst-loc">${m.zone}</div><span class="myst-badge ${bCls}">${bLbl}</span></div></div>`;
+  }).join('');
+}
+
+// ── Render bloom calendar ──
+function renderBloom(){
+  const wrap=document.getElementById('bloom-wrap');
+  const observedMonths={};
+  entries.forEach(e=>{
+    if(!e.bloomSpeciesIds||!e.date)return;
+    const mo=parseInt(e.date.split('-')[1])-1;
+    e.bloomSpeciesIds.forEach(id=>{ if(!observedMonths[id])observedMonths[id]=new Set(); observedMonths[id].add(mo); });
+  });
+  const bloomSp=species.filter(s=>(s.bloomMonths&&s.bloomMonths.length)||(observedMonths[s.id]&&observedMonths[s.id].size));
+  if(!bloomSp.length){
+    wrap.innerHTML=`<div style="padding:48px 24px;text-align:center;background:var(--parch-lt);border-radius:var(--radius)"><div style="font-size:36px;opacity:.22;margin-bottom:12px">◌</div><div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:20px;margin-bottom:8px">Calendar builds with your data</div><div style="font-size:14px;color:var(--stone);max-width:340px;margin:0 auto;line-height:1.65;font-weight:300">Add species with bloom months, or tag species as blooming in field entries.</div></div>`;
+    return;
+  }
+  const heads=MO.map(m=>`<div class="cal-col-head">${m}</div>`).join('');
+  const rows=bloomSp.map(s=>{
+    const thumb=s.refPhoto?`<img class="cal-sp-thumb" src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="cal-sp-thumb-placeholder"></div>`;
+    const cells=MO.map((_,i)=>{
+      const exp=s.bloomMonths&&s.bloomMonths.includes(i);
+      const obs=observedMonths[s.id]&&observedMonths[s.id].has(i);
+      return`<div class="cal-cell"><div class="bloom-pip${obs?' observed':exp?' on':''}"></div></div>`;
+    }).join('');
+    return`<div class="cal-sp-name" style="color:${zoneById(s.zone).color}" onclick="jumpToSpecies(${s.id})">${thumb}<div class="cal-sp-label"><div class="cal-sp-sci">${s.scientific}</div>${s.common?`<div class="cal-sp-comm">${s.common}</div>`:''}</div></div>${cells}`;
+  }).join('');
+  wrap.innerHTML=`<div class="bloom-head"><h3>Bloom Calendar — ${new Date().getFullYear()}</h3><p>${bloomSp.length} species · click a row to view in inventory</p></div>
+    <div class="cal-grid"><div class="cal-col-head">Species</div>${heads}${rows}</div>
+    <div class="cal-legend">
+      <div class="leg-item"><div class="leg-pip" style="background:var(--forest-mid)"></div>Expected bloom</div>
+      <div class="leg-item"><div class="leg-pip" style="background:var(--rust)"></div>Observed in field notes</div>
+      <div class="leg-item"><div class="leg-pip" style="background:var(--parch-dk)"></div>Dormant</div>
+    </div>`;
+}
+
+// ── Render maintenance ──
+function renderMaintenance(){
+  const wrap=document.getElementById('maintenance-wrap');
+  const withActions=entries.filter(e=>e.actions&&e.actions.trim());
+  if(!withActions.length){wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>No maintenance logged yet</h3><p>When you log field entries with actions, they appear here organized by zone.</p></div>`;return;}
+  let html='';
+  const general=withActions.filter(e=>!e.zones||!e.zones.length);
+  if(general.length){ const items=general.map(e=>`<div class="maint-item"><span class="maint-date">${fmtShort(e.date)}</span>${e.actions}</div>`).join(''); html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:var(--stone-lt)"></span>General</div><div class="maint-items">${items}</div></div>`; }
+  ZONES.forEach(z=>{
+    const items=withActions.filter(e=>e.zones&&e.zones.includes(z.id));
+    if(!items.length)return;
+    html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:${z.color}"></span>${z.label}</div><div class="maint-items">${items.map(e=>`<div class="maint-item"><span class="maint-date">${fmtShort(e.date)}</span>${e.actions}</div>`).join('')}</div></div>`;
+  });
+  wrap.innerHTML=html;
+}
+
+// ── Stats ──
+function renderStats(){
+  const bar=document.getElementById('stats-bar');
+  const openM=mysteries.filter(m=>m.status!=='solved').length;
+  const totalObs=entries.reduce((sum,e)=>(e.bloomSpeciesIds?sum+e.bloomSpeciesIds.length:sum),0);
+  bar.innerHTML=[
+    {n:entries.length,  l:'Field entries'},
+    {n:species.length,  l:'Species logged'},
+    {n:totalObs,        l:'Species observations'},
+    {n:openM,           l:'Open mysteries'},
+  ].map(s=>`<div class="stat-card"><div class="stat-n">${s.n}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+function renderAll(){ renderEntries(); renderSpecies(); renderMysteries(); renderStats(); renderSbsList(); }
+
+function initDisplay(){
+  document.getElementById('today-display').textContent=
+    new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+
+// ── Boot ──
+buildZonePills();
+buildMonthChecks('month-checks',[]);
+buildMonthChecks('edit-month-checks',[]);
+initDisplay();
+loadAll();
+</script>
+</body>
+</html>
