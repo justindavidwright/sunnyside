@@ -523,7 +523,7 @@
         </label>
         <div class="sp-ref-wrap" id="sp-ref-wrap">
           <div class="sp-ref-placeholder" id="sp-ref-placeholder">Enter the scientific name, then tap "Look up from Wikipedia"</div>
-          <img class="sp-ref-img" id="sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
+          <img class="sp-ref-img" id="sp-ref-img" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none';document.getElementById('sp-ref-placeholder').textContent='Image blocked by browser — paste the URL below instead';document.getElementById('sp-ref-placeholder').style.display=''">
           <span class="sp-ref-credit" id="sp-ref-credit"></span>
         </div>
         <div class="ref-url-row">
@@ -582,7 +582,7 @@
         </label>
         <div class="sp-ref-wrap" id="edit-sp-ref-wrap">
           <div class="sp-ref-placeholder" id="edit-sp-ref-placeholder">No photo yet</div>
-          <img class="sp-ref-img" id="edit-sp-ref-img" src="" alt="" referrerpolicy="no-referrer">
+          <img class="sp-ref-img" id="edit-sp-ref-img" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none';document.getElementById('edit-sp-ref-placeholder').textContent='Image blocked by browser — paste the URL below instead';document.getElementById('edit-sp-ref-placeholder').style.display=''">
           <span class="sp-ref-credit" id="edit-sp-ref-credit"></span>
         </div>
         <div class="ref-url-row">
@@ -911,7 +911,7 @@ async function wikiImageLookup(sciName){
       if(pages){
         const pg=Object.values(pages)[0];
         if(pg&&pg.thumbnail&&pg.thumbnail.source){
-          finish({url:pg.thumbnail.source.replace(/\/\d+px-/,'/800px-'), credit:`Wikipedia · ${pg.title||sciName}`});
+          finish({url:pg.thumbnail.source, credit:`Wikipedia · ${pg.title||sciName}`});
           return;
         }
       }
@@ -927,7 +927,7 @@ async function wikiImageLookup(sciName){
         window[cb3]=function(id2){
           clearTimeout(t3);
           const p2=id2.query&&id2.query.pages;
-          if(p2){const pg2=Object.values(p2)[0];if(pg2&&pg2.thumbnail&&pg2.thumbnail.source){finish({url:pg2.thumbnail.source.replace(/\/\d+px-/,'/800px-'),credit:`Wikipedia · ${pg2.title||hits[0].title}`});return;}}
+          if(p2){const pg2=Object.values(p2)[0];if(pg2&&pg2.thumbnail&&pg2.thumbnail.source){finish({url:pg2.thumbnail.source,credit:`Wikipedia · ${pg2.title||hits[0].title}`});return;}}
           finish(null);
         };
         const s3=document.createElement('script');s3.id='_ws3';
