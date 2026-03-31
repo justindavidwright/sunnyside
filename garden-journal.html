@@ -1959,7 +1959,7 @@ function renderSpecies(){
           <span class="sp-status ${sCls}">${sLbl}</span>
           <span class="sp-added">${fmtDate(s.dateAdded)}</span>
         </div>
-        ${obs?`<div class="sp-observed-count">Noted in ${obs} entr${obs===1?'y':'ies'}</div>`:''}
+        ${obs?``:''}
         <div class="sp-card-actions">
           <button class="sp-btn-edit" onclick="openEditSpecies(${s.id})">Edit</button>
           <button class="sp-btn-delete" onclick="deleteSpecies(${s.id})">Delete</button>
@@ -2047,12 +2047,19 @@ function renderBloom(){
   }
 
   // Month nav buttons
-  const monthBtns=MO.map((m,i)=>`<button onclick="bloomFilterMonth=${bloomFilterMonth===i?'null':i};renderBloom()" style="background:${bloomFilterMonth===i?'var(--rust)':'var(--parch-lt)'};color:${bloomFilterMonth===i?'#fff':'var(--stone)'};border:1.5px solid ${bloomFilterMonth===i?'var(--rust)':'var(--parch-dk)'};border-radius:var(--radius);padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.12s">${m}</button>`).join('');
+  const BLOOM_ZONES=[
+    {id:null,      label:'All',            color:'var(--forest)'},
+    {id:'japanese',label:'Japanese Garden',color:'#2a5e58'},
+    {id:'frontyard',label:'Front Yard',    color:'#3d6628'},
+    {id:'midyard', label:'Middle Yard',    color:'#6b8c5a'},
+    {id:'backyard',label:'Back Yard',      color:'#4a6e3a'},
+    {id:'greenhouse',label:'Greenhouse',   color:'#5e3050'},
+    {id:'road',    label:'Road',           color:'#68605a'},
+    {id:'driveway',label:'Mariton',        color:'#44381e'},
+  ];
+  const zoneBtns=BLOOM_ZONES.map(z=>`<button onclick="bloomFilterZone=${z.id===null?'null':"'"+z.id+"'"};renderBloom()" style="background:${bloomFilterZone===z.id?z.color:'var(--parch-lt)'};color:${bloomFilterZone===z.id?'#fff':'var(--stone)'};border:1.5px solid ${bloomFilterZone===z.id?z.color:'var(--parch-dk)'};border-radius:var(--radius);padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;transition:all 0.12s">${z.label}</button>`).join('');
 
-  // Zone nav buttons
-  const zoneBtns=[{id:null,label:'All zones',color:'var(--forest)'},...ZONES].map(z=>`<button onclick="bloomFilterZone=${z.id===null?'null':"'"+z.id+"'"};renderBloom()" style="background:${bloomFilterZone===z.id?z.color||'var(--forest)':'var(--parch-lt)'};color:${bloomFilterZone===z.id?'#fff':'var(--stone)'};border:1.5px solid ${bloomFilterZone===z.id?z.color||'var(--forest)':'var(--parch-dk)'};border-radius:var(--radius);padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;transition:all 0.12s">${z.label}</button>`).join('');
-
-  const filterLabel=bloomFilterMonth!==null?`Showing species active in ${MO[bloomFilterMonth]} — click month again to clear`:`${bloomSp.length} species · click a month to highlight active plants · click a row to view in inventory`;
+  const filterLabel=bloomFilterMonth!==null?`Showing species active in ${MO[bloomFilterMonth]} — click month header again to clear`:`${bloomSp.length} species · click any month column to highlight active plants · click a row to view in inventory`;
 
   const heads=MO.map((m,i)=>`<div class="cal-col-head" style="cursor:pointer;${bloomFilterMonth===i?'color:var(--rust);font-weight:700':''}" onclick="bloomFilterMonth=${bloomFilterMonth===i?'null':i};renderBloom()">${m}</div>`).join('');
 
@@ -2078,7 +2085,6 @@ function renderBloom(){
     <div class="bloom-head">
       <h3>Bloom Calendar — ${new Date().getFullYear()}</h3>
       <p style="margin-bottom:10px">${filterLabel}</p>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">${monthBtns}</div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">${zoneBtns}</div>
     </div>
     <div class="cal-grid"><div class="cal-col-head">Species</div>${heads}${rows}</div>
