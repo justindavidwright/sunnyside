@@ -210,8 +210,8 @@
   .sp-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; opacity: 0.2; }
   .sp-photo-credit { position: absolute; bottom: 4px; right: 6px; font-size: 9px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 2px; }
   .sp-body { padding: 12px 14px 14px; }
-  .sp-sci  { font-family: 'Zilla Slab', serif; font-style: italic; font-size: 15px; color: var(--bark); margin-bottom: 2px; }
-  .sp-comm { font-size: 12px; color: var(--stone); margin-bottom: 8px; font-weight: 300; }
+  .sp-sci  { font-family: 'Zilla Slab', serif; font-style: italic; font-size: 12px; color: var(--stone); margin-bottom: 2px; font-weight: 300; }
+  .sp-comm { font-family: 'Zilla Slab', serif; font-size: 16px; font-weight: 600; color: var(--bark); margin-bottom: 4px; }
   .sp-bloom-str { font-size: 12px; color: var(--bark-mid); margin-bottom: 10px; }
   .sp-foot { display: flex; justify-content: space-between; align-items: center; }
   .sp-status { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: var(--radius); }
@@ -230,6 +230,7 @@
   .mystery-list { display: flex; flex-direction: column; gap: 10px; }
   .myst-card { background: var(--parch-lt); border-radius: var(--radius); box-shadow: var(--sh); padding: 16px 18px; border-left: 5px solid var(--stone-lt); display: flex; gap: 14px; transition: box-shadow 0.15s; }
   .myst-card:hover { box-shadow: var(--shl); }
+  .myst-card.myst-solved { background: var(--forest-pale); border-left-color: var(--forest-mid); opacity: 0.8; }
   .myst-num { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 34px; color: var(--parch-dk); line-height: 1; min-width: 42px; margin-top: -2px; }
   .myst-body { flex: 1; }
   .myst-date { font-size: 11px; color: var(--stone-lt); margin-bottom: 4px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -375,7 +376,17 @@
   <div class="header-inner">
     <div class="header-lockup">
       <div class="header-badge">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 5.5 4 10c0 3.2 1.7 6 4.5 7.6V20h7v-2.4C18.3 16 20 13.2 20 10c0-4.5-4-8-8-8zm0 2c3.3 0 6 2.8 6 6 0 2.6-1.4 4.8-3.8 6.1l-.7.4V18h-3v-1.5l-.7-.4C7.4 14.8 6 12.6 6 10c0-3.2 2.7-6 6-6z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4" fill="var(--parch-lt)"/>
+          <line x1="12" y1="2" x2="12" y2="5" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="19" x2="12" y2="22" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="2" y1="12" x2="5" y2="12" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="19" y1="12" x2="22" y2="12" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="19.78" y1="4.22" x2="17.66" y2="6.34" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="6.34" y1="17.66" x2="4.22" y2="19.78" stroke="var(--parch-lt)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </div>
       <div>
         <div class="header-eyebrow">Riegelsville, PA · Zone 6b</div>
@@ -422,6 +433,9 @@
       <div><h2>Species Inventory</h2><p>Everything growing on the property</p></div>
       <span class="count-tag" id="species-count">0 species</span>
     </div>
+    <div style="margin-bottom:12px">
+      <input type="text" id="species-search" placeholder="Search by common or scientific name…" oninput="renderSpecies()" style="width:100%;padding:10px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
+    </div>
     <div class="inv-filters">
       <button class="filter-btn active" onclick="filterSpecies('all',this)">All</button>
       <button class="filter-btn" onclick="filterSpecies('japanese',this)">Japanese Garden</button>
@@ -439,7 +453,10 @@
   <div class="view" id="view-mystery">
     <div class="section-head">
       <div><h2>Mystery Log</h2><p>Things you can't identify yet — this list will shrink</p></div>
-      <span class="count-tag" id="mystery-count">0 open</span>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+        <span class="count-tag" id="mystery-count">0 open</span>
+        <button class="btn-primary" onclick="openMysteryModal()">+ Log Mystery</button>
+      </div>
     </div>
     <div class="mystery-list" id="mystery-list"></div>
   </div>
@@ -514,28 +531,16 @@
     </div>
     <div class="modal-body">
       <div class="fr">
-        <div class="fg">
-          <label class="fl" style="display:flex;justify-content:space-between;align-items:center">
-            <span>Scientific name</span>
-            <button class="btn-sm" onclick="autoPopulateSpecies('sci')" type="button">Auto-fill from name</button>
-          </label>
-          <input type="text" id="sp-sci" placeholder="e.g. Phyllostachys aurea">
-        </div>
-        <div class="fg">
-          <label class="fl" style="display:flex;justify-content:space-between;align-items:center">
-            <span>Common name</span>
-            <button class="btn-sm" onclick="autoPopulateSpecies('common')" type="button">Look up by common name</button>
-          </label>
-          <input type="text" id="sp-common" placeholder="e.g. Golden bamboo">
-        </div>
+        <div class="fg"><label class="fl">Scientific name</label><input type="text" id="sp-sci" placeholder="e.g. Phyllostachys aurea"></div>
+        <div class="fg"><label class="fl">Common name</label><input type="text" id="sp-common" placeholder="e.g. Golden bamboo"></div>
       </div>
       <div class="fg">
         <label class="fl" style="display:flex;justify-content:space-between;align-items:center">
           <span>Reference photo</span>
-          <button class="btn-sm" onclick="fetchRefPhoto()" type="button">Look up from Wikipedia</button>
+          <button class="btn-sm" onclick="fetchRefPhoto()" type="button">Look up &amp; auto-fill</button>
         </label>
         <div class="sp-ref-wrap" id="sp-ref-wrap">
-          <div class="sp-ref-placeholder" id="sp-ref-placeholder">Enter the scientific name, then tap "Auto-fill" or "Look up from Wikipedia"</div>
+          <div class="sp-ref-placeholder" id="sp-ref-placeholder">Enter a name (common or scientific) then tap "Look up &amp; auto-fill"</div>
           <img class="sp-ref-img" id="sp-ref-img" src="" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none';document.getElementById('sp-ref-placeholder').textContent='Image blocked — paste a URL below instead';document.getElementById('sp-ref-placeholder').style.display=''">
           <span class="sp-ref-credit" id="sp-ref-credit"></span>
         </div>
@@ -609,6 +614,13 @@
         <div class="ref-url-row">
           <input type="url" id="edit-sp-ref-url" placeholder="Or paste an image URL directly">
           <button class="btn-sm" onclick="applyManualUrl('edit-sp-ref-url','edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit')">Use URL</button>
+        </div>
+        <div class="photo-upload-area" style="margin-top:6px" onclick="document.getElementById('edit-sp-photo-upload').click()">
+          <label class="upload-label" style="font-size:12px;gap:4px;pointer-events:none">
+            <span style="font-size:20px;opacity:0.4">⊕</span>
+            <span><strong>Upload your own photo</strong></span>
+          </label>
+          <input type="file" id="edit-sp-photo-upload" accept="image/*" onchange="handleEditSpeciesPhotoUpload(this)">
         </div>
       </div>
       <div class="fr">
@@ -1313,22 +1325,140 @@ async function wikiImageLookup(sciName){
   });
 }
 
+// ── Common name → scientific name lookup table ──
+const COMMON_TO_SCI = {
+  'snowdrop':['Galanthus nivalis','Snowdrop'],'common snowdrop':['Galanthus nivalis','Common Snowdrop'],
+  'crocus':['Crocus vernus','Spring Crocus'],'woodland crocus':['Crocus tommasinianus','Woodland Crocus'],
+  'daffodil':['Narcissus','Daffodil'],'wild daffodil':['Narcissus pseudonarcissus','Wild Daffodil'],
+  "poet's narcissus":['Narcissus poeticus',"Poet's Narcissus"],'narcissus':['Narcissus poeticus','Narcissus'],
+  'forsythia':['Forsythia intermedia','Border Forsythia'],'golden-bell':['Forsythia suspensa','Golden-bell'],
+  'rhododendron':['Rhododendron maximum','Great Rhododendron'],'great rhododendron':['Rhododendron maximum','Great Rhododendron'],
+  'royal azalea':['Rhododendron schlippenbachii','Royal Azalea'],
+  'japanese maple':['Acer palmatum','Japanese Maple'],'paperbark maple':['Acer griseum','Paperbark Maple'],
+  'silver maple':['Acer saccharinum','Silver Maple'],
+  'golden bamboo':['Phyllostachys aurea','Golden Bamboo'],'umbrella bamboo':['Fargesia murielae','Umbrella Bamboo'],
+  'star magnolia':['Magnolia stellata','Star Magnolia'],'southern magnolia':['Magnolia grandiflora','Southern Magnolia'],
+  'cucumber tree':['Magnolia acuminata','Cucumber-tree'],'umbrella magnolia':['Magnolia tripetala','Umbrella Magnolia'],
+  'tulip':['Tulipa gesneriana','Garden Tulip'],'garden tulip':['Tulipa gesneriana','Garden Tulip'],
+  'virginia bluebells':['Mertensia virginica','Virginia Bluebells'],
+  'bleeding heart':['Lamprocapnos spectabilis','Asian Bleeding-heart'],
+  "solomon's seal":['Polygonatum odoratum',"Scented Solomon's-seal"],
+  'flowering dogwood':['Cornus florida','Flowering Dogwood'],'silky dogwood':['Cornus amomum','Silky Dogwood'],
+  'eastern redbud':['Cercis canadensis','Eastern Redbud'],'redbud':['Cercis canadensis','Eastern Redbud'],
+  'katsura tree':['Cercidiphyllum japonicum','Katsura Tree'],
+  'witch hazel':['Hamamelis virginiana','American Witch-hazel'],
+  'siberian squill':['Scilla siberica','Siberian Squill'],
+  'periwinkle':['Vinca minor','Lesser Periwinkle'],'vinca':['Vinca minor','Lesser Periwinkle'],
+  'peach':['Prunus persica','Peach'],'wild cherry':['Prunus avium','Wild Cherry'],
+  'pawpaw':['Asimina triloba','Common Pawpaw'],
+  'spicebush':['Lindera benzoin','Northern Spicebush'],
+  'sensitive fern':['Onoclea sensibilis','Sensitive Fern'],
+  'trumpet vine':['Campsis radicans','American Trumpet Vine'],
+  'dawn redwood':['Metasequoia glyptostroboides','Dawn Redwood'],
+  'black walnut':['Juglans nigra','Eastern Black Walnut'],
+  'tuliptree':['Liriodendron tulipifera','American Tuliptree'],'tulip poplar':['Liriodendron tulipifera','American Tuliptree'],
+  'european beech':['Fagus sylvatica','European Beech'],'beech':['Fagus sylvatica','European Beech'],
+  'chestnut oak':['Quercus montana','Chestnut Oak'],'black oak':['Quercus velutina','Black Oak'],
+  'sweet birch':['Betula lenta','Sweet Birch'],
+  'bitternut hickory':['Carya cordiformis','Bitternut Hickory'],
+  'staghorn sumac':['Rhus typhina','Staghorn Sumac'],
+  'callery pear':['Pyrus calleryana','Callery Pear'],
+  'eastern redcedar':['Juniperus virginiana','Eastern Redcedar'],
+  'deodar cedar':['Cedrus deodara','Deodar Cedar'],
+  'oriental spruce':['Picea orientalis','Oriental Spruce'],
+  'white pine':['Pinus strobus','Eastern White Pine'],'eastern white pine':['Pinus strobus','Eastern White Pine'],
+  'japanese andromeda':['Pieris japonica','Japanese Andromeda'],'pieris':['Pieris japonica','Japanese Andromeda'],
+  'leatherleaf mahonia':['Berberis bealei','Leatherleaf Mahonia'],
+  'aucuba':['Aucuba japonica','Japanese Aucuba'],'japanese aucuba':['Aucuba japonica','Japanese Aucuba'],
+  'blazing star':['Liatris spicata','Dense Blazing Star'],'liatris':['Liatris spicata','Dense Blazing Star'],
+  'hibiscus':['Hibiscus syriacus','Common Hibiscus'],'rose of sharon':['Hibiscus syriacus','Rose of Sharon'],
+  'false sunflower':['Heliopsis helianthoides','False Sunflower'],
+  'coneflower':['Echinacea purpurea','Purple Coneflower'],'echinacea':['Echinacea purpurea','Purple Coneflower'],
+  'black eyed susan':['Rudbeckia hirta','Black-Eyed Susan'],
+  'blue cohosh':['Caulophyllum thalictroides','Blue Cohosh'],
+  'jewelweed':['Impatiens capensis','Common Jewelweed'],
+  'yucca':['Yucca filamentosa','Common Yucca'],
+  'horsetail':['Equisetum arvense','Field Horsetail'],
+  'sassafras':['Sassafras albidum','Sassafras'],
+  'hackberry':['Celtis occidentalis','Common Hackberry'],
+  'cottonwood':['Populus deltoides','Eastern Cottonwood'],
+  'wineberry':['Rubus phoenicolasius','Wineberry'],
+  'asparagus fern':['Asparagus setaceus','Common Asparagus Fern'],
+  'natal lily':['Clivia miniata','Natal Lily'],'clivia':['Clivia miniata','Natal Lily'],
+  'philodendron':['Philodendron bipinnatifidum','Philodendron'],
+  'chinese quince':['Chaenomeles speciosa','Chinese Quince'],
+  'kerria':['Kerria japonica','Japanese Kerria'],'japanese kerria':['Kerria japonica','Japanese Kerria'],
+  'winged euonymus':['Euonymus alatus','Winged Euonymus'],'burning bush':['Euonymus alatus','Winged Euonymus'],
+  'koyamaki':['Sciadopitys verticillata','Koyamaki'],'japanese umbrella pine':['Sciadopitys verticillata','Koyamaki'],
+  'rimu':['Dacrydium cupressinum','Rimu'],
+  'obedient plant':['Physostegia virginiana','Obedient Plant'],
+  'porcelain berry':['Ampelopsis glandulosa','Porcelain Berry'],
+  'stiltgrass':['Microstegium vimineum','Japanese Stiltgrass'],
+  'yellow archangel':['Lamium galeobdolon','Yellow Archangel'],
+  'violet':['Viola sororia','Common Blue Violet'],'blue violet':['Viola sororia','Common Blue Violet'],
+};
+
+function lookupCommonName(name){
+  const key=name.toLowerCase().trim()
+    .replace(/['']/g,"'")
+    .replace(/\s+/g,' ');
+  return COMMON_TO_SCI[key]||null;
+}
+
 async function fetchRefPhoto(){
-  const sci=document.getElementById('sp-sci').value.trim();
-  if(!sci){toast('Enter a scientific name first','err');return;}
+  const sciVal=document.getElementById('sp-sci').value.trim();
+  const comVal=document.getElementById('sp-common').value.trim();
   const ph=document.getElementById('sp-ref-placeholder');
+
+  // Figure out what we're looking up
+  let lookupName=sciVal||comVal;
+  if(!lookupName){toast('Enter a name first','err');return;}
+
   ph.textContent='Looking up…'; ph.style.display='';
   document.getElementById('sp-ref-img').style.display='none';
-  const result=await wikiImageLookup(sci);
+
+  // If only common name given, try lookup table first
+  if(!sciVal&&comVal){
+    const dbMatch=lookupCommonName(comVal);
+    if(dbMatch){
+      document.getElementById('sp-sci').value=dbMatch[0];
+      if(!sciVal) toast(`Scientific name: ${dbMatch[0]}`);
+      lookupName=dbMatch[0];
+    }
+    // Also try built-in plant DB for bloom months
+    const plantMatch=lookupPlantDb(comVal)||lookupPlantDb(lookupName);
+    if(plantMatch){
+      if(plantMatch.bloom&&plantMatch.bloom.length) applyMonthChecks('month-checks',plantMatch.bloom);
+      if(plantMatch.emergence&&plantMatch.emergence.length) applyMonthChecks('emergence-checks',plantMatch.emergence);
+      if(plantMatch.common&&!comVal) document.getElementById('sp-common').value=plantMatch.common;
+    }
+  }
+
+  // If scientific name given, also try to get bloom data from plant DB
+  if(sciVal){
+    const plantMatch=lookupPlantDb(sciVal);
+    if(plantMatch){
+      if(plantMatch.bloom&&plantMatch.bloom.length&&!document.querySelectorAll('#month-checks input:checked').length)
+        applyMonthChecks('month-checks',plantMatch.bloom);
+      if(plantMatch.emergence&&plantMatch.emergence.length&&!document.querySelectorAll('#emergence-checks input:checked').length)
+        applyMonthChecks('emergence-checks',plantMatch.emergence);
+      if(plantMatch.common&&!comVal)
+        document.getElementById('sp-common').value=plantMatch.common;
+    }
+  }
+
+  // Now fetch the photo
+  const result=await wikiImageLookup(lookupName);
   if(result){
     pendingRefPhoto=result;
     showRefPhotoUI('sp-ref-img','sp-ref-placeholder','sp-ref-credit',result.url,result.credit);
-    toast('Photo found ✓');
+    toast('Info found ✓');
   } else {
-    ph.textContent='No image found. Try pasting a URL below instead.';
-    toast('No Wikipedia image found','err');
+    ph.textContent='No image found on Wikipedia. Try pasting a URL below.';
+    toast('No image found','err');
   }
 }
+
 async function fetchEditRefPhoto(){
   const sci=document.getElementById('edit-sp-sci').value.trim();
   if(!sci){toast('Enter a scientific name first','err');return;}
@@ -1389,6 +1519,28 @@ function handleSpeciesPhotoUpload(input){
       const dataUrl=canvas.toDataURL('image/jpeg',0.82);
       pendingRefPhoto={url:dataUrl,credit:'Your photo'};
       showRefPhotoUI('sp-ref-img','sp-ref-placeholder','sp-ref-credit',dataUrl,'Your photo');
+      toast('Photo uploaded ✓');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function handleEditSpeciesPhotoUpload(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=800; let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.82);
+      pendingRefPhoto={url:dataUrl,credit:'Your photo'};
+      showRefPhotoUI('edit-sp-ref-img','edit-sp-ref-placeholder','edit-sp-ref-credit',dataUrl,'Your photo');
       toast('Photo uploaded ✓');
     };
     img.src=e.target.result;
@@ -1767,12 +1919,24 @@ function filterSpecies(zone,btn){
 }
 function renderSpecies(){
   const grid=document.getElementById('sp-grid');
-  const list=activeFilter==='all'?species:
+  const searchEl=document.getElementById('species-search');
+  const q=searchEl?(searchEl.value||'').toLowerCase().trim():'';
+  let list=activeFilter==='all'?species:
     activeFilter==='mystery'?species.filter(s=>s.status==='unknown'||s.zone==='mystery'):
     species.filter(s=>s.zone===activeFilter);
+  if(q) list=list.filter(s=>
+    (s.common&&s.common.toLowerCase().includes(q))||
+    (s.scientific&&s.scientific.toLowerCase().includes(q))
+  );
+  // Sort by common name, fallback to scientific
+  list=[...list].sort((a,b)=>{
+    const na=(a.common||a.scientific||'').toLowerCase();
+    const nb=(b.common||b.scientific||'').toLowerCase();
+    return na.localeCompare(nb);
+  });
   document.getElementById('species-count').textContent=`${species.length} species`;
   if(!list.length){
-    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⊕</div><h3>${activeFilter==='all'?'No species logged yet':'None in this zone yet'}</h3><p>Add species and look up Wikipedia photos — it works now that you're on a real URL.</p><button class="btn-primary" onclick="openSpeciesModal()">Add first species</button></div>`;
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⊕</div><h3>${q?'No matches for "'+q+'"':activeFilter==='all'?'No species logged yet':'None in this zone yet'}</h3><p>${q?'Try a different search term.':'Add species and look up Wikipedia photos.'}</p><button class="btn-primary" onclick="openSpeciesModal()">Add first species</button></div>`;
     return;
   }
   grid.innerHTML=list.map(s=>{
@@ -1788,8 +1952,8 @@ function renderSpecies(){
     return`<div class="sp-card ${cls}" id="sp-card-${s.id}">
       ${photoSection}
       <div class="sp-body">
+        <div class="sp-comm">${s.common||'(no common name)'}</div>
         <div class="sp-sci">${s.scientific}</div>
-        <div class="sp-comm">${s.common||'—'}</div>
         ${bloomStr?`<div class="sp-bloom-str">${bloomStr}</div>`:''}
         <div class="sp-foot">
           <span class="sp-status ${sCls}">${sLbl}</span>
@@ -1814,20 +1978,22 @@ function renderMysteries(){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">?</div><h3>No mysteries yet</h3><p>When you find something unidentified, log it here. Snap a photo and submit to iNaturalist for community ID.</p><button class="btn-primary" onclick="openMysteryModal()">Log a mystery</button></div>`;
     return;
   }
-  el.innerHTML=mysteries.map((m,i)=>{
+  const sorted=[...mysteries].sort((a,b)=>{const o={open:0,solving:1,solved:2};return(o[a.status]||0)-(o[b.status]||0);});
+  el.innerHTML=sorted.map((m,i)=>{
+    const isSolved=m.status==='solved';
     const bCls={open:'mb-open',solving:'mb-solving',solved:'mb-solved'}[m.status]||'mb-open';
     const bLbl={open:'Open',solving:'Working on it',solved:'✓ Solved'}[m.status]||'Open';
-    return`<div class="myst-card" id="myst-card-${m.id}">
-      <div class="myst-num">#${mysteries.length-i}</div>
+    return`<div class="myst-card${isSolved?' myst-solved':''}" id="myst-card-${m.id}">
+      <div class="myst-num" style="color:${isSolved?'var(--forest-mid)':'var(--parch-dk)'}">${isSolved?'✓':'#'+(i+1)}</div>
       <div class="myst-body">
         <div class="myst-date">${fmtDate(m.date)}</div>
         <div class="myst-desc">${m.description}</div>
         ${m.guess?`<div class="myst-guess">Best guess: ${m.guess}</div>`:''}
-        ${m.resolved_note&&m.status==='solved'?`<div class="myst-guess" style="color:var(--forest-mid)">✓ ${m.resolved_note}</div>`:''}
+        ${m.resolved_note&&isSolved?`<div class="myst-guess" style="color:var(--forest);font-weight:500">✓ Identified as: ${m.resolved_note}</div>`:''}
         <div class="myst-loc">${m.zone}</div>
         <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap">
           <span class="myst-badge ${bCls}">${bLbl}</span>
-          ${m.status!=='solved'?`<button onclick="quickSolveMystery(${m.id})" style="background:var(--forest-pale);color:var(--forest);border:1px solid var(--forest-pale);border-radius:var(--radius);padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Mark Solved</button>`:''}
+          ${!isSolved?`<button onclick="quickSolveMystery(${m.id})" style="background:var(--forest-pale);color:var(--forest);border:1px solid var(--forest-pale);border-radius:var(--radius);padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Mark Solved</button>`:''}
           <button onclick="openEditMystery(${m.id})" style="background:var(--stone-pale);color:var(--stone);border:1px solid var(--stone-pale);border-radius:var(--radius);padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Edit</button>
           <button onclick="deleteMystery(${m.id})" style="background:var(--rust-pale);color:var(--rust);border:1px solid var(--rust-pale);border-radius:var(--radius);padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">Delete</button>
         </div>
@@ -1837,6 +2003,9 @@ function renderMysteries(){
 }
 
 // ── Render bloom calendar ──
+let bloomFilterMonth = null; // null = show all, 0-11 = filter to that month
+let bloomFilterZone  = null; // null = all zones
+
 function renderBloom(){
   const wrap=document.getElementById('bloom-wrap');
   const observedMonths={};
@@ -1845,24 +2014,73 @@ function renderBloom(){
     const mo=parseInt(e.date.split('-')[1])-1;
     e.bloomSpeciesIds.forEach(id=>{ if(!observedMonths[id])observedMonths[id]=new Set(); observedMonths[id].add(mo); });
   });
-  const bloomSp=species.filter(s=>(s.bloomMonths&&s.bloomMonths.length)||(observedMonths[s.id]&&observedMonths[s.id].size));
+
+  let bloomSp=species.filter(s=>
+    (s.bloomMonths&&s.bloomMonths.length)||
+    (s.emergenceMonths&&s.emergenceMonths.length)||
+    (observedMonths[s.id]&&observedMonths[s.id].size)
+  );
+
   if(!bloomSp.length){
     wrap.innerHTML=`<div style="padding:48px 24px;text-align:center;background:var(--parch-lt);border-radius:var(--radius)"><div style="font-size:36px;opacity:.22;margin-bottom:12px">◌</div><div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:20px;margin-bottom:8px">Calendar builds with your data</div><div style="font-size:14px;color:var(--stone);max-width:340px;margin:0 auto;line-height:1.65;font-weight:300">Add species with bloom months, or tag species as blooming in field entries.</div></div>`;
     return;
   }
-  const heads=MO.map(m=>`<div class="cal-col-head">${m}</div>`).join('');
+
+  // Zone filter
+  if(bloomFilterZone){
+    bloomSp=bloomSp.filter(s=>s.zone===bloomFilterZone);
+  }
+
+  // Month filter: sort species that are active in selected month to top
+  if(bloomFilterMonth!==null){
+    const mo=bloomFilterMonth;
+    bloomSp=[...bloomSp].sort((a,b)=>{
+      const aActive=(a.bloomMonths&&a.bloomMonths.includes(mo))||(a.emergenceMonths&&a.emergenceMonths.includes(mo))||(observedMonths[a.id]&&observedMonths[a.id].has(mo));
+      const bActive=(b.bloomMonths&&b.bloomMonths.includes(mo))||(b.emergenceMonths&&b.emergenceMonths.includes(mo))||(observedMonths[b.id]&&observedMonths[b.id].has(mo));
+      if(aActive&&!bActive)return -1;
+      if(!aActive&&bActive)return 1;
+      return(a.common||a.scientific).localeCompare(b.common||b.scientific);
+    });
+  } else {
+    // Default: sort by common name
+    bloomSp=[...bloomSp].sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
+  }
+
+  // Month nav buttons
+  const monthBtns=MO.map((m,i)=>`<button onclick="bloomFilterMonth=${bloomFilterMonth===i?'null':i};renderBloom()" style="background:${bloomFilterMonth===i?'var(--rust)':'var(--parch-lt)'};color:${bloomFilterMonth===i?'#fff':'var(--stone)'};border:1.5px solid ${bloomFilterMonth===i?'var(--rust)':'var(--parch-dk)'};border-radius:var(--radius);padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;transition:all 0.12s">${m}</button>`).join('');
+
+  // Zone nav buttons
+  const zoneBtns=[{id:null,label:'All zones',color:'var(--forest)'},...ZONES].map(z=>`<button onclick="bloomFilterZone=${z.id===null?'null':"'"+z.id+"'"};renderBloom()" style="background:${bloomFilterZone===z.id?z.color||'var(--forest)':'var(--parch-lt)'};color:${bloomFilterZone===z.id?'#fff':'var(--stone)'};border:1.5px solid ${bloomFilterZone===z.id?z.color||'var(--forest)':'var(--parch-dk)'};border-radius:var(--radius);padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;transition:all 0.12s">${z.label}</button>`).join('');
+
+  const filterLabel=bloomFilterMonth!==null?`Showing species active in ${MO[bloomFilterMonth]} — click month again to clear`:`${bloomSp.length} species · click a month to highlight active plants · click a row to view in inventory`;
+
+  const heads=MO.map((m,i)=>`<div class="cal-col-head" style="cursor:pointer;${bloomFilterMonth===i?'color:var(--rust);font-weight:700':''}" onclick="bloomFilterMonth=${bloomFilterMonth===i?'null':i};renderBloom()">${m}</div>`).join('');
+
   const rows=bloomSp.map(s=>{
     const thumb=s.refPhoto?`<img class="cal-sp-thumb" src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="cal-sp-thumb-placeholder"></div>`;
+    const isActiveInFilter=bloomFilterMonth!==null&&(
+      (s.bloomMonths&&s.bloomMonths.includes(bloomFilterMonth))||
+      (s.emergenceMonths&&s.emergenceMonths.includes(bloomFilterMonth))||
+      (observedMonths[s.id]&&observedMonths[s.id].has(bloomFilterMonth))
+    );
+    const rowStyle=bloomFilterMonth!==null&&!isActiveInFilter?'opacity:0.35':'';
     const cells=MO.map((_,i)=>{
       const exp=s.bloomMonths&&s.bloomMonths.includes(i);
       const emer=s.emergenceMonths&&s.emergenceMonths.includes(i);
       const obs=observedMonths[s.id]&&observedMonths[s.id].has(i);
       const cls=obs?'bloom-pip observed':exp?'bloom-pip on':emer?'bloom-pip emerging':'bloom-pip';
-      return`<div class="cal-cell"><div class="${cls}"></div></div>`;
+      return`<div class="cal-cell" style="${bloomFilterMonth===i?'background:rgba(168,60,24,0.06)':''}"><div class="${cls}"></div></div>`;
     }).join('');
-    return`<div class="cal-sp-name" style="color:${zoneById(s.zone).color}" onclick="jumpToSpecies(${s.id})">${thumb}<div class="cal-sp-label"><div class="cal-sp-sci">${s.scientific}</div>${s.common?`<div class="cal-sp-comm">${s.common}</div>`:''}</div></div>${cells}`;
+    return`<div class="cal-sp-name" style="color:${zoneById(s.zone).color};${rowStyle}" onclick="jumpToSpecies(${s.id})">${thumb}<div class="cal-sp-label"><div class="cal-sp-sci">${s.common||s.scientific}</div>${s.common?`<div class="cal-sp-comm" style="font-size:10px;color:var(--stone-lt);font-style:italic">${s.scientific}</div>`:''}</div></div>${cells}`;
   }).join('');
-  wrap.innerHTML=`<div class="bloom-head"><h3>Bloom Calendar — ${new Date().getFullYear()}</h3><p>${bloomSp.length} species · click a row to view in inventory</p></div>
+
+  wrap.innerHTML=`
+    <div class="bloom-head">
+      <h3>Bloom Calendar — ${new Date().getFullYear()}</h3>
+      <p style="margin-bottom:10px">${filterLabel}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">${monthBtns}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${zoneBtns}</div>
+    </div>
     <div class="cal-grid"><div class="cal-col-head">Species</div>${heads}${rows}</div>
     <div class="cal-legend">
       <div class="leg-item"><div class="leg-pip" style="background:var(--forest-mid)"></div>Peak bloom</div>
