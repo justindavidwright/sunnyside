@@ -303,6 +303,7 @@
   .zp-midyard    { background: var(--sage-pale);   border-color: var(--sage);       color: var(--sage); }
   .zp-backyard   { background: #d8eacc;            border-color: var(--fern);       color: var(--fern); }
   .zp-greenhouse { background: var(--plum-pale);   border-color: var(--plum);       color: var(--plum); }
+  .zp-mystery    { background: var(--stone-pale);  border-color: var(--stone);    color: var(--stone); }
 
   .month-checks { display: flex; flex-wrap: wrap; gap: 5px; }
   .mo-pill { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 5px 9px; border-radius: var(--radius); border: 1.5px solid var(--parch-dk); background: #fff; cursor: pointer; user-select: none; transition: all 0.12s; }
@@ -557,26 +558,16 @@
           <input type="file" id="sp-photo-upload" accept="image/*" onchange="handleSpeciesPhotoUpload(this)">
         </div>
       </div>
-      <div class="fr">
-        <div class="fg"><label class="fl">Zone</label>
-          <select id="sp-zone">
-            <option value="japanese">Japanese Garden</option>
-            <option value="road">Road</option>
-            <option value="driveway">Mariton</option>
-            <option value="frontyard">Front Yard</option>
-            <option value="midyard">Middle Yard</option>
-            <option value="backyard">Back Yard</option>
-            <option value="greenhouse">Greenhouse</option>
-            <option value="mystery">Unknown / Mystery</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fl">ID Status</label>
-          <select id="sp-status">
-            <option value="confirmed">Confirmed ID</option>
-            <option value="suspected">Suspected ID</option>
-            <option value="unknown">Unknown</option>
-          </select>
-        </div>
+      <div class="fg">
+        <label class="fl">Locations on property <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--stone-lt)">(select all that apply)</span></label>
+        <div class="zone-pills" id="sp-zone-pills"></div>
+      </div>
+      <div class="fg"><label class="fl">ID Status</label>
+        <select id="sp-status">
+          <option value="confirmed">Confirmed ID</option>
+          <option value="suspected">Suspected ID</option>
+          <option value="unknown">Unknown</option>
+        </select>
       </div>
       <div class="fg"><label class="fl">Emergence months <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--stone-lt)">(buds, new leaves, waking up)</span></label><div class="month-checks" id="emergence-checks"></div></div>
       <div class="fg"><label class="fl">Peak bloom months <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--stone-lt)">(flowers open)</span></label><div class="month-checks" id="month-checks"></div></div>
@@ -624,26 +615,16 @@
           <input type="file" id="edit-sp-photo-upload" accept="image/*" onchange="handleEditSpeciesPhotoUpload(this)">
         </div>
       </div>
-      <div class="fr">
-        <div class="fg"><label class="fl">Zone</label>
-          <select id="edit-sp-zone">
-            <option value="japanese">Japanese Garden</option>
-            <option value="road">Road</option>
-            <option value="driveway">Mariton</option>
-            <option value="frontyard">Front Yard</option>
-            <option value="midyard">Middle Yard</option>
-            <option value="backyard">Back Yard</option>
-            <option value="greenhouse">Greenhouse</option>
-            <option value="mystery">Unknown / Mystery</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fl">ID Status</label>
-          <select id="edit-sp-status">
-            <option value="confirmed">Confirmed ID</option>
-            <option value="suspected">Suspected ID</option>
-            <option value="unknown">Unknown</option>
-          </select>
-        </div>
+      <div class="fg">
+        <label class="fl">Locations on property <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--stone-lt)">(select all that apply)</span></label>
+        <div class="zone-pills" id="edit-sp-zone-pills"></div>
+      </div>
+      <div class="fg"><label class="fl">ID Status</label>
+        <select id="edit-sp-status">
+          <option value="confirmed">Confirmed ID</option>
+          <option value="suspected">Suspected ID</option>
+          <option value="unknown">Unknown</option>
+        </select>
       </div>
       <div class="fg"><label class="fl">Bloom months</label><div class="month-checks" id="edit-month-checks"></div></div>
       <div class="fg"><label class="fl">Emergence months <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--stone-lt)">(buds, new leaves)</span></label><div class="month-checks" id="edit-emergence-checks"></div></div>
@@ -1067,9 +1048,9 @@ async function loadAll(){
 
 // ── DB row mappers ──
 function dbToEntry(r){ return { id:r.id, date:r.date, temp:r.temp||'', conditions:r.conditions||'', zones:r.zones||[], observed:r.observed||'', bloomSpeciesIds:r.bloom_species_ids||[], bloomText:r.bloom_text||'', actions:r.actions||'', questions:r.questions||'', photos:r.photos||[] }; }
-function dbToSpecies(r){ return { id:r.id, scientific:r.scientific||'', common:r.common||'', zone:r.zone||'', status:r.status||'unknown', bloomMonths:r.bloom_months||[], emergenceMonths:r.emergence_months||[], notes:r.notes||'', dateAdded:r.date_added||'', observationCount:r.observation_count||0, refPhoto:r.ref_photo||null, refCredit:r.ref_credit||null }; }
+function dbToSpecies(r){ const zones=(r.zones&&r.zones.length)?r.zones:(r.zone?[r.zone]:[]); return { id:r.id, scientific:r.scientific||'', common:r.common||'', zone:zones[0]||'', zones:zones, status:r.status||'unknown', bloomMonths:r.bloom_months||[], emergenceMonths:r.emergence_months||[], notes:r.notes||'', dateAdded:r.date_added||'', observationCount:r.observation_count||0, refPhoto:r.ref_photo||null, refCredit:r.ref_credit||null }; }
 function entryToDb(e){ return { id:e.id, date:e.date, temp:e.temp, conditions:e.conditions, zones:e.zones, observed:e.observed, bloom_species_ids:e.bloomSpeciesIds, bloom_text:e.bloomText, actions:e.actions, questions:e.questions, photos:e.photos }; }
-function speciesToDb(s){ return { id:s.id, scientific:s.scientific, common:s.common, zone:s.zone, status:s.status, bloom_months:s.bloomMonths, emergence_months:s.emergenceMonths||[], notes:s.notes, date_added:s.dateAdded, observation_count:s.observationCount, ref_photo:s.refPhoto, ref_credit:s.refCredit }; }
+function speciesToDb(s){ const zones=s.zones&&s.zones.length?s.zones:(s.zone?[s.zone]:[]); return { id:s.id, scientific:s.scientific, common:s.common, zone:zones[0]||s.zone||'', zones:zones, status:s.status, bloom_months:s.bloomMonths, emergence_months:s.emergenceMonths||[], notes:s.notes, date_added:s.dateAdded, observation_count:s.observationCount, ref_photo:s.refPhoto, ref_credit:s.refCredit }; }
 
 // ── Tabs ──
 function switchTab(id,btn){
@@ -1096,7 +1077,7 @@ function openEntryModal(){
 }
 function openSpeciesModal(){
   ['sp-sci','sp-common','sp-notes','sp-ref-url'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('sp-zone').value='japanese';
+  buildSpZonePills('sp-zone-pills',[]);
   document.getElementById('sp-status').value='confirmed';
   pendingRefPhoto=null;
   resetRefPhotoUI('sp-ref-img','sp-ref-placeholder','sp-ref-credit','Enter the scientific name, then tap "Look up from Wikipedia"');
@@ -1117,7 +1098,7 @@ function openEditSpecies(id){
   document.getElementById('edit-sp-subtitle').textContent=s.scientific;
   document.getElementById('edit-sp-sci').value=s.scientific;
   document.getElementById('edit-sp-common').value=s.common||'';
-  document.getElementById('edit-sp-zone').value=s.zone||'japanese';
+  buildSpZonePills('edit-sp-zone-pills', s.zones&&s.zones.length?s.zones:(s.zone?[s.zone]:[]));
   document.getElementById('edit-sp-status').value=s.status||'confirmed';
   document.getElementById('edit-sp-notes').value=s.notes||'';
   document.getElementById('edit-sp-ref-url').value='';
@@ -1579,8 +1560,31 @@ function renderPhotoPreviews(){
     </div>`).join('');
 }
 
-// ── Zone pills ──
-function buildZonePills(){
+// ── Species zone multi-select pills ──
+function buildSpZonePills(containerId, selectedZones){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const ALL_SP_ZONES=[...ZONES,{id:'mystery',label:'Unknown / Mystery',color:'#68605a'}];
+  ALL_SP_ZONES.forEach(z=>{
+    const isSelected=selectedZones.includes(z.id);
+    const lbl=document.createElement('label');
+    lbl.className='zone-pill'+(isSelected?` zp-${z.id}`:'');
+    lbl.dataset.zone=z.id;
+    lbl.innerHTML=`<input type="checkbox" value="${z.id}"${isSelected?' checked':''}> ${z.label}`;
+    lbl.querySelector('input').addEventListener('change',function(){
+      lbl.className=this.checked?`zone-pill zp-${z.id}`:'zone-pill';
+    });
+    wrap.appendChild(lbl);
+  });
+}
+function getSpZonePills(containerId){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return[];
+  return [...wrap.querySelectorAll('input:checked')].map(c=>c.value);
+}
+
+
   const wrap=document.getElementById('zone-pill-group'); wrap.innerHTML='';
   ZONES.forEach(z=>{
     const lbl=document.createElement('label');
@@ -1647,7 +1651,8 @@ async function saveSpecies(){
     id: Date.now(),
     scientific: document.getElementById('sp-sci').value.trim(),
     common: document.getElementById('sp-common').value.trim(),
-    zone: document.getElementById('sp-zone').value,
+    zones: getSpZonePills('sp-zone-pills'),
+    zone: getSpZonePills('sp-zone-pills')[0]||'japanese',
     status: document.getElementById('sp-status').value,
     bloomMonths: months,
     emergenceMonths: emergence,
@@ -1691,7 +1696,8 @@ async function saveEditSpecies(){
   const emergence=[...document.querySelectorAll('#edit-emergence-checks input:checked')].map(c=>parseInt(c.value));
   s.scientific = document.getElementById('edit-sp-sci').value.trim();
   s.common     = document.getElementById('edit-sp-common').value.trim();
-  s.zone       = document.getElementById('edit-sp-zone').value;
+  s.zones = getSpZonePills('edit-sp-zone-pills');
+  s.zone  = s.zones[0]||'japanese';
   s.status     = document.getElementById('edit-sp-status').value;
   s.notes      = document.getElementById('edit-sp-notes').value.trim();
   s.bloomMonths= months;
@@ -1923,8 +1929,8 @@ function renderSpecies(){
   const searchEl=document.getElementById('species-search');
   const q=searchEl?(searchEl.value||'').toLowerCase().trim():'';
   let list=activeFilter==='all'?species:
-    activeFilter==='mystery'?species.filter(s=>s.status==='unknown'||s.zone==='mystery'):
-    species.filter(s=>s.zone===activeFilter);
+    activeFilter==='mystery'?species.filter(s=>s.status==='unknown'||(s.zones&&s.zones.includes('mystery'))||s.zone==='mystery'):
+    species.filter(s=>(s.zones&&s.zones.includes(activeFilter))||s.zone===activeFilter);
   if(q) list=list.filter(s=>
     (s.common&&s.common.toLowerCase().includes(q))||
     (s.scientific&&s.scientific.toLowerCase().includes(q))
@@ -1941,7 +1947,7 @@ function renderSpecies(){
     return;
   }
   grid.innerHTML=list.map(s=>{
-    const isMyst=s.status==='unknown'||s.zone==='mystery';
+    const isMyst=s.status==='unknown'||(s.zones&&s.zones.includes('mystery'))||s.zone==='mystery';
     const cls=isMyst?'sc-mystery':`sc-${s.zone}`;
     const bloomStr=s.bloomMonths&&s.bloomMonths.length?s.bloomMonths.map(m=>MO[m]).join(' · '):'';
     const sCls={confirmed:'ss-confirmed',suspected:'ss-suspected',unknown:'ss-unknown'}[s.status]||'ss-unknown';
@@ -1956,6 +1962,7 @@ function renderSpecies(){
         <div class="sp-comm">${s.common||'(no common name)'}</div>
         <div class="sp-sci">${s.scientific}</div>
         ${bloomStr?`<div class="sp-bloom-str">${bloomStr}</div>`:''}
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${(s.zones&&s.zones.length?s.zones:[s.zone]).map(z=>`<span class="zone-tag zt-${z}">${zoneById(z).label}</span>`).join('')}</div>
         <div class="sp-foot">
           <span class="sp-status ${sCls}">${sLbl}</span>
           <span class="sp-added">${fmtDate(s.dateAdded)}</span>
@@ -2135,6 +2142,8 @@ function initDisplay(){
 
 // ── Boot ──
 buildZonePills();
+buildSpZonePills('sp-zone-pills', []);
+buildSpZonePills('edit-sp-zone-pills', []);
 buildMonthChecks('month-checks',[]);
 buildMonthChecks('emergence-checks',[]);
 buildMonthChecks('edit-month-checks',[]);
