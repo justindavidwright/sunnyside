@@ -2044,10 +2044,16 @@ function renderBloom(){
   if(bloomFilterMonth!==null){
     const mo=bloomFilterMonth;
     bloomSp=[...bloomSp].sort((a,b)=>{
-      const aActive=(a.bloomMonths&&a.bloomMonths.includes(mo))||(a.emergenceMonths&&a.emergenceMonths.includes(mo))||(observedMonths[a.id]&&observedMonths[a.id].has(mo));
-      const bActive=(b.bloomMonths&&b.bloomMonths.includes(mo))||(b.emergenceMonths&&b.emergenceMonths.includes(mo))||(observedMonths[b.id]&&observedMonths[b.id].has(mo));
-      if(aActive&&!bActive)return -1;
-      if(!aActive&&bActive)return 1;
+      // Tier: 0 = peak bloom, 1 = emerging/observed, 2 = dormant
+      function tier(s){
+        const isPeak  = (s.bloomMonths&&s.bloomMonths.includes(mo))||(observedMonths[s.id]&&observedMonths[s.id].has(mo));
+        const isEmer  = s.emergenceMonths&&s.emergenceMonths.includes(mo);
+        if(isPeak) return 0;
+        if(isEmer) return 1;
+        return 2;
+      }
+      const ta=tier(a), tb=tier(b);
+      if(ta!==tb) return ta-tb;
       return(a.common||a.scientific).localeCompare(b.common||b.scientific);
     });
   } else {
@@ -2074,12 +2080,13 @@ function renderBloom(){
 
   const rows=bloomSp.map(s=>{
     const thumb=s.refPhoto?`<img class="cal-sp-thumb" src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="cal-sp-thumb-placeholder"></div>`;
-    const isActiveInFilter=bloomFilterMonth!==null&&(
+    const isPeakInFilter=bloomFilterMonth!==null&&(
       (s.bloomMonths&&s.bloomMonths.includes(bloomFilterMonth))||
-      (s.emergenceMonths&&s.emergenceMonths.includes(bloomFilterMonth))||
       (observedMonths[s.id]&&observedMonths[s.id].has(bloomFilterMonth))
     );
-    const rowStyle=bloomFilterMonth!==null&&!isActiveInFilter?'opacity:0.35':'';
+    const isEmerInFilter=bloomFilterMonth!==null&&(s.emergenceMonths&&s.emergenceMonths.includes(bloomFilterMonth));
+    const isActiveInFilter=isPeakInFilter||isEmerInFilter;
+    const rowStyle=bloomFilterMonth!==null&&!isActiveInFilter?'opacity:0.3':'';
     const cells=MO.map((_,i)=>{
       const exp=s.bloomMonths&&s.bloomMonths.includes(i);
       const emer=s.emergenceMonths&&s.emergenceMonths.includes(i);
