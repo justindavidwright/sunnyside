@@ -1584,7 +1584,8 @@ function getSpZonePills(containerId){
   return [...wrap.querySelectorAll('input:checked')].map(c=>c.value);
 }
 
-
+// ── Zone pills (for field notes entry) ──
+function buildZonePills(){
   const wrap=document.getElementById('zone-pill-group'); wrap.innerHTML='';
   ZONES.forEach(z=>{
     const lbl=document.createElement('label');
