@@ -2037,7 +2037,7 @@ function renderBloom(){
 
   // Zone filter
   if(bloomFilterZone){
-    bloomSp=bloomSp.filter(s=>s.zone===bloomFilterZone);
+    bloomSp=bloomSp.filter(s=>(s.zones&&s.zones.includes(bloomFilterZone))||s.zone===bloomFilterZone);
   }
 
   // Month filter: sort species that are active in selected month to top
