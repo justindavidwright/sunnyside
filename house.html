@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunnyside — House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --void:#0D1412; --deep:#111916; --surface:#18201D; --panel:#1F2A26;
+  --border:rgba(90,155,140,0.13); --border-hi:rgba(90,155,140,0.3);
+  --cream:#E2D8BE; --cream-dim:rgba(226,216,190,0.07);
+  --teal:#3D6E65; --teal-lt:#5A9A8E; --teal-dim:rgba(61,110,101,0.2);
+  --red:#B83230; --red-lt:#D04846; --red-dim:rgba(184,50,48,0.14);
+  --olive:#7A8430; --olive-lt:#9EAA42; --olive-dim:rgba(122,132,48,0.14);
+  --amber:#C08830; --amber-lt:#D4A050; --amber-dim:rgba(192,136,48,0.14);
+  --stone:#78706A; --ash:#98908A; --bone:#DDD4C0; --white:#EDE6D8;
+  --radius:2px; --shadow:0 2px 16px rgba(0,0,0,0.6); --shadow-lg:0 8px 48px rgba(0,0,0,0.78);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--bone);min-height:100vh;font-size:14px;line-height:1.6}
+
+header{background:var(--deep);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tile-row{display:flex;align-items:center;gap:3px}
+.tile{width:24px;height:40px;background:#0C1410;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--cream);position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(90,155,140,0.1),0 1px 4px rgba(0,0,0,0.5)}
+.tile::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(52deg,transparent 0px,transparent 4px,rgba(13,20,18,0.07) 4px,rgba(13,20,18,0.07) 5px);pointer-events:none}
+.tile.t-red{border-bottom:2px solid var(--red)}.tile.t-olive{border-bottom:2px solid var(--olive)}
+.brand-sep{width:1px;height:22px;background:var(--border-hi);margin:0 1rem}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--white);letter-spacing:0.04em}
+.brand-sub{font-family:'DM Mono',monospace;font-size:0.57rem;color:var(--stone);letter-spacing:0.14em;text-transform:uppercase;margin-left:0.75rem}
+.hdr-r{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--ash);letter-spacing:0.1em;text-transform:uppercase}
+.urgent-flag{color:var(--red-lt)}
+
+nav{background:var(--deep);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:62px;z-index:99;padding:0 2rem}
+nav::-webkit-scrollbar{display:none}
+nav button{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;color:var(--stone);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.9rem 1.1rem 0.75rem;cursor:pointer;transition:all .13s;white-space:nowrap}
+nav button:hover{color:var(--bone)}
+nav button.active{color:var(--cream);border-bottom-color:var(--teal-lt)}
+
+main{max-width:1120px;margin:0 auto;padding:2.5rem 2rem 5rem}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border);gap:1rem;flex-wrap:wrap}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:500;color:var(--white);letter-spacing:0.02em;line-height:1}
+.page-sub{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--stone);letter-spacing:0.12em;text-transform:uppercase;margin-top:0.4rem}
+
+.sec-head{display:flex;align-items:center;gap:0.75rem;margin:2.5rem 0 1rem;cursor:pointer;user-select:none}
+.sec-label{font-family:'DM Mono',monospace;font-size:0.64rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal-lt);white-space:nowrap}
+.sec-rule{flex:1;height:1px;background:var(--border)}
+.sec-chev{font-size:0.65rem;color:var(--stone);transition:transform .2s}
+.sec-chev.open{transform:rotate(180deg)}
+.sec-body{overflow:hidden}
+.sec-body.collapsed{max-height:0!important}
+
+.btn{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;padding:.5rem .95rem;border-radius:var(--radius);border:1px solid transparent;cursor:pointer;transition:all .13s;white-space:nowrap}
+.btn-primary{background:var(--teal);color:var(--cream);border-color:var(--teal)}.btn-primary:hover{background:var(--teal-lt);border-color:var(--teal-lt)}
+.btn-red{background:transparent;color:var(--red-lt);border-color:rgba(184,50,48,.3)}.btn-red:hover{background:var(--red-dim);border-color:var(--red-lt)}
+.btn-olive{background:transparent;color:var(--olive-lt);border-color:rgba(122,132,48,.3)}.btn-olive:hover{background:var(--olive-dim);border-color:var(--olive-lt)}
+.btn-outline{background:transparent;color:var(--ash);border-color:var(--border-hi)}.btn-outline:hover{color:var(--bone);border-color:var(--teal-lt)}
+.btn-ghost{background:transparent;color:var(--stone);border-color:transparent;padding:.35rem .55rem}.btn-ghost:hover{color:var(--bone)}
+.btn-danger{background:transparent;color:#9A5848;border-color:transparent}.btn-danger:hover{color:var(--red-lt);background:var(--red-dim)}
+.btn-sm{font-size:.58rem;padding:.28rem .55rem}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.mech-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card{background:var(--surface);padding:1.2rem 1.35rem;transition:background .13s}
+.card:hover{background:var(--panel)}
+.card-grid .card,.mech-grid .card{border-radius:0}
+
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .45rem;border-radius:1px}
+.badge-urgent{background:var(--red-dim);color:var(--red-lt);border:1px solid rgba(184,50,48,.25)}
+.badge-high{background:var(--amber-dim);color:var(--amber-lt);border:1px solid rgba(192,136,48,.25)}
+.badge-normal{background:var(--teal-dim);color:var(--teal-lt);border:1px solid rgba(61,110,101,.2)}
+.badge-low{background:rgba(120,112,106,.14);color:var(--ash);border:1px solid rgba(120,112,106,.2)}
+.badge-era{background:var(--olive-dim);color:var(--olive-lt);border:1px solid rgba(122,132,48,.2)}
+
+.rose-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px;vertical-align:middle;box-shadow:0 0 4px rgba(184,50,48,.4)}
+
+.filters{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.4rem;align-items:center}
+.filter-chip{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;padding:.27rem .68rem;border:1px solid var(--border-hi);border-radius:20px;background:transparent;color:var(--stone);cursor:pointer;transition:all .12s}
+.filter-chip:hover{border-color:var(--teal-lt);color:var(--bone)}
+.filter-chip.active{background:var(--teal-dim);color:var(--teal-lt);border-color:var(--teal-lt)}
+.fsel{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:.27rem .68rem;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--ash);outline:none;cursor:pointer;-webkit-appearance:none}
+
+.task-title{font-family:'Cormorant Garamond',serif;font-size:1.06rem;font-weight:500;color:var(--white);line-height:1.3;margin-bottom:.25rem}
+.task-meta{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.35rem}
+.task-desc{font-size:.81rem;color:var(--ash);line-height:1.55;margin-top:.3rem}
+.task-actions{display:flex;gap:.3rem;margin-top:.65rem;padding-top:.6rem;border-top:1px solid var(--border)}
+
+.mech-bar-wrap{margin:.65rem 0 .28rem;background:var(--panel);border-radius:2px;height:3px;overflow:hidden}
+.mech-bar{height:100%;border-radius:2px;transition:width .4s ease}
+.bar-good{background:#4E8E70}.bar-fair{background:var(--olive)}.bar-aging{background:var(--amber)}.bar-replace{background:var(--red)}
+
+.chem-row{display:flex;gap:1.1rem;margin-top:.5rem;flex-wrap:wrap}
+.chem-item{font-family:'DM Mono',monospace}
+.chem-lbl{font-size:.52rem;color:var(--stone);letter-spacing:.12em;text-transform:uppercase;display:block}
+.chem-val{font-size:.9rem;color:var(--bone)}
+
+.log-month{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--teal-lt);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+.log-section{margin-bottom:1.75rem}
+.log-entry{padding:.85rem 1.15rem;border-left:2px solid var(--teal-dim);margin-bottom:.6rem;background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;transition:border-left-color .13s}
+.log-entry:hover{border-left-color:var(--teal-lt)}
+.log-date{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--stone);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.18rem}
+.log-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;color:var(--white)}
+
+.timeline{position:relative;padding-left:2.2rem}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:1px;background:linear-gradient(to bottom,var(--teal-lt) 0%,var(--border) 100%)}
+.tl-item{position:relative;margin-bottom:2.2rem}
+.tl-dot{position:absolute;left:-2.2rem;top:3px;width:16px;height:16px;border-radius:50%;background:var(--deep);border:1.5px solid var(--teal-lt);display:flex;align-items:center;justify-content:center;font-size:.6rem}
+.tl-era{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--teal-lt);letter-spacing:.14em;text-transform:uppercase;margin-bottom:.28rem}
+.tl-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:500;color:var(--white);margin-bottom:.5rem;line-height:1.2}
+.tl-body{font-size:.82rem;color:var(--ash);line-height:1.7}
+.tl-source{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--stone);margin-top:.45rem;font-style:italic}
+
+.cond-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.cond-excellent,.cond-good{background:#4E8E70}
+.cond-fair{background:var(--olive)}
+.cond-poor,.cond-needs-attention{background:var(--red)}
+
+.diff-tag{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .45rem;border-radius:1px}
+.diff-diy{background:rgba(78,142,112,.15);color:#7AC8A0;border:1px solid rgba(78,142,112,.2)}
+.diff-pro-assist{background:var(--olive-dim);color:var(--olive-lt);border:1px solid rgba(122,132,48,.2)}
+.diff-professional-only{background:var(--red-dim);color:var(--red-lt);border:1px solid rgba(184,50,48,.2)}
+.warn-block{background:rgba(192,136,48,.07);border-left:2px solid var(--amber);padding:.5rem .85rem;margin:.45rem 0;font-size:.78rem;color:var(--amber-lt);line-height:1.55}
+
+.archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.archive-item{background:var(--surface)}
+.archive-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;filter:sepia(14%) contrast(1.06) brightness(.94)}
+.archive-no-img{width:100%;aspect-ratio:4/3;background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--stone);font-size:2rem}
+.archive-body{padding:.85rem 1rem}
+.archive-title{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:500;color:var(--white);margin-bottom:.15rem}
+.archive-meta{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--stone);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem}
+.archive-cap{font-size:.77rem;color:var(--ash);line-height:1.5}
+
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(8,12,11,.83);z-index:200;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px)}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--deep);border:1px solid var(--border-hi);border-radius:var(--radius);padding:1.75rem 2rem;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:500;color:var(--white);margin-bottom:1.35rem;padding-bottom:.85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+.modal-title::before{content:'';display:inline-block;width:3px;height:1.1rem;background:linear-gradient(to bottom,var(--red) 0%,var(--teal-lt) 100%);border-radius:1px;flex-shrink:0}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.form-group{margin-bottom:.88rem}
+.form-label{display:block;font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin-bottom:.32rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:.84rem;padding:.54rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--bone);outline:none;transition:border-color .13s;-webkit-appearance:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--teal-lt)}
+.form-group select option{background:var(--deep)}
+.form-group textarea{resize:vertical;min-height:74px}
+.form-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.35rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+
+.upload-zone{border:1px dashed var(--border-hi);border-radius:var(--radius);padding:1.2rem;text-align:center;cursor:pointer;transition:all .14s;background:var(--surface)}
+.upload-zone:hover,.upload-zone.over{border-color:var(--teal-lt);background:var(--teal-dim)}
+.upload-zone p{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-top:.3rem}
+.upload-zone input{display:none}
+
+.empty{text-align:center;padding:3.5rem 2rem;color:var(--stone);grid-column:1/-1}
+.empty-icon{font-size:1.7rem;margin-bottom:.6rem;opacity:.42}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:400;color:var(--ash);margin-bottom:.3rem}
+.empty p{font-size:.79rem;max-width:300px;margin:0 auto;line-height:1.6}
+
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface);border:1px solid var(--border-hi);color:var(--bone);padding:.68rem 1.15rem;border-radius:var(--radius);font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.06em;box-shadow:var(--shadow-lg);z-index:500;opacity:0;transform:translateY(6px);transition:all .18s;max-width:280px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.success{border-left:2px solid var(--teal-lt)}
+#toast.error{border-left:2px solid var(--red-lt)}
+.loading{padding:3rem;text-align:center;font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--stone);grid-column:1/-1}
+
+@media(max-width:600px){.form-row{grid-template-columns:1fr}main{padding:1.5rem 1rem 3rem}header{padding:0 1rem}nav{padding:0 1rem}.brand-sub{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center">
+    <div class="tile-row">
+      <div class="tile t-red">1</div>
+      <div class="tile">8</div>
+      <div class="tile">0</div>
+      <div class="tile t-olive">3</div>
+    </div>
+    <div class="brand-sep"></div>
+    <span class="brand-name">Sunnyside</span>
+    <span class="brand-sub">Riegelsville, PA</span>
+  </div>
+  <div class="hdr-r" id="headerStatus">Est. 1803</div>
+</header>
+
+<nav id="mainNav">
+  <button class="active" data-tab="maintenance">Maintenance</button>
+  <button data-tab="log">Work Log</button>
+  <button data-tab="rooms">Rooms</button>
+  <button data-tab="repairs">Repair Library</button>
+  <button data-tab="history">History</button>
+  <button data-tab="bennett">Bennett Archive</button>
+</nav>
+
+<main>
+  <!-- MAINTENANCE -->
+  <div class="tab-pane active" id="tab-maintenance">
+    <div class="page-header">
+      <div><div class="page-title">Maintenance</div><div class="page-sub">Tasks · Mechanicals · Pool</div></div>
+      <button class="btn btn-primary" onclick="openTaskModal()">+ Task</button>
+    </div>
+    <div class="filters">
+      <button class="filter-chip active" data-af="all" onclick="setAreaFilter('all',this)">All</button>
+      <div id="areaChips" style="display:contents"></div>
+      <select class="fsel" id="priorityFilter" onchange="renderTasks()">
+        <option value="">All Priorities</option>
+        <option value="urgent">Urgent</option><option value="high">High</option>
+        <option value="normal">Normal</option><option value="low">Low</option>
+      </select>
+    </div>
+    <div id="tasksContainer" class="card-grid"><div class="loading">Loading…</div></div>
+
+    <div class="sec-head" onclick="toggleSec('mechBody','mechChev')">
+      <span class="sec-label">⚙ Mechanicals</span>
+      <div class="sec-rule"></div>
+      <button class="btn btn-olive btn-sm" onclick="event.stopPropagation();openMechModal()">+ Item</button>
+      <span class="sec-chev open" id="mechChev">▼</span>
+    </div>
+    <div class="sec-body" id="mechBody">
+      <div id="mechContainer" class="mech-grid" style="margin-bottom:.5rem"><div class="loading">Loading…</div></div>
+    </div>
+
+    <div class="sec-head" onclick="toggleSec('poolBody','poolChev')">
+      <span class="sec-label">🏊 Pool</span>
+      <div class="sec-rule"></div>
+      <button class="btn btn-red btn-sm" onclick="event.stopPropagation();openPoolModal()">+ Log</button>
+      <span class="sec-chev open" id="poolChev">▼</span>
+    </div>
+    <div class="sec-body" id="poolBody">
+      <div id="poolContainer"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- WORK LOG -->
+  <div class="tab-pane" id="tab-log">
+    <div class="page-header">
+      <div><div class="page-title">Work Log</div><div class="page-sub">Completed work · Cost · Contractors</div></div>
+      <button class="btn btn-primary" onclick="openLogModal()">+ Entry</button>
+    </div>
+    <div id="logContainer"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- ROOMS -->
+  <div class="tab-pane" id="tab-rooms">
+    <div class="page-header">
+      <div><div class="page-title">Rooms</div><div class="page-sub">Condition · Materials · Era · Notes</div></div>
+      <button class="btn btn-primary" onclick="openRoomModal()">+ Room</button>
+    </div>
+    <div id="roomsContainer" class="card-grid"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- REPAIR LIBRARY -->
+  <div class="tab-pane" id="tab-repairs">
+    <div class="page-header">
+      <div><div class="page-title">Repair Library</div><div class="page-sub">Materials · Methods · Historic preservation</div></div>
+      <button class="btn btn-primary" onclick="openRepairModal()">+ Entry</button>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-left:2px solid var(--teal-lt);padding:.9rem 1.2rem;border-radius:var(--radius);margin-bottom:1.4rem">
+      <div style="font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-lt);margin-bottom:.3rem">What is this?</div>
+      <div style="font-size:.82rem;color:var(--ash);line-height:1.65">Your <em style="color:var(--bone)">permanent field manual</em> for a 220-year-old stone barn. Every time a contractor teaches you something critical — "never use Portland cement on fieldstone," "always use linseed oil putty on the steel windows" — write it here so you never forget it, and never hire someone who gets it wrong.</div>
+    </div>
+    <div class="filters">
+      <input class="fsel" id="repairSearch" placeholder="Search…" oninput="renderRepairs()" style="border-radius:20px;min-width:180px">
+      <select class="fsel" id="repairCat" onchange="renderRepairs()">
+        <option value="">All</option><option value="stone">Stone</option><option value="wood">Wood</option>
+        <option value="roofing">Roofing</option><option value="plumbing">Plumbing</option>
+        <option value="electrical">Electrical</option><option value="hvac">HVAC</option>
+        <option value="windows">Windows</option><option value="pool">Pool</option><option value="general">General</option>
+      </select>
+    </div>
+    <div id="repairsContainer" class="card-grid"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tab-pane" id="tab-history">
+    <div class="page-header">
+      <div><div class="page-title">House History</div><div class="page-sub">1803 — present · Five eras of stewardship</div></div>
+      <button class="btn btn-primary" onclick="openHistoryModal()">+ Entry</button>
+    </div>
+    <div id="historyContainer" class="timeline"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- BENNETT -->
+  <div class="tab-pane" id="tab-bennett">
+    <div class="page-header">
+      <div><div class="page-title">Bennett Archive</div><div class="page-sub">Ward Bennett · 1960s · Phaidon · Look Magazine</div></div>
+      <button class="btn btn-primary" onclick="openBennettModal()">+ Photo</button>
+    </div>
+    <div id="bennettContainer" class="archive-grid"><div class="loading">Loading…</div></div>
+  </div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="taskModal"><div class="modal">
+  <div class="modal-title" id="taskModalTitle">New Task</div>
+  <input type="hidden" id="taskId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Area</label><select id="taskArea"></select></div>
+    <div class="form-group"><label class="form-label">Priority</label><select id="taskPriority"><option value="urgent">Urgent</option><option value="high">High</option><option value="normal" selected>Normal</option><option value="low">Low</option></select></div>
+  </div>
+  <div class="form-group"><label class="form-label">Title</label><input id="taskTitle" placeholder="Inspect stone mortar joints…"></div>
+  <div class="form-group"><label class="form-label">Description</label><textarea id="taskDesc"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Frequency</label><select id="taskFreq"><option value="annual">Annual</option><option value="seasonal">Seasonal</option><option value="monthly">Monthly</option><option value="as-needed">As Needed</option><option value="one-off">One-Off</option></select></div>
+    <div class="form-group"><label class="form-label">Season</label><select id="taskSeason"><option value="any">Any</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="fall">Fall</option><option value="winter">Winter</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Last Completed</label><input type="date" id="taskLast"></div>
+    <div class="form-group"><label class="form-label">Next Due</label><input type="date" id="taskDue"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea id="taskNotes" style="min-height:55px"></textarea></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-primary" onclick="saveTask()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="mechModal"><div class="modal">
+  <div class="modal-title" id="mechModalTitle">New Mechanical Item</div>
+  <input type="hidden" id="mechId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Name</label><input id="mechName" placeholder="Furnace, Water Heater…"></div>
+    <div class="form-group"><label class="form-label">Type</label><select id="mechType"><option value="hvac">HVAC / Heating</option><option value="water">Water Heater</option><option value="plumbing">Plumbing</option><option value="electrical">Electrical Panel</option><option value="roof">Roof / Gutter</option><option value="pool">Pool Equipment</option><option value="appliance">Appliance</option><option value="other">Other</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Make / Model</label><input id="mechModel"></div>
+    <div class="form-group"><label class="form-label">Serial Number</label><input id="mechSerial"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Install Date</label><input type="date" id="mechDate"></div>
+    <div class="form-group"><label class="form-label">Lifespan (years)</label><input type="number" id="mechLife" placeholder="15"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Last Serviced</label><input type="date" id="mechSvc"></div>
+    <div class="form-group"><label class="form-label">Service Interval (mo)</label><input type="number" id="mechSvcInt" placeholder="12"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Warranty Expiry</label><input type="date" id="mechWarranty"></div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea id="mechNotes"></textarea></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('mechModal')">Cancel</button><button class="btn btn-primary" onclick="saveMech()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="poolModal"><div class="modal">
+  <div class="modal-title">Pool Log Entry</div>
+  <input type="hidden" id="poolId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Date</label><input type="date" id="poolDate"></div>
+    <div class="form-group"><label class="form-label">Type</label><select id="poolType"><option value="chemistry">Water Chemistry</option><option value="equipment">Equipment</option><option value="cleaning">Cleaning</option><option value="seasonal">Seasonal (Open/Close)</option><option value="repair">Repair</option><option value="other">Other</option></select></div>
+  </div>
+  <div class="form-group"><label class="form-label">Title</label><input id="poolTitle"></div>
+  <div style="font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin:.5rem 0 .4rem">Chemistry (optional)</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem">
+    <div class="form-group"><label class="form-label">pH</label><input type="number" id="poolPh" step="0.1" placeholder="7.4"></div>
+    <div class="form-group"><label class="form-label">Chlorine</label><input type="number" id="poolCl" step="0.1" placeholder="2.0"></div>
+    <div class="form-group"><label class="form-label">Alkalinity</label><input type="number" id="poolAlk" placeholder="100"></div>
+    <div class="form-group"><label class="form-label">Calcium</label><input type="number" id="poolCa"></div>
+    <div class="form-group"><label class="form-label">CYA</label><input type="number" id="poolCya"></div>
+    <div class="form-group"><label class="form-label">Temp °F</label><input type="number" id="poolTemp"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Notes / Treatments</label><textarea id="poolNotes"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Cost ($)</label><input type="number" id="poolCost" step="0.01"></div>
+    <div class="form-group"><label class="form-label">Contractor</label><input id="poolContractor"></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('poolModal')">Cancel</button><button class="btn btn-primary" onclick="savePool()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="logModal"><div class="modal">
+  <div class="modal-title">Log Work</div>
+  <input type="hidden" id="logId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Area</label><select id="logArea"></select></div>
+    <div class="form-group"><label class="form-label">Date</label><input type="date" id="logDate"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Title</label><input id="logTitle"></div>
+  <div class="form-group"><label class="form-label">Description</label><textarea id="logDesc"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Cost ($)</label><input type="number" id="logCost" step="0.01"></div>
+    <div class="form-group"><label class="form-label">Contractor</label><input id="logContractor"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea id="logNotes" style="min-height:55px"></textarea></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('logModal')">Cancel</button><button class="btn btn-primary" onclick="saveLog()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="roomModal"><div class="modal">
+  <div class="modal-title" id="roomModalTitle">New Room</div>
+  <input type="hidden" id="roomId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Room Name</label><input id="roomName"></div>
+    <div class="form-group"><label class="form-label">Area</label><select id="roomArea"></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Floor</label><select id="roomFloor"><option value="ground">Ground</option><option value="upper">Upper</option><option value="lower">Lower</option><option value="exterior">Exterior</option></select></div>
+    <div class="form-group"><label class="form-label">Condition</label><select id="roomCondition"><option value="excellent">Excellent</option><option value="good" selected>Good</option><option value="fair">Fair</option><option value="poor">Poor</option><option value="needs-attention">Needs Attention</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Era</label><select id="roomEra"><option value="bougher-1803">Bougher (1803)</option><option value="bennett-1960s">Bennett (1960s)</option><option value="bamboo-bob-1980s">Bamboo Bob (1980s)</option><option value="shel-jude">Shel &amp; Jude</option><option value="us">Current / Us</option><option value="unknown">Unknown</option></select></div>
+    <div class="form-group"><label class="form-label">Original Use</label><input id="roomOriginal"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Flooring</label><input id="roomFlooring"></div>
+    <div class="form-group"><label class="form-label">Walls</label><input id="roomWalls"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Notable Features</label><textarea id="roomFeatures" style="min-height:60px"></textarea></div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea id="roomNotes" style="min-height:50px"></textarea></div>
+  <div class="form-group"><label class="form-label">Photo URL</label><input type="url" id="roomPhoto"></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('roomModal')">Cancel</button><button class="btn btn-primary" onclick="saveRoom()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="repairModal"><div class="modal">
+  <div class="modal-title" id="repairModalTitle">New Repair Entry</div>
+  <input type="hidden" id="repairId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Title</label><input id="repairTitle"></div>
+    <div class="form-group"><label class="form-label">Category</label><select id="repairCatSel"><option value="stone">Stone</option><option value="wood">Wood</option><option value="roofing">Roofing</option><option value="plumbing">Plumbing</option><option value="electrical">Electrical</option><option value="hvac">HVAC</option><option value="windows">Windows</option><option value="pool">Pool</option><option value="general">General</option></select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Area</label><select id="repairArea"></select></div>
+    <div class="form-group"><label class="form-label">Difficulty</label><select id="repairDiff"><option value="diy">DIY</option><option value="pro-assist">Pro Assist</option><option value="professional-only">Professional Only</option></select></div>
+  </div>
+  <div class="form-group"><label class="form-label">Description</label><textarea id="repairDesc"></textarea></div>
+  <div class="form-group"><label class="form-label">Materials</label><textarea id="repairMats" style="min-height:55px"></textarea></div>
+  <div class="form-group"><label class="form-label">Process / Notes</label><textarea id="repairSteps"></textarea></div>
+  <div class="form-group"><label class="form-label">⚠ Historic Property Warnings</label><textarea id="repairWarn" style="min-height:55px"></textarea></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Cost Low ($)</label><input type="number" id="repairLow"></div>
+    <div class="form-group"><label class="form-label">Cost High ($)</label><input type="number" id="repairHigh"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Sources</label><input id="repairSrc"></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('repairModal')">Cancel</button><button class="btn btn-primary" onclick="saveRepair()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="historyModal"><div class="modal">
+  <div class="modal-title">History Entry</div>
+  <input type="hidden" id="historyId">
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Era</label><select id="historyEra"><option value="bougher">Bougher (1803–1950s)</option><option value="bennett">Ward Bennett (1960s)</option><option value="bamboo-bob">Bamboo Bob (1980s)</option><option value="interregnum">Interregnum</option><option value="shel-jude">Shel &amp; Jude</option><option value="us">Our Era</option><option value="unknown">Unknown</option></select></div>
+    <div class="form-group"><label class="form-label">Year Range</label><div style="display:flex;gap:.4rem"><input type="number" id="histYearS" placeholder="From" style="width:50%"><input type="number" id="histYearE" placeholder="To" style="width:50%"></div></div>
+  </div>
+  <div class="form-group"><label class="form-label">Title</label><input id="histTitle"></div>
+  <div class="form-group"><label class="form-label">Content</label><textarea id="histContent" style="min-height:110px"></textarea></div>
+  <div class="form-group"><label class="form-label">Source</label><input id="histSource" placeholder="Phaidon book, deed records…"></div>
+  <div class="form-group"><label class="form-label">Photo URL</label><input type="url" id="histPhoto"></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('historyModal')">Cancel</button><button class="btn btn-primary" onclick="saveHistory()">Save</button></div>
+</div></div>
+
+<div class="modal-backdrop" id="bennettModal"><div class="modal">
+  <div class="modal-title">Bennett Archive</div>
+  <input type="hidden" id="bennettId">
+  <div class="form-group"><label class="form-label">Title</label><input id="bennettTitle" placeholder="Great Room looking north, 1962…"></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Source</label><select id="bennettSrc"><option value="phaidon-book">Phaidon Monograph</option><option value="look-magazine">Look Magazine</option><option value="personal">Personal Photo</option><option value="unknown">Unknown</option></select></div>
+    <div class="form-group"><label class="form-label">Page / Ref</label><input id="bennettPage" placeholder="p. 142"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Description</label><textarea id="bennettDesc" style="min-height:55px"></textarea></div>
+  <div class="form-group">
+    <label class="form-label">Upload Photo</label>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('bennettFile').click()">
+      <div style="font-size:1.25rem;opacity:.38">⬆</div><p>Click or drag · JPG / PNG</p>
+      <input type="file" id="bennettFile" accept="image/*" onchange="handleFile(event)">
+    </div>
+    <div id="uploadPrev" style="display:none;margin-top:.4rem">
+      <img id="uploadPrevImg" style="max-width:100%;border-radius:2px;max-height:150px;object-fit:cover">
+      <div style="font-family:'DM Mono',monospace;font-size:.56rem;color:var(--stone);margin-top:.2rem" id="uploadPrevName"></div>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Or paste URL</label><input type="url" id="bennettUrl" oninput="clearFile()"></div>
+  <div class="form-group"><label class="form-label">Notes</label><textarea id="bennettNotes" style="min-height:55px"></textarea></div>
+  <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('bennettModal')">Cancel</button><button class="btn btn-primary" onclick="saveBennett()">Save</button></div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+const SB_URL='https://egaiclldgiqfmztzqdih.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMzM5OTEsImV4cCI6MjA1NzkwOTk5MX0.6mbkFRlPbc6AwMHMXIqO0apMvLbTfAMFOtP3HNIjVAo';
+const BUCKET='house-photos';
+const{createClient}=supabase;
+const db=createClient(SB_URL,SB_KEY);
+
+let areas=[],tasks=[],logE=[],rooms=[],repairs=[],history=[],bennett=[],mechs=[],poolLog=[];
+let areaFilter='all',selFile=null;
+
+const SEED=[
+  {name:'Great Room',floor:'ground',era:'bennett-1960s',condition:'good',original_use:'Barn threshing floor',flooring:'Wide-plank hardwood',walls:'Exposed fieldstone (1803)',notable_features:'Floor-to-ceiling steel-framed windows on east wall, exposed diagonal timber beam (original barn structure), double-height volume, ceiling fan, bookshelves along stone wall. The central space Bennett designed around.',updated_at:new Date().toISOString()},
+  {name:'Living Room / Lower Level',floor:'ground',era:'bennett-1960s',condition:'good',original_use:'Barn lower level',flooring:'Hardwood',walls:'Exposed fieldstone',notable_features:'Wood-burning stove with log storage, record player, vinyl collection, bar cart, sound system. United Air Lines vintage poster on stone wall.',updated_at:new Date().toISOString()},
+  {name:'Full Kitchen',floor:'ground',era:'bennett-1960s',condition:'good',flooring:'Tile / hardwood',walls:'Mixed stone and plaster',notable_features:'Full kitchen with ceiling fan and pendant lighting. Adjacent to dining area.',updated_at:new Date().toISOString()},
+  {name:'Dining Area',floor:'ground',era:'bennett-1960s',condition:'good',flooring:'Hardwood',walls:'Stone / wood',notable_features:'Dining table, colorful rug, warm lamp lighting. Adjacent to kitchen.',updated_at:new Date().toISOString()},
+  {name:'Primary Bedroom',floor:'upper',era:'bennett-1960s',condition:'good',original_use:'Barn loft / hay storage',flooring:'Hardwood',walls:'Exposed stone and timber',notable_features:'Stone wall at head of bed, loft-like volume, warm lighting. Accessed via main stair.',updated_at:new Date().toISOString()},
+  {name:'Full Bathroom 1',floor:'ground',era:'shel-jude',condition:'good',flooring:'Tile',walls:'Tile / plaster',notable_features:'Full bath. Skylight above.',updated_at:new Date().toISOString()},
+  {name:'Full Bathroom 2',floor:'upper',era:'shel-jude',condition:'good',flooring:'Tile',walls:'Tile / plaster',updated_at:new Date().toISOString()},
+  {name:'Workspace / Study',floor:'upper',era:'bennett-1960s',condition:'good',flooring:'Hardwood',walls:'Stone / wood',notable_features:'Desk, floor-to-ceiling bookshelves, desk lamp. Mezzanine-level — a proper writer\'s room.',updated_at:new Date().toISOString()},
+  {name:'Greenhouse',floor:'ground',era:'bamboo-bob-1980s',condition:'fair',original_use:'Added during Japanese garden era (1980s)',flooring:'Concrete / pavers',walls:'Steel-framed glass panels on stone base',notable_features:'Tropical and hanging plants, natural light through steel-framed glass. Connected to main structure. Glass panels need periodic inspection.',updated_at:new Date().toISOString()},
+  {name:'Exterior — Stone Walls',floor:'exterior',era:'bougher-1803',condition:'fair',original_use:'Original 1803 Bougher barn construction',walls:'Pennsylvania fieldstone, original lime mortar',notable_features:'Primary historic asset. Mortar requires lime-based repointing (NEVER Portland cement). Original barn doors with X-bracing. Covered in climbing vines.',updated_at:new Date().toISOString()},
+  {name:'Pool Area',floor:'exterior',era:'bamboo-bob-1980s',condition:'fair',original_use:'Added during Bamboo Bob era',flooring:'Stone pavers',notable_features:'Teal pool. Stone patio surround. Seasonal use.',updated_at:new Date().toISOString()},
+];
+
+document.addEventListener('DOMContentLoaded',async()=>{
+  setupNav();
+  await loadAreas();
+  await Promise.all([loadTasks(),loadLog(),loadRooms(),loadRepairs(),loadHistory(),loadBennett(),loadMechs(),loadPool()]);
+  updateStatus();
+  setTimeout(()=>['mechBody','poolBody'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.maxHeight=el.scrollHeight+'px';}),100);
+});
+
+function setupNav(){document.querySelectorAll('#mainNav button').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('#mainNav button').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');});});}
+
+function updateStatus(){const u=tasks.filter(t=>t.priority==='urgent').length;document.getElementById('headerStatus').innerHTML=u?`<span class="urgent-flag">${u} urgent</span>`:tasks.length?`${tasks.length} tasks`:'Est. 1803';}
+
+function toggleSec(bodyId,chevId){const b=document.getElementById(bodyId),c=document.getElementById(chevId);if(b.classList.toggle('collapsed')){b.style.maxHeight='0';}else{b.style.maxHeight=b.scrollHeight+200+'px';}c.classList.toggle('open',!b.classList.contains('collapsed'));}
+function recalc(id){const el=document.getElementById(id);if(el&&!el.classList.contains('collapsed'))el.style.maxHeight=el.scrollHeight+200+'px';}
+
+async function loadAreas(){const{data}=await db.from('house_areas').select('*').order('sort_order');areas=data||[];populateSels();renderChips();}
+function populateSels(){['taskArea','logArea','roomArea','repairArea'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.innerHTML='<option value="">— area —</option>';areas.forEach(a=>el.innerHTML+=`<option value="${a.id}">${a.name}</option>`);});}
+function renderChips(){document.getElementById('areaChips').innerHTML=areas.map(a=>`<button class="filter-chip" data-af="${a.id}" onclick="setAreaFilter('${a.id}',this)">${a.name}</button>`).join('');}
+function setAreaFilter(v,btn){areaFilter=v;document.querySelectorAll('[data-af]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTasks();}
+function aName(id){const a=areas.find(x=>x.id===id);return a?a.name:'—';}
+
+async function loadTasks(){const{data}=await db.from('house_tasks').select('*').order('created_at');tasks=data||[];renderTasks();}
+const pOrd={urgent:0,high:1,normal:2,low:3};
+function renderTasks(){
+  const pf=gv('priorityFilter');
+  let f=tasks;
+  if(areaFilter!=='all')f=f.filter(t=>t.area_id===areaFilter);
+  if(pf)f=f.filter(t=>t.priority===pf);
+  f=[...f].sort((a,b)=>(pOrd[a.priority]??2)-(pOrd[b.priority]??2));
+  const c=document.getElementById('tasksContainer');
+  if(!f.length){c.innerHTML=mkE('🔧','No tasks yet','Add maintenance tasks using the button above.');return;}
+  c.innerHTML=f.map(t=>`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.28rem">
+      <div class="task-title">${t.priority==='urgent'?'<span class="rose-dot"></span>':''}${t.title}</div>
+      <span class="badge badge-${t.priority}">${t.priority}</span>
+    </div>
+    <div class="task-meta"><span>${aName(t.area_id)}</span>${t.frequency?`<span>· ${t.frequency.replace('-',' ')}</span>`:''}${t.season&&t.season!=='any'?`<span>· ${t.season}</span>`:''}${t.next_due?`<span style="color:var(--red-lt)">· due ${t.next_due}</span>`:''}</div>
+    ${t.description?`<div class="task-desc">${t.description}</div>`:''}
+    ${t.notes?`<div style="font-size:.76rem;color:var(--stone);margin-top:.22rem;font-style:italic">${t.notes}</div>`:''}
+    <div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">Edit</button><button class="btn btn-outline btn-sm" onclick="logFromTask('${t.id}')">Log Work</button><button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">Delete</button></div>
+  </div>`).join('');
+}
+function openTaskModal(){resetModal('taskModal');document.getElementById('taskModalTitle').textContent='New Task';openModal('taskModal');}
+async function saveTask(){const id=gv('taskId');const p={area_id:gv('taskArea')||null,title:gv('taskTitle').trim(),description:gv('taskDesc').trim()||null,frequency:gv('taskFreq'),season:gv('taskSeason'),priority:gv('taskPriority'),last_completed:gv('taskLast')||null,next_due:gv('taskDue')||null,notes:gv('taskNotes').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_tasks').update(p).eq('id',id);else await db.from('house_tasks').insert(p);closeModal('taskModal');await loadTasks();updateStatus();toast(id?'Task updated':'Task added','success');}
+function editTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('taskModalTitle').textContent='Edit Task';sv({taskId:t.id,taskTitle:t.title||'',taskDesc:t.description||'',taskFreq:t.frequency||'annual',taskSeason:t.season||'any',taskPriority:t.priority||'normal',taskLast:t.last_completed||'',taskDue:t.next_due||'',taskNotes:t.notes||'',taskArea:t.area_id||''});openModal('taskModal');}
+async function deleteTask(id){if(!confirm('Delete?'))return;await db.from('house_tasks').delete().eq('id',id);await loadTasks();updateStatus();toast('Deleted');}
+function logFromTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;resetModal('logModal');sv({logTitle:t.title,logArea:t.area_id||'',logDate:today()});openModal('logModal');}
+
+async function loadMechs(){const{data}=await db.from('house_mechanicals').select('*').order('type').order('name');mechs=data||[];renderMechs();}
+function mStat(m){if(!m.install_date||!m.expected_lifespan)return{label:'unknown',pct:0,cls:'bar-good'};const y=(Date.now()-new Date(m.install_date))/(1000*60*60*24*365.25);const pct=Math.min(100,Math.round(y/m.expected_lifespan*100));const cls=pct<40?'bar-good':pct<65?'bar-fair':pct<85?'bar-aging':'bar-replace';const label=pct<40?'Good':pct<65?'Fair':pct<85?'Aging':'Replace Soon';return{label,pct,cls,y:y.toFixed(1)};}
+function renderMechs(){
+  const c=document.getElementById('mechContainer');
+  if(!mechs.length){c.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚙</div><h3>No mechanicals tracked</h3><p>Add furnace, water heater, electrical panel, etc. to forecast replacement dates.</p></div>`;recalc('mechBody');return;}
+  c.innerHTML=mechs.map(m=>{const s=mStat(m);const ns=m.last_service_date&&m.service_interval_months?(()=>{const d=new Date(m.last_service_date);d.setMonth(d.getMonth()+m.service_interval_months);return d.toLocaleDateString('en-US',{month:'short',year:'numeric'});})():null;const bc=s.label==='Good'?'badge-normal':s.label==='Replace Soon'?'badge-urgent':'badge-high';return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem"><div><div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:500;color:var(--white)">${m.name}</div><div style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--stone);letter-spacing:.08em;text-transform:uppercase">${m.type||''} ${m.make_model?'· '+m.make_model:''}</div></div><span class="badge ${bc}">${s.label}</span></div>${s.pct>0?`<div class="mech-bar-wrap"><div class="mech-bar ${s.cls}" style="width:${s.pct}%"></div></div><div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);letter-spacing:.06em"><span>${s.y} yrs old</span><span>${s.pct}% of ${m.expected_lifespan}yr</span></div>`:''}<div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);margin-top:.48rem;display:flex;flex-wrap:wrap;gap:.35rem">${m.install_date?`<span>Installed ${fmtDate(m.install_date)}</span>`:''}${ns?`<span>· Svc ~${ns}</span>`:''}${m.warranty_expiry?`<span>· Warranty to ${fmtDate(m.warranty_expiry)}</span>`:''}</div>${m.notes?`<div style="font-size:.79rem;color:var(--ash);margin-top:.38rem;line-height:1.5">${m.notes}</div>`:''}<div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editMech('${m.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteMech('${m.id}')">Delete</button></div></div>`;}).join('');
+  recalc('mechBody');
+}
+function openMechModal(){resetModal('mechModal');document.getElementById('mechModalTitle').textContent='New Item';openModal('mechModal');}
+async function saveMech(){const id=gv('mechId');const p={name:gv('mechName').trim(),type:gv('mechType'),make_model:gv('mechModel').trim()||null,serial_number:gv('mechSerial').trim()||null,install_date:gv('mechDate')||null,expected_lifespan:parseInt(gv('mechLife'))||null,last_service_date:gv('mechSvc')||null,service_interval_months:parseInt(gv('mechSvcInt'))||null,warranty_expiry:gv('mechWarranty')||null,notes:gv('mechNotes').trim()||null};if(!p.name){toast('Name required','error');return;}if(id)await db.from('house_mechanicals').update(p).eq('id',id);else await db.from('house_mechanicals').insert(p);closeModal('mechModal');await loadMechs();toast('Saved','success');}
+function editMech(id){const m=mechs.find(x=>x.id===id);if(!m)return;document.getElementById('mechModalTitle').textContent='Edit Item';sv({mechId:m.id,mechName:m.name||'',mechType:m.type||'other',mechModel:m.make_model||'',mechSerial:m.serial_number||'',mechDate:m.install_date||'',mechLife:m.expected_lifespan||'',mechSvc:m.last_service_date||'',mechSvcInt:m.service_interval_months||'',mechWarranty:m.warranty_expiry||'',mechNotes:m.notes||''});openModal('mechModal');}
+async function deleteMech(id){if(!confirm('Delete?'))return;await db.from('house_mechanicals').delete().eq('id',id);await loadMechs();toast('Deleted');}
+
+async function loadPool(){const{data}=await db.from('house_pool_log').select('*').order('log_date',{ascending:false});poolLog=data||[];renderPool();}
+function renderPool(){
+  const c=document.getElementById('poolContainer');
+  if(!poolLog.length){c.innerHTML=`<div class="empty"><div class="empty-icon">🏊</div><h3>No pool entries</h3><p>Log chemistry, equipment, and seasonal events.</p></div>`;recalc('poolBody');return;}
+  const g={};poolLog.forEach(e=>{const k=new Date(e.log_date+'T12:00').toLocaleString('en-US',{month:'long',year:'numeric'});if(!g[k])g[k]=[];g[k].push(e);});
+  c.innerHTML=Object.entries(g).map(([mo,es])=>`<div class="log-section"><div class="log-month">${mo}</div>${es.map(e=>`<div class="log-entry" style="border-left-color:rgba(61,110,101,.35)"><div class="log-date">${fmtDate(e.log_date,'long')}</div><div class="log-title">${e.title}</div><div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);text-transform:uppercase;letter-spacing:.08em">${e.entry_type||''}</div>${(e.ph||e.chlorine||e.alkalinity)?`<div class="chem-row">${e.ph?`<div class="chem-item"><span class="chem-lbl">pH</span><span class="chem-val">${e.ph}</span></div>`:''} ${e.chlorine?`<div class="chem-item"><span class="chem-lbl">Cl</span><span class="chem-val">${e.chlorine}</span></div>`:''} ${e.alkalinity?`<div class="chem-item"><span class="chem-lbl">Alk</span><span class="chem-val">${e.alkalinity}</span></div>`:''} ${e.calcium?`<div class="chem-item"><span class="chem-lbl">Ca</span><span class="chem-val">${e.calcium}</span></div>`:''} ${e.cya?`<div class="chem-item"><span class="chem-lbl">CYA</span><span class="chem-val">${e.cya}</span></div>`:''} ${e.water_temp?`<div class="chem-item"><span class="chem-lbl">°F</span><span class="chem-val">${e.water_temp}</span></div>`:''}</div>`:''} ${e.notes?`<div style="font-size:.79rem;color:var(--ash);margin-top:.32rem;line-height:1.5">${e.notes}</div>`:''} ${e.cost?`<div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);margin-top:.22rem">$${parseFloat(e.cost).toFixed(2)}</div>`:''}<div style="display:flex;gap:.3rem;margin-top:.45rem"><button class="btn btn-ghost btn-sm" onclick="editPool('${e.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deletePool('${e.id}')">Delete</button></div></div>`).join('')}</div>`).join('');
+  recalc('poolBody');
+}
+function openPoolModal(){resetModal('poolModal');sv({poolDate:today()});openModal('poolModal');}
+async function savePool(){const id=gv('poolId');const p={log_date:gv('poolDate')||today(),entry_type:gv('poolType'),title:gv('poolTitle').trim(),ph:parseFloat(gv('poolPh'))||null,chlorine:parseFloat(gv('poolCl'))||null,alkalinity:parseInt(gv('poolAlk'))||null,calcium:parseInt(gv('poolCa'))||null,cya:parseInt(gv('poolCya'))||null,water_temp:parseInt(gv('poolTemp'))||null,notes:gv('poolNotes').trim()||null,cost:parseFloat(gv('poolCost'))||null,contractor:gv('poolContractor').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_pool_log').update(p).eq('id',id);else await db.from('house_pool_log').insert(p);closeModal('poolModal');await loadPool();toast('Saved','success');}
+function editPool(id){const e=poolLog.find(x=>x.id===id);if(!e)return;sv({poolId:e.id,poolDate:e.log_date||'',poolType:e.entry_type||'chemistry',poolTitle:e.title||'',poolPh:e.ph||'',poolCl:e.chlorine||'',poolAlk:e.alkalinity||'',poolCa:e.calcium||'',poolCya:e.cya||'',poolTemp:e.water_temp||'',poolNotes:e.notes||'',poolCost:e.cost||'',poolContractor:e.contractor||''});openModal('poolModal');}
+async function deletePool(id){if(!confirm('Delete?'))return;await db.from('house_pool_log').delete().eq('id',id);await loadPool();toast('Deleted');}
+
+async function loadLog(){const{data}=await db.from('house_maintenance_log').select('*').order('completed_date',{ascending:false});logE=data||[];renderLog();}
+function renderLog(){const c=document.getElementById('logContainer');if(!logE.length){c.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><h3>No entries yet</h3><p>Record completed work to build a maintenance history.</p></div>`;return;}const g={};logE.forEach(e=>{const k=new Date(e.completed_date+'T12:00').toLocaleString('en-US',{month:'long',year:'numeric'});if(!g[k])g[k]=[];g[k].push(e);});c.innerHTML=Object.entries(g).map(([mo,es])=>`<div class="log-section"><div class="log-month">${mo}</div>${es.map(e=>`<div class="log-entry"><div class="log-date">${fmtDate(e.completed_date,'long')}</div><div class="log-title">${e.title}</div><div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);letter-spacing:.06em;margin-top:.1rem;display:flex;flex-wrap:wrap;gap:.35rem">${e.area_id?`<span>${aName(e.area_id)}</span>`:''}${e.contractor?`<span>· ${e.contractor}</span>`:''}${e.cost?`<span>· $${parseFloat(e.cost).toFixed(2)}</span>`:''}</div>${e.description?`<div style="font-size:.79rem;color:var(--ash);margin-top:.28rem;line-height:1.5">${e.description}</div>`:''}${e.notes?`<div style="font-size:.75rem;color:var(--stone);margin-top:.18rem;font-style:italic">${e.notes}</div>`:''}<div style="display:flex;gap:.3rem;margin-top:.42rem"><button class="btn btn-ghost btn-sm" onclick="editLog('${e.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteLog('${e.id}')">Delete</button></div></div>`).join('')}</div>`).join('');}
+function openLogModal(){resetModal('logModal');sv({logDate:today()});openModal('logModal');}
+async function saveLog(){const id=gv('logId');const p={area_id:gv('logArea')||null,title:gv('logTitle').trim(),description:gv('logDesc').trim()||null,completed_date:gv('logDate')||today(),cost:gv('logCost')||null,contractor:gv('logContractor').trim()||null,notes:gv('logNotes').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_maintenance_log').update(p).eq('id',id);else await db.from('house_maintenance_log').insert(p);closeModal('logModal');await loadLog();toast(id?'Updated':'Logged','success');}
+function editLog(id){const e=logE.find(x=>x.id===id);if(!e)return;sv({logId:e.id,logTitle:e.title||'',logArea:e.area_id||'',logDate:e.completed_date||'',logDesc:e.description||'',logCost:e.cost||'',logContractor:e.contractor||'',logNotes:e.notes||''});openModal('logModal');}
+async function deleteLog(id){if(!confirm('Delete?'))return;await db.from('house_maintenance_log').delete().eq('id',id);await loadLog();toast('Deleted');}
+
+async function loadRooms(){const{data}=await db.from('house_rooms').select('*').order('name');rooms=data||[];if(!rooms.length)await seedRooms();else renderRooms();}
+async function seedRooms(){
+  toast('Seeding rooms…');
+  const{error,data:inserted}=await db.from('house_rooms').insert(SEED).select();
+  if(error){
+    // Show the real error message
+    const msg=error.message||error.details||JSON.stringify(error);
+    console.error('Seed failed:',msg,error);
+    // Show it prominently in the rooms container
+    document.getElementById('roomsContainer').innerHTML=`
+      <div class="empty" style="grid-column:1/-1;text-align:left;padding:2rem">
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--red-lt);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Seed Error</div>
+        <div style="font-size:.82rem;color:var(--ash);margin-bottom:.75rem;line-height:1.6"><strong style="color:var(--bone)">${msg}</strong></div>
+        <div style="font-size:.79rem;color:var(--stone);line-height:1.65">Run <strong style="color:var(--cream)">house-rooms-patch.sql</strong> in your Supabase SQL Editor to fix RLS policies and seed rooms.<br>Supabase → SQL Editor → New Query → paste → Run</div>
+      </div>`;
+    return;
+  }
+  toast(`${(inserted||[]).length} rooms seeded`,'success');
+  const{data}=await db.from('house_rooms').select('*').order('name');
+  rooms=data||[];
+  renderRooms();
+}
+const eraL={'bougher-1803':'Bougher','bennett-1960s':'Bennett','bamboo-bob-1980s':'Bamboo Bob','shel-jude':'Shel & Jude','us':'Current','unknown':'?'};
+function renderRooms(){
+  const c=document.getElementById('roomsContainer');
+  if(!rooms.length){c.innerHTML=mkE('🚪','No rooms','Rooms will auto-seed on next load after running the patch SQL. Or add manually.');return;}
+  c.innerHTML=rooms.map(r=>`<div class="card">${r.photo_url?`<img src="${r.photo_url}" alt="${r.name}" style="width:100%;height:140px;object-fit:cover;border-radius:1px;margin-bottom:.65rem;filter:sepia(10%) contrast(1.06)">`:''}<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.28rem"><div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;color:var(--white)">${r.name}</div><span class="badge badge-era">${eraL[r.era]||r.era||'?'}</span></div><div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap"><span class="cond-dot cond-${r.condition}"></span><span>${r.condition||'good'}</span><span>· ${r.floor||'ground'} floor</span></div>${r.original_use?`<div style="font-size:.76rem;color:var(--stone);font-style:italic;margin-bottom:.25rem">Originally: ${r.original_use}</div>`:''}${r.flooring?`<div style="font-size:.78rem;color:var(--ash)">Floor: ${r.flooring}</div>`:''}${r.walls?`<div style="font-size:.78rem;color:var(--ash)">Walls: ${r.walls}</div>`:''}${r.notable_features?`<div style="font-size:.78rem;color:var(--bone);margin-top:.42rem;line-height:1.55">${r.notable_features}</div>`:''}<div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editRoom('${r.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRoom('${r.id}')">Delete</button></div></div>`).join('');
+}
+function openRoomModal(){resetModal('roomModal');document.getElementById('roomModalTitle').textContent='New Room';openModal('roomModal');}
+async function saveRoom(){const id=gv('roomId');const p={name:gv('roomName').trim(),area_id:gv('roomArea')||null,floor:gv('roomFloor'),condition:gv('roomCondition'),era:gv('roomEra'),original_use:gv('roomOriginal').trim()||null,flooring:gv('roomFlooring').trim()||null,walls:gv('roomWalls').trim()||null,notable_features:gv('roomFeatures').trim()||null,notes:gv('roomNotes').trim()||null,photo_url:gv('roomPhoto').trim()||null};if(!p.name){toast('Name required','error');return;}if(id)await db.from('house_rooms').update(p).eq('id',id);else await db.from('house_rooms').insert(p);closeModal('roomModal');await loadRooms();toast(id?'Updated':'Added','success');}
+function editRoom(id){const r=rooms.find(x=>x.id===id);if(!r)return;document.getElementById('roomModalTitle').textContent='Edit Room';sv({roomId:r.id,roomName:r.name||'',roomArea:r.area_id||'',roomFloor:r.floor||'ground',roomCondition:r.condition||'good',roomEra:r.era||'unknown',roomOriginal:r.original_use||'',roomFlooring:r.flooring||'',roomWalls:r.walls||'',roomFeatures:r.notable_features||'',roomNotes:r.notes||'',roomPhoto:r.photo_url||''});openModal('roomModal');}
+async function deleteRoom(id){if(!confirm('Delete?'))return;await db.from('house_rooms').delete().eq('id',id);await loadRooms();toast('Deleted');}
+
+async function loadRepairs(){const{data}=await db.from('house_repairs').select('*').order('category').order('title');repairs=data||[];renderRepairs();}
+function renderRepairs(){const s=document.getElementById('repairSearch').value.toLowerCase();const cat=gv('repairCat');let f=repairs;if(s)f=f.filter(r=>r.title?.toLowerCase().includes(s)||r.description?.toLowerCase().includes(s));if(cat)f=f.filter(r=>r.category===cat);const c=document.getElementById('repairsContainer');if(!f.length){c.innerHTML=mkE('📖','No entries yet','Add your first — try "Repointing historic fieldstone mortar."');return;}c.innerHTML=f.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.32rem"><div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:500;color:var(--white)">${r.title}</div><span class="diff-tag diff-${r.difficulty}">${(r.difficulty||'').replace('-',' ')}</span></div><div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.38rem;display:flex;flex-wrap:wrap;gap:.32rem">${r.category?`<span>${r.category}</span>`:''}${r.area_id?`<span>· ${aName(r.area_id)}</span>`:''}${(r.estimated_cost_low||r.estimated_cost_high)?`<span>· $${r.estimated_cost_low||'?'}–$${r.estimated_cost_high||'?'}</span>`:''}</div>${r.description?`<div style="font-size:.8rem;color:var(--ash);line-height:1.6;margin-bottom:.32rem">${r.description}</div>`:''}${r.warnings?`<div class="warn-block">⚠ ${r.warnings}</div>`:''}${r.materials?`<div style="font-size:.76rem;color:var(--ash);margin-bottom:.22rem"><span style="color:var(--stone)">Materials:</span> ${r.materials}</div>`:''}${r.steps?`<div style="font-size:.76rem;color:var(--ash);line-height:1.55;margin-bottom:.22rem"><span style="color:var(--stone)">Process:</span> ${r.steps}</div>`:''}${r.sources?`<div style="font-family:'DM Mono',monospace;font-size:.54rem;color:var(--stone);font-style:italic">Source: ${r.sources}</div>`:''}<div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Delete</button></div></div>`).join('');}
+function openRepairModal(){resetModal('repairModal');document.getElementById('repairModalTitle').textContent='New Entry';openModal('repairModal');}
+async function saveRepair(){const id=gv('repairId');const p={title:gv('repairTitle').trim(),area_id:gv('repairArea')||null,category:gv('repairCatSel'),difficulty:gv('repairDiff'),description:gv('repairDesc').trim()||null,materials:gv('repairMats').trim()||null,steps:gv('repairSteps').trim()||null,warnings:gv('repairWarn').trim()||null,estimated_cost_low:parseFloat(gv('repairLow'))||null,estimated_cost_high:parseFloat(gv('repairHigh'))||null,sources:gv('repairSrc').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_repairs').update(p).eq('id',id);else await db.from('house_repairs').insert(p);closeModal('repairModal');await loadRepairs();toast(id?'Updated':'Added','success');}
+function editRepair(id){const r=repairs.find(x=>x.id===id);if(!r)return;document.getElementById('repairModalTitle').textContent='Edit Entry';sv({repairId:r.id,repairTitle:r.title||'',repairArea:r.area_id||'',repairCatSel:r.category||'general',repairDiff:r.difficulty||'diy',repairDesc:r.description||'',repairMats:r.materials||'',repairSteps:r.steps||'',repairWarn:r.warnings||'',repairLow:r.estimated_cost_low||'',repairHigh:r.estimated_cost_high||'',repairSrc:r.sources||''});openModal('repairModal');}
+async function deleteRepair(id){if(!confirm('Delete?'))return;await db.from('house_repairs').delete().eq('id',id);await loadRepairs();toast('Deleted');}
+
+async function loadHistory(){const{data}=await db.from('house_history').select('*').order('sort_order').order('year_start');history=data||[];renderHistory();}
+const eEm={bougher:'🪨',bennett:'◻','bamboo-bob':'🎋',interregnum:'🍂','shel-jude':'🔨',us:'◆',unknown:'?'};
+const eLb={bougher:'The Bougher Era',bennett:'The Ward Bennett Era','bamboo-bob':'The Bamboo Bob Era',interregnum:'The Interregnum','shel-jude':'Shel & Jude',us:'Our Era',unknown:'Unknown'};
+function renderHistory(){const c=document.getElementById('historyContainer');if(!history.length){c.innerHTML=`<div class="empty"><div class="empty-icon">📜</div><h3>History being written</h3><p>Document what you know and discover about this 220-year-old property.</p></div>`;return;}c.innerHTML=history.map(h=>`<div class="tl-item"><div class="tl-dot">${eEm[h.era]||'·'}</div><div class="tl-era">${h.era_label||eLb[h.era]||h.era} ${h.year_start?'· '+h.year_start+(h.year_end?'–'+h.year_end:''):''}</div><div class="tl-title">${h.title}</div>${h.content?`<div class="tl-body">${h.content}</div>`:''}${h.source?`<div class="tl-source">Source: ${h.source}</div>`:''}${h.photo_url?`<img src="${h.photo_url}" alt="${h.title}" style="margin-top:.65rem;max-width:100%;border-radius:2px;max-height:280px;object-fit:cover;filter:sepia(14%) contrast(1.06)">`:''}<div style="display:flex;gap:.3rem;margin-top:.6rem"><button class="btn btn-ghost btn-sm" onclick="editHistory('${h.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteHistory('${h.id}')">Delete</button></div></div>`).join('');}
+function openHistoryModal(){resetModal('historyModal');openModal('historyModal');}
+async function saveHistory(){const id=gv('historyId');const era=gv('historyEra');const p={era,era_label:eLb[era]||era,year_start:parseInt(gv('histYearS'))||null,year_end:parseInt(gv('histYearE'))||null,title:gv('histTitle').trim(),content:gv('histContent').trim()||null,source:gv('histSource').trim()||null,photo_url:gv('histPhoto').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_history').update(p).eq('id',id);else await db.from('house_history').insert(p);closeModal('historyModal');await loadHistory();toast(id?'Updated':'Added','success');}
+function editHistory(id){const h=history.find(x=>x.id===id);if(!h)return;sv({historyId:h.id,historyEra:h.era||'unknown',histYearS:h.year_start||'',histYearE:h.year_end||'',histTitle:h.title||'',histContent:h.content||'',histSource:h.source||'',histPhoto:h.photo_url||''});openModal('historyModal');}
+async function deleteHistory(id){if(!confirm('Delete?'))return;await db.from('house_history').delete().eq('id',id);await loadHistory();toast('Deleted');}
+
+async function loadBennett(){const{data}=await db.from('house_bennett_archive').select('*').order('sort_order').order('created_at');bennett=data||[];renderBennett();}
+const sLb={'phaidon-book':'Phaidon Monograph','look-magazine':'Look Magazine','personal':'Personal Photo','unknown':'Unknown'};
+function renderBennett(){const c=document.getElementById('bennettContainer');if(!bennett.length){c.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📷</div><h3>Archive empty</h3><p>Upload scans from the Phaidon monograph and Look Magazine.</p></div>`;return;}c.innerHTML=bennett.map(b=>`<div class="archive-item">${b.photo_url?`<img class="archive-img" src="${b.photo_url}" alt="${b.title}" loading="lazy">`:`<div class="archive-no-img">📷</div>`}<div class="archive-body"><div class="archive-title">${b.title}</div><div class="archive-meta">${sLb[b.source]||b.source}${b.page_number?' · p.'+b.page_number:''}</div>${b.description?`<div class="archive-cap">${b.description}</div>`:''}${b.notes?`<div class="archive-cap" style="margin-top:.22rem;font-style:italic;color:var(--stone)">${b.notes}</div>`:''}<div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editBennett('${b.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteBennett('${b.id}')">Delete</button></div></div></div>`).join('');}
+function openBennettModal(){resetModal('bennettModal');openModal('bennettModal');}
+function handleFile(e){const f=e.target.files[0];if(!f)return;selFile=f;const r=new FileReader();r.onload=ev=>{document.getElementById('uploadPrevImg').src=ev.target.result;document.getElementById('uploadPrevName').textContent=f.name;document.getElementById('uploadPrev').style.display='block';};r.readAsDataURL(f);document.getElementById('bennettUrl').value='';}
+function clearFile(){selFile=null;document.getElementById('uploadPrev').style.display='none';document.getElementById('bennettFile').value='';}
+async function uploadFile(f){const ext=f.name.split('.').pop();const fn=`bennett-${Date.now()}.${ext}`;const{error}=await db.storage.from(BUCKET).upload(fn,f,{cacheControl:'3600',upsert:false});if(error)throw error;return db.storage.from(BUCKET).getPublicUrl(fn).data.publicUrl;}
+async function saveBennett(){const id=gv('bennettId');let photo_url=gv('bennettUrl').trim()||null;if(selFile){toast('Uploading…');try{photo_url=await uploadFile(selFile);}catch(e){toast('Upload failed: '+e.message,'error');return;}}const p={title:gv('bennettTitle').trim(),source:gv('bennettSrc'),page_number:gv('bennettPage').trim()||null,description:gv('bennettDesc').trim()||null,notes:gv('bennettNotes').trim()||null,photo_url};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_bennett_archive').update(p).eq('id',id);else await db.from('house_bennett_archive').insert(p);selFile=null;closeModal('bennettModal');await loadBennett();toast(id?'Updated':'Added to archive','success');}
+function editBennett(id){const b=bennett.find(x=>x.id===id);if(!b)return;sv({bennettId:b.id,bennettTitle:b.title||'',bennettSrc:b.source||'phaidon-book',bennettPage:b.page_number||'',bennettDesc:b.description||'',bennettNotes:b.notes||'',bennettUrl:b.photo_url||''});document.getElementById('uploadPrev').style.display='none';openModal('bennettModal');}
+async function deleteBennett(id){if(!confirm('Remove?'))return;await db.from('house_bennett_archive').delete().eq('id',id);await loadBennett();toast('Removed');}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');resetModal(id);}
+function resetModal(id){const m=document.getElementById(id);m.querySelectorAll('input[type=hidden]').forEach(el=>el.value='');m.querySelectorAll('input:not([type=hidden]):not([type=file])').forEach(el=>el.value='');m.querySelectorAll('textarea').forEach(el=>el.value='');selFile=null;const p=document.getElementById('uploadPrev');if(p)p.style.display='none';}
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');}));
+
+const uz=document.getElementById('uploadZone');
+if(uz){uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('over');});uz.addEventListener('dragleave',()=>uz.classList.remove('over'));uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){selFile=f;const r=new FileReader();r.onload=ev=>{document.getElementById('uploadPrevImg').src=ev.target.result;document.getElementById('uploadPrevName').textContent=f.name;document.getElementById('uploadPrev').style.display='block';};r.readAsDataURL(f);}});}
+
+const gv=id=>(document.getElementById(id)?.value??'');
+const sv=map=>Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v??'';});
+const today=()=>new Date().toISOString().split('T')[0];
+function fmtDate(d,style){if(!d)return'—';const dt=new Date(d+'T12:00');return style==='long'?dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):dt.toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+function mkE(icon,title,msg){return`<div class="empty"><div class="empty-icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;}
+let tT;function toast(msg,type='success'){const el=document.getElementById('toast');el.textContent=msg;el.className=`show ${type}`;clearTimeout(tT);tT=setTimeout(()=>el.className='',3200);}
+</script>
+</body>
+</html>
