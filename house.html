@@ -80,6 +80,37 @@ main{max-width:1120px;margin:0 auto;padding:2.5rem 2rem 5rem}
 
 .rose-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px;vertical-align:middle;box-shadow:0 0 4px rgba(184,50,48,.4)}
 
+/* ── MAINTENANCE CALENDAR ── */
+.cal-months{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1.5rem}
+.cal-month-btn{font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 0.7rem;border:1px solid var(--border-hi);border-radius:2px;background:transparent;color:var(--stone);cursor:pointer;transition:all .13s}
+.cal-month-btn:hover{border-color:var(--teal-lt);color:var(--bone)}
+.cal-month-btn.active{background:var(--teal);border-color:var(--teal);color:var(--cream)}
+.cal-month-btn.has-urgent{border-color:rgba(184,50,48,.4);color:var(--red-lt)}
+.cal-month-btn.active.has-urgent{background:var(--red);border-color:var(--red);color:var(--cream)}
+
+.cal-section{margin-bottom:2rem}
+.cal-section-head{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;margin-bottom:1px}
+.cal-section-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;color:var(--white)}
+.cal-task-count{font-family:'DM Mono',monospace;font-size:0.57rem;color:var(--stone);letter-spacing:0.1em;text-transform:uppercase}
+
+.cal-task{display:flex;align-items:flex-start;gap:0.75rem;padding:0.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-top:none;transition:background .13s}
+.cal-task:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.cal-task:hover{background:var(--panel)}
+
+.cal-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border-hi);flex-shrink:0;margin-top:2px;cursor:pointer;transition:all .13s;display:flex;align-items:center;justify-content:center}
+.cal-check:hover{border-color:var(--teal-lt)}
+.cal-check.done{background:var(--teal);border-color:var(--teal)}
+.cal-check.done::after{content:'✓';font-size:0.55rem;color:var(--cream)}
+
+.cal-task-body{flex:1;min-width:0}
+.cal-task-title{font-family:'Cormorant Garamond',serif;font-size:1.0rem;font-weight:500;color:var(--white);line-height:1.3;margin-bottom:0.2rem}
+.cal-task-title.done-text{text-decoration:line-through;color:var(--stone)}
+.cal-task-meta{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--stone);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center}
+.cal-area-tag{background:var(--teal-dim);color:var(--teal-lt);border:1px solid rgba(61,110,101,.2);padding:0.1rem 0.4rem;border-radius:1px;font-family:'DM Mono',monospace;font-size:0.53rem;letter-spacing:0.08em;text-transform:uppercase}
+.cal-task-desc{font-size:0.79rem;color:var(--ash);line-height:1.55}
+.cal-task-actions{display:flex;gap:0.3rem;margin-top:0.5rem;opacity:0;transition:opacity .13s}
+.cal-task:hover .cal-task-actions{opacity:1}
+
 .filters{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.4rem;align-items:center}
 .filter-chip{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;padding:.27rem .68rem;border:1px solid var(--border-hi);border-radius:20px;background:transparent;color:var(--stone);cursor:pointer;transition:all .12s}
 .filter-chip:hover{border-color:var(--teal-lt);color:var(--bone)}
@@ -200,19 +231,13 @@ main{max-width:1120px;margin:0 auto;padding:2.5rem 2rem 5rem}
   <!-- MAINTENANCE -->
   <div class="tab-pane active" id="tab-maintenance">
     <div class="page-header">
-      <div><div class="page-title">Maintenance</div><div class="page-sub">Tasks · Mechanicals · Pool</div></div>
+      <div><div class="page-title">Maintenance</div><div class="page-sub">Calendar · Mechanicals · Pool</div></div>
       <button class="btn btn-primary" onclick="openTaskModal()">+ Task</button>
     </div>
-    <div class="filters">
-      <button class="filter-chip active" data-af="all" onclick="setAreaFilter('all',this)">All</button>
-      <div id="areaChips" style="display:contents"></div>
-      <select class="fsel" id="priorityFilter" onchange="renderTasks()">
-        <option value="">All Priorities</option>
-        <option value="urgent">Urgent</option><option value="high">High</option>
-        <option value="normal">Normal</option><option value="low">Low</option>
-      </select>
-    </div>
-    <div id="tasksContainer" class="card-grid"><div class="loading">Loading…</div></div>
+    <!-- Month tabs -->
+    <div class="cal-months" id="calMonths"></div>
+    <!-- Calendar task list -->
+    <div id="tasksContainer"><div class="loading">Loading…</div></div>
 
     <div class="sec-head" onclick="toggleSec('mechBody','mechChev')">
       <span class="sec-label">⚙ Mechanicals</span>
@@ -473,7 +498,7 @@ main{max-width:1120px;margin:0 auto;padding:2.5rem 2rem 5rem}
 
 <script>
 const SB_URL='https://egaiclldgiqfmztzqdih.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMzM5OTEsImV4cCI6MjA1NzkwOTk5MX0.6mbkFRlPbc6AwMHMXIqO0apMvLbTfAMFOtP3HNIjVAo';
 const BUCKET='house-photos';
 const{createClient}=supabase;
 const db=createClient(SB_URL,SB_KEY);
@@ -510,32 +535,119 @@ function updateStatus(){const u=tasks.filter(t=>t.priority==='urgent').length;do
 function toggleSec(bodyId,chevId){const b=document.getElementById(bodyId),c=document.getElementById(chevId);if(b.classList.toggle('collapsed')){b.style.maxHeight='0';}else{b.style.maxHeight=b.scrollHeight+200+'px';}c.classList.toggle('open',!b.classList.contains('collapsed'));}
 function recalc(id){const el=document.getElementById(id);if(el&&!el.classList.contains('collapsed'))el.style.maxHeight=el.scrollHeight+200+'px';}
 
-async function loadAreas(){const{data}=await db.from('house_areas').select('*').order('sort_order');areas=data||[];populateSels();renderChips();}
+async function loadAreas(){const{data}=await db.from('house_areas').select('*').order('sort_order');areas=data||[];populateSels();}
 function populateSels(){['taskArea','logArea','roomArea','repairArea'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.innerHTML='<option value="">— area —</option>';areas.forEach(a=>el.innerHTML+=`<option value="${a.id}">${a.name}</option>`);});}
 function renderChips(){document.getElementById('areaChips').innerHTML=areas.map(a=>`<button class="filter-chip" data-af="${a.id}" onclick="setAreaFilter('${a.id}',this)">${a.name}</button>`).join('');}
 function setAreaFilter(v,btn){areaFilter=v;document.querySelectorAll('[data-af]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTasks();}
 function aName(id){const a=areas.find(x=>x.id===id);return a?a.name:'—';}
 
-async function loadTasks(){const{data}=await db.from('house_tasks').select('*').order('created_at');tasks=data||[];renderTasks();}
+async function loadTasks(){const{data}=await db.from('house_tasks').select('*').order('priority').order('title');tasks=data||[];initCalendar();renderTasks();}
+
+// ── CALENDAR LOGIC ──
+// Maps each task to the month(s) it should appear in
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// Season → primary month (PA / Riegelsville timing)
+const SEASON_MONTH={spring:3,summer:6,fall:9,winter:11,any:3}; // 0-indexed
+
+// Frequency → which months it appears in
+function taskMonths(t){
+  const freq=t.frequency||'annual';
+  const season=t.season||'any';
+  if(freq==='as-needed')return [0,1,2,3,4,5,6,7,8,9,10,11]; // show every month
+  if(freq==='monthly')return [0,1,2,3,4,5,6,7,8,9,10,11];
+  if(freq==='seasonal'){
+    // show in the first month of each season
+    return [2,5,8,11]; // Mar, Jun, Sep, Dec
+  }
+  if(freq==='annual'||freq==='one-off'){
+    // Assign to a specific month based on season
+    const base=SEASON_MONTH[season]??3;
+    // Nudge specific known tasks to better months
+    if(season==='fall') return [9];  // October
+    if(season==='spring') return [3]; // April
+    if(season==='summer') return [5]; // June
+    if(season==='winter') return [11]; // December
+    return [3]; // default April for 'any'
+  }
+  return [3];
+}
+
+let calMonth=new Date().getMonth(); // current month
+let doneTasks=new Set(); // track checked-off tasks this session
+
+function initCalendar(){
+  const now=new Date().getMonth();
+  // Count urgent tasks per month
+  const urgentMonths=new Set();
+  tasks.forEach(t=>{
+    if(t.priority==='urgent') taskMonths(t).forEach(m=>urgentMonths.add(m));
+  });
+  const container=document.getElementById('calMonths');
+  container.innerHTML=MONTHS.map((m,i)=>{
+    const hasUrgent=urgentMonths.has(i);
+    const isCurrent=i===now;
+    const isActive=i===calMonth;
+    return `<button class="cal-month-btn${isActive?' active':''}${hasUrgent&&!isActive?' has-urgent':''}" onclick="setCalMonth(${i},this)">${m}${isCurrent&&!isActive?' ·':''}</button>`;
+  }).join('');
+}
+
+function setCalMonth(m,btn){
+  calMonth=m;
+  document.querySelectorAll('.cal-month-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
 const pOrd={urgent:0,high:1,normal:2,low:3};
 function renderTasks(){
-  const pf=gv('priorityFilter');
-  let f=tasks;
-  if(areaFilter!=='all')f=f.filter(t=>t.area_id===areaFilter);
-  if(pf)f=f.filter(t=>t.priority===pf);
-  f=[...f].sort((a,b)=>(pOrd[a.priority]??2)-(pOrd[b.priority]??2));
+  // Get tasks for the selected month
+  let monthTasks=tasks.filter(t=>taskMonths(t).includes(calMonth));
+  monthTasks=[...monthTasks].sort((a,b)=>(pOrd[a.priority]??2)-(pOrd[b.priority]??2));
+
   const c=document.getElementById('tasksContainer');
-  if(!f.length){c.innerHTML=mkE('🔧','No tasks yet','Add maintenance tasks using the button above.');return;}
-  c.innerHTML=f.map(t=>`<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.28rem">
-      <div class="task-title">${t.priority==='urgent'?'<span class="rose-dot"></span>':''}${t.title}</div>
-      <span class="badge badge-${t.priority}">${t.priority}</span>
-    </div>
-    <div class="task-meta"><span>${aName(t.area_id)}</span>${t.frequency?`<span>· ${t.frequency.replace('-',' ')}</span>`:''}${t.season&&t.season!=='any'?`<span>· ${t.season}</span>`:''}${t.next_due?`<span style="color:var(--red-lt)">· due ${t.next_due}</span>`:''}</div>
-    ${t.description?`<div class="task-desc">${t.description}</div>`:''}
-    ${t.notes?`<div style="font-size:.76rem;color:var(--stone);margin-top:.22rem;font-style:italic">${t.notes}</div>`:''}
-    <div class="task-actions"><button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">Edit</button><button class="btn btn-outline btn-sm" onclick="logFromTask('${t.id}')">Log Work</button><button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">Delete</button></div>
-  </div>`).join('');
+  if(!monthTasks.length){
+    c.innerHTML=`<div style="text-align:center;padding:3rem 2rem;color:var(--stone)"><div style="font-size:1.5rem;opacity:.3;margin-bottom:.5rem">✓</div><div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ash)">Nothing scheduled for ${MONTH_NAMES[calMonth]}</div></div>`;
+    return;
+  }
+
+  const totalDone=monthTasks.filter(t=>doneTasks.has(t.id)).length;
+  c.innerHTML=`
+    <div class="cal-section">
+      <div class="cal-section-head">
+        <span class="cal-section-title">${MONTH_NAMES[calMonth]}</span>
+        <span class="cal-task-count">${totalDone>0?`${totalDone} of ${monthTasks.length} done`:`${monthTasks.length} task${monthTasks.length!==1?'s':''}`}</span>
+      </div>
+      ${monthTasks.map(t=>{
+        const done=doneTasks.has(t.id);
+        const isUrgent=t.priority==='urgent';
+        return `<div class="cal-task">
+          <div class="cal-check${done?' done':''}" onclick="toggleDone('${t.id}',this)"></div>
+          <div class="cal-task-body">
+            <div class="cal-task-title${done?' done-text':''}">${isUrgent?'<span class="rose-dot"></span>':''}${t.title}</div>
+            <div class="cal-task-meta">
+              <span class="cal-area-tag">${aName(t.area_id)}</span>
+              <span>${(t.frequency||'').replace('-',' ')}</span>
+              ${isUrgent?`<span class="badge badge-urgent" style="font-size:.5rem">urgent</span>`:''}
+              ${t.priority==='high'?`<span class="badge badge-high" style="font-size:.5rem">high</span>`:''}
+            </div>
+            ${t.description?`<div class="cal-task-desc">${t.description}</div>`:''}
+            <div class="cal-task-actions">
+              <button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">Edit</button>
+              <button class="btn btn-outline btn-sm" onclick="logFromTask('${t.id}')">Log Work</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function toggleDone(id,el){
+  if(doneTasks.has(id))doneTasks.delete(id);
+  else doneTasks.add(id);
+  renderTasks();
 }
 function openTaskModal(){resetModal('taskModal');document.getElementById('taskModalTitle').textContent='New Task';openModal('taskModal');}
 async function saveTask(){const id=gv('taskId');const p={area_id:gv('taskArea')||null,title:gv('taskTitle').trim(),description:gv('taskDesc').trim()||null,frequency:gv('taskFreq'),season:gv('taskSeason'),priority:gv('taskPriority'),last_completed:gv('taskLast')||null,next_due:gv('taskDue')||null,notes:gv('taskNotes').trim()||null};if(!p.title){toast('Title required','error');return;}if(id)await db.from('house_tasks').update(p).eq('id',id);else await db.from('house_tasks').insert(p);closeModal('taskModal');await loadTasks();updateStatus();toast(id?'Task updated':'Task added','success');}
