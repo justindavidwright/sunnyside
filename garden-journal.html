@@ -420,6 +420,20 @@
       <div><h2>Field Notes</h2><p id="today-display"></p></div>
       <span class="count-tag" id="entry-count">0 entries</span>
     </div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:16px;align-items:center">
+      <input type="text" id="entry-search" placeholder="Search observations, actions, notes…" oninput="renderEntries()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
+      <select id="entry-zone-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
+        <option value="">All zones</option>
+        <option value="japanese">Japanese Garden</option>
+        <option value="frontyard">Front Yard</option>
+        <option value="midyard">Middle Yard</option>
+        <option value="backyard">Back Yard</option>
+        <option value="greenhouse">Greenhouse</option>
+        <option value="road">Road</option>
+        <option value="driveway">Mariton</option>
+      </select>
+      <input type="month" id="entry-month-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;cursor:pointer">
+    </div>
     <div class="entries-list" id="entries-list"></div>
   </div>
 
@@ -473,7 +487,20 @@
 
   <div class="view" id="view-maintenance">
     <div class="section-head">
-      <div><h2>Maintenance Log</h2><p>Actions logged in field entries, organized by zone</p></div>
+      <div><h2>Maintenance Log</h2><p>Actions from field entries — click Edit to update the original note</p></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:16px;align-items:center">
+      <input type="text" id="maint-search" placeholder="Search actions…" oninput="renderMaintenance()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
+      <select id="maint-zone-filter" onchange="renderMaintenance()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
+        <option value="">All zones</option>
+        <option value="japanese">Japanese Garden</option>
+        <option value="frontyard">Front Yard</option>
+        <option value="midyard">Middle Yard</option>
+        <option value="backyard">Back Yard</option>
+        <option value="greenhouse">Greenhouse</option>
+        <option value="road">Road</option>
+        <option value="driveway">Mariton</option>
+      </select>
     </div>
     <div id="maintenance-wrap"></div>
   </div>
@@ -497,7 +524,19 @@
       <div class="fg">
         <label class="fl">Species blooming / notable today</label>
         <div class="species-bloom-selector">
-          <input class="sbs-search" type="text" id="sbs-search" placeholder="Search your inventory…" oninput="renderSbsList()" autocomplete="off">
+          <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
+            <input class="sbs-search" type="text" id="sbs-search" placeholder="Search species…" oninput="renderSbsList()" autocomplete="off" style="border-bottom:none;flex:1">
+            <select id="sbs-zone" onchange="renderSbsList()" style="border:none;border-left:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0">
+              <option value="">All zones</option>
+              <option value="japanese">Japanese Garden</option>
+              <option value="frontyard">Front Yard</option>
+              <option value="midyard">Middle Yard</option>
+              <option value="backyard">Back Yard</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="road">Road</option>
+              <option value="driveway">Mariton</option>
+            </select>
+          </div>
           <div class="sbs-list" id="sbs-list"></div>
         </div>
         <div class="sbs-selected-pills" id="sbs-selected-pills"></div>
@@ -690,6 +729,26 @@
       </div>
       <div class="fg"><label class="fl">Conditions</label><input type="text" id="ee-conditions"></div>
       <div class="fg"><label class="fl">What I observed</label><textarea id="ee-observed"></textarea></div>
+      <div class="fg">
+        <label class="fl">Species blooming / notable</label>
+        <div class="species-bloom-selector">
+          <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
+            <input class="sbs-search" type="text" id="ee-sbs-search" placeholder="Search species…" oninput="renderEeSbsList()" autocomplete="off" style="border-bottom:none;flex:1">
+            <select id="ee-sbs-zone" onchange="renderEeSbsList()" style="border:none;border-left:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0">
+              <option value="">All zones</option>
+              <option value="japanese">Japanese Garden</option>
+              <option value="frontyard">Front Yard</option>
+              <option value="midyard">Middle Yard</option>
+              <option value="backyard">Back Yard</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="road">Road</option>
+              <option value="driveway">Mariton</option>
+            </select>
+          </div>
+          <div class="sbs-list" id="ee-sbs-list"></div>
+        </div>
+        <div class="sbs-selected-pills" id="ee-sbs-selected-pills"></div>
+      </div>
       <div class="fg"><label class="fl">Additional notes</label><textarea id="ee-bloom-text" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Actions taken</label><textarea id="ee-actions" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Open questions</label><textarea id="ee-questions" rows="2"></textarea></div>
@@ -1071,6 +1130,8 @@ function openEntryModal(){
   ['e-temp','e-conditions','e-observed','e-bloom-text','e-actions','e-questions'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('photo-preview-row').innerHTML='';
   document.getElementById('sbs-search').value='';
+  const sbsZone=document.getElementById('sbs-zone');
+  if(sbsZone) sbsZone.value='';
   renderSbsList(); renderSbsSelectedPills();
   buildZonePills();
   document.getElementById('modal-entry').classList.add('open');
@@ -1116,6 +1177,7 @@ function openEditSpecies(id){
 function openEditEntry(id){
   const e=entries.find(en=>en.id===id); if(!e)return;
   editingEntryId=id;
+  editBloomSp=[...(e.bloomSpeciesIds||[])];
   document.getElementById('ee-date').value=e.date||'';
   document.getElementById('ee-temp').value=e.temp||'';
   document.getElementById('ee-conditions').value=e.conditions||'';
@@ -1123,6 +1185,10 @@ function openEditEntry(id){
   document.getElementById('ee-bloom-text').value=e.bloomText||'';
   document.getElementById('ee-actions').value=e.actions||'';
   document.getElementById('ee-questions').value=e.questions||'';
+  document.getElementById('ee-sbs-search').value='';
+  document.getElementById('ee-sbs-zone').value='';
+  renderEeSbsList();
+  renderEeSbsSelectedPills();
   document.getElementById('modal-edit-entry').classList.add('open');
 }
 async function saveEditEntry(){
@@ -1135,6 +1201,7 @@ async function saveEditEntry(){
   e.bloomText=document.getElementById('ee-bloom-text').value.trim();
   e.actions=document.getElementById('ee-actions').value.trim();
   e.questions=document.getElementById('ee-questions').value.trim();
+  e.bloomSpeciesIds=[...editBloomSp];
   setSyncDot('syncing');
   const {error}=await sb.from('entries').update(entryToDb(e)).eq('id',id);
   if(error){setSyncDot('error');toast('Save failed','err');return;}
@@ -1461,15 +1528,20 @@ async function fetchEditRefPhoto(){
 // ── Species bloom selector ──
 function renderSbsList(){
   const q=(document.getElementById('sbs-search').value||'').toLowerCase();
+  const zoneEl=document.getElementById('sbs-zone');
+  const z=zoneEl?zoneEl.value:'';
   const list=document.getElementById('sbs-list');
-  const filtered=species.filter(s=>!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)));
-  if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?'No matches':'No species yet — add some first'}</div>`;return;}
+  const filtered=species.filter(s=>
+    (!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)))&&
+    (!z||((s.zones&&s.zones.includes(z))||s.zone===z))
+  );
+  if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?(z?'No species in this zone':'No matches'):'No species yet — add some first'}</div>`;return;}
   list.innerHTML=filtered.map(s=>{
     const sel=pendingBloomSp.includes(s.id);
     const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="sbs-item-noimg">🌿</div>`;
     return`<div class="sbs-item${sel?' selected':''}" onclick="toggleBloomSp(${s.id})">
       ${thumb}
-      <div class="sbs-item-info"><div class="sbs-item-sci">${s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.common}</div>`:''}</div>
+      <div class="sbs-item-info"><div class="sbs-item-sci">${s.common||s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.scientific}</div>`:''}</div>
       ${sel?'<span class="sbs-item-check">✓</span>':''}
     </div>`;
   }).join('');
@@ -1482,7 +1554,41 @@ function toggleBloomSp(id){
 function renderSbsSelectedPills(){
   document.getElementById('sbs-selected-pills').innerHTML=pendingBloomSp.map(id=>{
     const s=spById(id); if(!s)return'';
-    return`<span class="sbs-pill" onclick="toggleBloomSp(${id})">${s.scientific} <span>×</span></span>`;
+    return`<span class="sbs-pill" onclick="toggleBloomSp(${id})">${s.common||s.scientific} <span>×</span></span>`;
+  }).join('');
+}
+
+// ── Edit entry species selector ──
+let editBloomSp=[];
+function renderEeSbsList(){
+  const q=(document.getElementById('ee-sbs-search').value||'').toLowerCase();
+  const zoneEl=document.getElementById('ee-sbs-zone');
+  const z=zoneEl?zoneEl.value:'';
+  const list=document.getElementById('ee-sbs-list');
+  const filtered=species.filter(s=>
+    (!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)))&&
+    (!z||((s.zones&&s.zones.includes(z))||s.zone===z))
+  );
+  if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?(z?'No species in this zone':'No matches'):'No species yet'}</div>`;return;}
+  list.innerHTML=filtered.map(s=>{
+    const sel=editBloomSp.includes(s.id);
+    const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="sbs-item-noimg">🌿</div>`;
+    return`<div class="sbs-item${sel?' selected':''}" onclick="toggleEeBloomSp(${s.id})">
+      ${thumb}
+      <div class="sbs-item-info"><div class="sbs-item-sci">${s.common||s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.scientific}</div>`:''}</div>
+      ${sel?'<span class="sbs-item-check">✓</span>':''}
+    </div>`;
+  }).join('');
+}
+function toggleEeBloomSp(id){
+  const idx=editBloomSp.indexOf(id);
+  if(idx>=0)editBloomSp.splice(idx,1); else editBloomSp.push(id);
+  renderEeSbsList(); renderEeSbsSelectedPills();
+}
+function renderEeSbsSelectedPills(){
+  document.getElementById('ee-sbs-selected-pills').innerHTML=editBloomSp.map(id=>{
+    const s=spById(id); if(!s)return'';
+    return`<span class="sbs-pill" onclick="toggleEeBloomSp(${id})">${s.common||s.scientific} <span>×</span></span>`;
   }).join('');
 }
 
@@ -1875,12 +1981,31 @@ function jumpToSpecies(id){
 // ── Render entries ──
 function renderEntries(){
   const el=document.getElementById('entries-list');
-  document.getElementById('entry-count').textContent=`${entries.length} entr${entries.length===1?'y':'ies'}`;
+  const q=(document.getElementById('entry-search')?.value||'').toLowerCase().trim();
+  const zf=document.getElementById('entry-zone-filter')?.value||'';
+  const mf=document.getElementById('entry-month-filter')?.value||''; // YYYY-MM
+
+  // Apply filters
+  let filtered=entries;
+  if(zf) filtered=filtered.filter(e=>e.zones&&e.zones.includes(zf));
+  if(mf) filtered=filtered.filter(e=>e.date&&e.date.startsWith(mf));
+  if(q)  filtered=filtered.filter(e=>[e.observed,e.actions,e.questions,e.bloomText,e.conditions,e.temp]
+    .filter(Boolean).some(f=>f.toLowerCase().includes(q)));
+
+  const total=entries.length;
+  const showing=filtered.length;
+  document.getElementById('entry-count').textContent=
+    (q||zf||mf)?`${showing} of ${total} entr${total===1?'y':'ies'}`:`${total} entr${total===1?'y':'ies'}`;
+
   if(!entries.length){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">◈</div><h3>First season, first entry</h3><p>Start documenting what you find. By next spring you'll have a map of this property's rhythm.</p><button class="btn-primary" onclick="openEntryModal()">Write your first entry</button></div>`;
     return;
   }
-  el.innerHTML=entries.map(e=>{
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">◈</div><h3>No entries match</h3><p>Try adjusting your search or filters.</p></div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(e=>{
     const primary=e.zones&&e.zones.length?e.zones[0]:'';
     const zoneTags=(e.zones||[]).map(z=>`<span class="zone-tag zt-${z}">${zoneById(z).label}</span>`).join('');
     const weather=[e.temp,e.conditions].filter(Boolean).join(' · ');
@@ -2115,16 +2240,42 @@ function renderBloom(){
 // ── Render maintenance ──
 function renderMaintenance(){
   const wrap=document.getElementById('maintenance-wrap');
-  const withActions=entries.filter(e=>e.actions&&e.actions.trim());
-  if(!withActions.length){wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>No maintenance logged yet</h3><p>When you log field entries with actions, they appear here organized by zone.</p></div>`;return;}
+  const q=(document.getElementById('maint-search')?.value||'').toLowerCase().trim();
+  const zf=document.getElementById('maint-zone-filter')?.value||'';
+
+  let withActions=entries.filter(e=>e.actions&&e.actions.trim());
+  if(q)  withActions=withActions.filter(e=>e.actions.toLowerCase().includes(q));
+  if(zf) withActions=withActions.filter(e=>e.zones&&e.zones.includes(zf));
+
+  if(!withActions.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>${entries.filter(e=>e.actions).length?'No matches':'No maintenance logged yet'}</h3><p>${entries.filter(e=>e.actions).length?'Try adjusting your search.':'When you log field entries with actions, they appear here organized by zone.'}</p></div>`;
+    return;
+  }
+
+  function makeItem(e){
+    return`<div class="maint-item">
+      <span class="maint-date">${fmtShort(e.date)}</span>
+      <span style="flex:1">${e.actions}</span>
+      <button onclick="openEditEntry(${e.id})" style="flex-shrink:0;background:var(--forest-pale);color:var(--forest);border:1px solid var(--forest-pale);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;cursor:pointer;margin-left:8px;white-space:nowrap">Edit entry</button>
+    </div>`;
+  }
+
   let html='';
-  const general=withActions.filter(e=>!e.zones||!e.zones.length);
-  if(general.length){ const items=general.map(e=>`<div class="maint-item"><span class="maint-date">${fmtShort(e.date)}</span>${e.actions}</div>`).join(''); html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:var(--stone-lt)"></span>General</div><div class="maint-items">${items}</div></div>`; }
-  ZONES.forEach(z=>{
-    const items=withActions.filter(e=>e.zones&&e.zones.includes(z.id));
-    if(!items.length)return;
-    html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:${z.color}"></span>${z.label}</div><div class="maint-items">${items.map(e=>`<div class="maint-item"><span class="maint-date">${fmtShort(e.date)}</span>${e.actions}</div>`).join('')}</div></div>`;
-  });
+  if(!zf){
+    const general=withActions.filter(e=>!e.zones||!e.zones.length);
+    if(general.length){
+      html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:var(--stone-lt)"></span>General</div><div class="maint-items">${general.map(makeItem).join('')}</div></div>`;
+    }
+    ZONES.forEach(z=>{
+      const items=withActions.filter(e=>e.zones&&e.zones.includes(z.id));
+      if(!items.length)return;
+      html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:${z.color}"></span>${z.label}</div><div class="maint-items">${items.map(makeItem).join('')}</div></div>`;
+    });
+  } else {
+    // Single zone filtered — just show as flat list under that zone header
+    const z=ZONES.find(z=>z.id===zf)||{label:zf,color:'var(--stone-lt)'};
+    html+=`<div class="maint-section"><div class="maint-zone-head"><span class="maint-pip" style="background:${z.color}"></span>${z.label}</div><div class="maint-items">${withActions.map(makeItem).join('')}</div></div>`;
+  }
   wrap.innerHTML=html;
 }
 
