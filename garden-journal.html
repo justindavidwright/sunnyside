@@ -185,7 +185,6 @@
   .cal-cell { border-top: 1px solid var(--parch-dk); border-left: 1px solid var(--parch-dk); display: flex; align-items: center; justify-content: center; padding: 5px 2px; }
   .bloom-pip { width: 10px; height: 10px; border-radius: 50%; }
   .bloom-pip.on       { background: var(--forest-mid); }
-  .bloom-pip.observed { background: var(--rust); }
   .bloom-pip.emerging { background: var(--gold); }
   .cal-legend { padding: 10px 20px; font-size: 12px; color: var(--stone); display: flex; gap: 20px; flex-wrap: wrap; border-top: 1px solid var(--parch-dk); }
   .leg-item { display: flex; align-items: center; gap: 6px; }
@@ -420,8 +419,11 @@
       <div><h2>Field Notes</h2><p id="today-display"></p></div>
       <span class="count-tag" id="entry-count">0 entries</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:16px;align-items:center">
+    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;margin-bottom:16px;align-items:center">
       <input type="text" id="entry-search" placeholder="Search observations, actions, notes…" oninput="renderEntries()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
+      <select id="entry-species-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer;max-width:180px">
+        <option value="">All species</option>
+      </select>
       <select id="entry-zone-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
         <option value="">All zones</option>
         <option value="japanese">Japanese Garden</option>
@@ -1979,23 +1981,35 @@ function jumpToSpecies(id){
 }
 
 // ── Render entries ──
+function populateEntrySpeciesFilter(){
+  const sel=document.getElementById('entry-species-filter');
+  if(!sel)return;
+  const current=sel.value;
+  const usedIds=new Set(entries.flatMap(e=>e.bloomSpeciesIds||[]));
+  const usedSpecies=[...species].filter(s=>usedIds.has(s.id))
+    .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
+  sel.innerHTML='<option value="">All species</option>'+
+    usedSpecies.map(s=>`<option value="${s.id}"${String(s.id)===String(current)?' selected':''}>${s.common||s.scientific}</option>`).join('');
+}
+
 function renderEntries(){
   const el=document.getElementById('entries-list');
   const q=(document.getElementById('entry-search')?.value||'').toLowerCase().trim();
   const zf=document.getElementById('entry-zone-filter')?.value||'';
-  const mf=document.getElementById('entry-month-filter')?.value||''; // YYYY-MM
+  const mf=document.getElementById('entry-month-filter')?.value||'';
+  const sf=document.getElementById('entry-species-filter')?.value||'';
 
-  // Apply filters
   let filtered=entries;
   if(zf) filtered=filtered.filter(e=>e.zones&&e.zones.includes(zf));
   if(mf) filtered=filtered.filter(e=>e.date&&e.date.startsWith(mf));
+  if(sf) filtered=filtered.filter(e=>e.bloomSpeciesIds&&e.bloomSpeciesIds.map(String).includes(sf));
   if(q)  filtered=filtered.filter(e=>[e.observed,e.actions,e.questions,e.bloomText,e.conditions,e.temp]
     .filter(Boolean).some(f=>f.toLowerCase().includes(q)));
 
   const total=entries.length;
   const showing=filtered.length;
   document.getElementById('entry-count').textContent=
-    (q||zf||mf)?`${showing} of ${total} entr${total===1?'y':'ies'}`:`${total} entr${total===1?'y':'ies'}`;
+    (q||zf||mf||sf)?`${showing} of ${total} entr${total===1?'y':'ies'}`:`${total} entr${total===1?'y':'ies'}`;
 
   if(!entries.length){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">◈</div><h3>First season, first entry</h3><p>Start documenting what you find. By next spring you'll have a map of this property's rhythm.</p><button class="btn-primary" onclick="openEntryModal()">Write your first entry</button></div>`;
@@ -2216,8 +2230,9 @@ function renderBloom(){
       const exp=s.bloomMonths&&s.bloomMonths.includes(i);
       const emer=s.emergenceMonths&&s.emergenceMonths.includes(i);
       const obs=observedMonths[s.id]&&observedMonths[s.id].has(i);
-      const cls=obs?'bloom-pip observed':exp?'bloom-pip on':emer?'bloom-pip emerging':'bloom-pip';
-      return`<div class="cal-cell" style="${bloomFilterMonth===i?'background:rgba(168,60,24,0.06)':''}"><div class="${cls}"></div></div>`;
+      const cls=exp?'bloom-pip on':emer?'bloom-pip emerging':'bloom-pip';
+      const bg=obs?(bloomFilterMonth===i?'background:rgba(168,60,24,0.18)':'background:rgba(45,74,30,0.10)'):(bloomFilterMonth===i?'background:rgba(168,60,24,0.06)':'');
+      return`<div class="cal-cell" style="${bg}"><div class="${cls}"></div></div>`;
     }).join('');
     return`<div class="cal-sp-name" style="color:${zoneById(s.zone).color};${rowStyle}" onclick="jumpToSpecies(${s.id})">${thumb}<div class="cal-sp-label"><div class="cal-sp-sci">${s.common||s.scientific}</div>${s.common?`<div class="cal-sp-comm" style="font-size:10px;color:var(--stone-lt);font-style:italic">${s.scientific}</div>`:''}</div></div>${cells}`;
   }).join('');
@@ -2232,8 +2247,8 @@ function renderBloom(){
     <div class="cal-legend">
       <div class="leg-item"><div class="leg-pip" style="background:var(--forest-mid)"></div>Peak bloom</div>
       <div class="leg-item"><div class="leg-pip" style="background:var(--gold)"></div>Emerging / active</div>
-      <div class="leg-item"><div class="leg-pip" style="background:var(--rust)"></div>Observed in field notes</div>
       <div class="leg-item"><div class="leg-pip" style="background:var(--parch-dk)"></div>Dormant</div>
+      <div class="leg-item"><div class="leg-pip" style="background:rgba(45,74,30,0.10);border:1px solid var(--parch-dk)"></div>Observed in field notes</div>
     </div>`;
 }
 
@@ -2292,7 +2307,7 @@ function renderStats(){
   ].map(s=>`<div class="stat-card"><div class="stat-n">${s.n}</div><div class="stat-l">${s.l}</div></div>`).join('');
 }
 
-function renderAll(){ renderEntries(); renderSpecies(); renderMysteries(); renderStats(); renderSbsList(); }
+function renderAll(){ renderEntries(); renderSpecies(); renderMysteries(); renderStats(); renderSbsList(); populateEntrySpeciesFilter(); }
 
 function initDisplay(){
   document.getElementById('today-display').textContent=
