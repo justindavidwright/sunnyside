@@ -1930,91 +1930,76 @@ let tasks = [];
 // ── Weed Guide ──
 const WEEDS = [
   { common:'Japanese Stiltgrass', sci:'Microstegium vimineum', type:'grass', sev:'high', seasons:['summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/108896/medium.jpg',
     desc:'Already confirmed on your property. Shade-tolerant annual grass that carpets woodland floors. Sets seed August–September — timing your control effort around this is critical.',
     id:'Pale green lance-shaped leaves with a silvery reflective midrib stripe — that center stripe is the giveaway. Low-growing, sprawling. Looks like a delicate bamboo seedling in early summer.',
     action:'Pull or cut before seed set (late July–August). Do not compost — bag and bin. One good pull season before seeds form prevents thousands next year.',
     window:'🗓 Best action: Late July through August before seed set' },
   { common:'Garlic Mustard', sci:'Alliaria petiolata', type:'biennial', sev:'high', seasons:['spring'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/232627/medium.jpg',
     desc:'One of the most damaging woodland invasives in the Lehigh Valley. Produces chemicals that inhibit soil fungi native plants depend on. Common along boundary edges and bamboo understory.',
     id:'Year 1: low rosette of kidney-shaped scalloped leaves. Year 2: upright stem 12–36" with triangular leaves and clusters of small white 4-petaled flowers. Crush a leaf — smells distinctly of garlic.',
     action:'Pull by hand before flowers open (March–April). Once in flower, bag immediately — cut plants can still set seed. Must be done consistently for several years to exhaust the seed bank.',
     window:'🗓 Best action: March–April before flowering' },
   { common:'Porcelain Berry', sci:'Ampelopsis glandulosa', type:'vine', sev:'high', seasons:['summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/44171338/medium.jpg',
     desc:'Already confirmed on your property. Closely resembles native grape — often goes unnoticed until it has smothered a large area. Iridescent blue-purple berries spread by birds widely.',
     id:'Deeply lobed leaves similar to grape. Berries turn white to turquoise to purple — multicolored clusters on one vine are distinctive. Cut stem: white pith (native grapes have brown pith).',
     action:'Cut vines at the base — do not pull. Cut repeatedly through the season to exhaust root reserves. Do not compost berries. Control before berries ripen.',
     window:'🗓 Best action: Spring through summer, before berries ripen' },
   { common:'Multiflora Rose', sci:'Rosa multiflora', type:'shrub', sev:'high', seasons:['spring','summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/2989782/medium.jpg',
     desc:'PA Class B noxious weed. Likely among the unidentified shrubby plants in your middle yard. Forms impenetrable thorny thickets. One plant can produce a million seeds per year viable for 20 years.',
     id:'Arching thorny canes, compound leaves with 7–9 leaflets. Key ID: fringed stipules at the base of each leaf stem — no other common shrub has this fringe. Small white fragrant flowers in late May.',
     action:'Small plants: dig from moist soil in spring. Large shrubs: cut repeatedly — will resprout vigorously. Persistence over several seasons required. Fall basal oil treatment most effective on mature shrubs.',
     window:'🗓 Best action: Spring (digging) or fall (cut and treat)' },
   { common:'Lesser Celandine', sci:'Ficaria verna', type:'perennial', sev:'high', seasons:['spring'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/161749439/medium.jpg',
     desc:'Already confirmed on your property. Removal window is extremely short — goes completely dormant by May. Spreads by tiny underground bulbils. Thrives in moist areas.',
     id:'Glossy dark green heart-shaped leaves, bright yellow buttercup-like flowers with 8–12 petals. Low-growing carpet appearing February/March. Completely disappears by May.',
     action:'Dig carefully to remove bulbils — do NOT compost. Window is mid-March to late April only. Mark all locations so you can find them next year.',
     window:'🗓 Best action: Mid-March through April only — window closes in May' },
   { common:'Oriental Bittersweet', sci:'Celastrus orbiculatus', type:'vine', sev:'high', seasons:['summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/7122451/medium.jpg',
     desc:'Extremely aggressive woody vine that can girdle and kill large trees. Very likely along your Mariton boundary and within the bamboo grove. Showy orange-and-yellow berries in fall are how most people notice it — too late.',
     id:'Round glossy leaves with fine-toothed edges. Orange-and-yellow berries along the FULL length of stem (native bittersweet only fruits at stem tips — the key difference). Stems can become arm-thick on old plants.',
     action:'Cut vines at the base repeatedly — never pull. For large stem-girding vines cut out a 12" section of stem. Fall and winter are easiest to spot.',
     window:'🗓 Best action: Fall through spring when visible; summer for first-year seedlings' },
   { common:'Bush Honeysuckle', sci:'Lonicera tatarica / maackii', type:'shrub', sev:'med', seasons:['spring','summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/11621065/medium.jpg',
     desc:'Very likely among the unidentified shrubby plants you described — one of the most common invasive shrubs in the Lehigh Valley. Leafs out earlier and holds leaves later than natives.',
     id:'Opposite egg-shaped leaves, smooth edges. Older stems hollow — cut a stem and look for hollow pith (the definitive field test). Fragrant pink-white flowers in late spring. Red or orange paired berries in fall.',
     action:'Small shrubs: pull when soil is moist. Large shrubs: cut to ground in late fall/winter, follow up cutting all resprouts for 2–3 seasons. Hollow pith is the fastest field confirmation.',
     window:'🗓 Best action: Late fall/winter for large shrubs; spring for seedlings' },
   { common:'Japanese Barberry', sci:'Berberis thunbergii', type:'shrub', sev:'med', seasons:['spring','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/3089/medium.jpg',
     desc:'PA noxious weed since 2021. Dense spiny shrub common in older PA gardens. Linked to increased black-legged tick populations in infested areas. Leafs out earlier than natives — easiest to spot in early spring.',
     id:'Dense spiny shrub with single thorns (multiflora rose has curved paired thorns). Tiny oval leaves, often purple-red. Leafs out very early in spring — visible before most other shrubs. Bright red oblong berries in fall.',
     action:'Wear thick gloves. Dig small plants; cut large ones to ground and follow up on resprouts. Eliminate before berries form to prevent bird dispersal.',
     window:'🗓 Best action: Early spring when it stands out leafed before natives' },
   { common:'Japanese Honeysuckle', sci:'Lonicera japonica', type:'vine', sev:'med', seasons:['spring','summer'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/1167701/medium.jpg',
     desc:'Extremely fragrant white-yellow flowers make it tempting to keep — resist this. Semi-evergreen vine over shrubs and saplings, shading out plants year-round. Common along sunny edges and road boundary.',
     id:'Semi-evergreen opposite oval leaves. White flowers aging to yellow, very fragrant especially evenings. Pairs of small black berries in fall. The distinctive sweet honeysuckle scent in May is the easiest ID.',
     action:'Pull new vines from the root when soil is moist. For established vines: cut at the base and follow up cutting resprouts repeatedly. Focus on removing vines climbing into trees.',
     window:'🗓 Best action: Spring pulling; summer before berries; winter for large vines' },
   { common:'Mile-a-Minute Weed', sci:'Persicaria perfoliata', type:'annual', sev:'med', seasons:['summer'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/10750567/medium.jpg',
     desc:'Grows 6 inches per day in peak summer. Annual vine that smothers everything using reflexed barbs. Common along the Delaware River corridor near Riegelsville — check your road boundary.',
     id:'Triangular leaves — very distinctive shape. Backward-pointing prickles on stems. Circular cup-like bracts surround the stem at nodes. Blue-purple berries in fall.',
     action:'Annual — prevent seed set and you win. Pull entire plant before berries form in August–September. Gloves essential. Check road and Mariton boundary edges in June.',
     window:'🗓 Best action: June through July before barbs form and before berries' },
   { common:'Wineberry', sci:'Rubus phoenicolasius', type:'shrub', sev:'med', seasons:['spring','summer'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/1086647/medium.jpg',
     desc:'Already in your inventory. Invasive raspberry relative. The edible red berries (ripe July) are why people let it spread. Common in your bamboo grove and along boundaries.',
     id:'Arching canes covered in sticky orange-red glandular hairs — no other common shrub looks like this. Compound leaves with 3 leaflets, white beneath. Red berries ripen July.',
     action:'Cut canes to ground before tip-rooting in summer. Harvest berries first if you want — at least prevents bird dispersal. Repeated cutting over 2–3 seasons weakens root reserves.',
     window:'🗓 Best action: Spring cutting and before tip-rooting in August' },
   { common:'Japanese Knotweed', sci:'Reynoutria japonica', type:'perennial', sev:'high', seasons:['spring','summer','fall'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/1246104/medium.jpg',
     desc:'Watch for this along your road boundary — extremely common in the Delaware River corridor near Riegelsville. One of the most difficult invasives to control once established. Bamboo-like hollow stems to 10 feet.',
     id:'Hollow bamboo-like stems with nodes, reddish when young. Large heart-to-shovel-shaped leaves. White flower clusters in August. Dies back in winter leaving tan stalks. DO NOT cut and discard — any fragment can root.',
     action:'If you find it: do not cut without a disposal plan. Cut stems (do not pull) and bag to landfill — not compost. Consult Penn State Extension. This is a multi-year battle.',
     window:'🗓 Watch: Check road and stream edges in spring; stalks visible all winter' },
   { common:'Common Buckthorn', sci:'Rhamnus cathartica', type:'shrub', sev:'low', seasons:['fall','winter'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/8785478/medium.jpg',
     desc:'May be present among the unidentified shrubby plants. Best spotted in November when it keeps leaves after everything else has dropped. Dense shade and allelopathic chemicals suppress native plants.',
     id:'Opposite oval toothed leaves that stay green very late into fall. Branch tips often end in a thorn. Black berries in fall. Cut a stem: distinctive yellow-orange sapwood is the definitive ID.',
     action:'Seedlings and small shrubs: pull or dig. Large shrubs: cut in fall and treat stump immediately. Do a November boundary walk when it stands out still green.',
     window:'🗓 Best action: November when still green, or early spring' },
   { common:'Crown Vetch', sci:'Securigera varia', type:'perennial', sev:'low', seasons:['spring','summer'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/38103/medium.jpg',
     desc:'Planted along PA highways for erosion control, frequently escapes. May be present along the road boundary. Forms dense low mats that smother native plants.',
     id:'Sprawling vine-like plant with pinnately compound leaves of 11–25 small oval leaflets. Pink and white crown-shaped flower clusters June–August. Spreads extensively by rhizomes.',
     action:'Hand pull repeatedly to exhaust root reserves over 2–3 seasons. Mowing alone does not kill it. Focus on preventing spread from road edge inward.',
     window:'🗓 Best action: Spring before it expands' },
   { common:'Yellow Archangel', sci:'Lamium galeobdolon', type:'perennial', sev:'low', seasons:['spring','summer'],
-    photo:'https://inaturalist-open-data.s3.amazonaws.com/photos/83591494/medium.jpg',
     desc:'Already in your inventory. Spreads aggressively as groundcover under shrubs and trees — will outcompete native woodland plants. Silver-marked leaves are attractive, which is why it was planted.',
     id:'Low spreading stems that root at nodes. Oval toothed leaves often marked with silver patches. Yellow hooded flowers in spring. Forms dense mats under woody plants.',
     action:'Pull runners before they root at nodes in spring. Remove flower heads before seed sets. Consistent annual removal keeps it contained.',
@@ -2047,8 +2032,7 @@ function renderWeeds(){
     const show=matchQ&&matchType&&matchSev&&matchSeason;
     if(show)visible++;
     return`<div class="weed-card wsev-${w.sev}"${show?'':' style="display:none"'}>
-      ${w.photo?`<img class="weed-photo" src="${w.photo}" alt="${w.common}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:
-        `<div class="weed-photo-placeholder">🌿</div>`}
+      <div class="weed-photo-placeholder" id="wphoto-${w.sci.replace(/[^a-zA-Z]/g,'_')}" data-sci="${w.sci}">🌿</div>
       <div class="weed-body">
         <div class="weed-common">${w.common}</div>
         <div class="weed-sci">${w.sci}</div>
@@ -2072,7 +2056,40 @@ function renderWeeds(){
   }).join('');
   const countEl=document.getElementById('weed-results-count');
   if(countEl)countEl.textContent=`${visible} of ${WEEDS.length} plants shown`;
+  // Fetch Wikipedia photos async for any placeholder not yet loaded
+  fetchWeedPhotos();
 }
+
+function fetchWeedPhotos(){
+  document.querySelectorAll('.weed-photo-placeholder[data-sci]').forEach(async (el)=>{
+    if(el.dataset.fetched) return;
+    el.dataset.fetched='1';
+    const sci=el.dataset.sci;
+    // Check cache first
+    if(weedPhotoCache[sci]){
+      swapWeedPhoto(el,weedPhotoCache[sci]);
+      return;
+    }
+    const result=await wikiImageLookup(sci);
+    if(result&&result.url){
+      weedPhotoCache[sci]=result.url;
+      swapWeedPhoto(el,result.url);
+    }
+  });
+}
+
+function swapWeedPhoto(placeholder, url){
+  const img=document.createElement('img');
+  img.className='weed-photo';
+  img.src=url;
+  img.alt=placeholder.dataset.sci;
+  img.referrerPolicy='no-referrer';
+  img.onerror=()=>img.remove();
+  placeholder.parentNode.insertBefore(img,placeholder);
+  placeholder.style.display='none';
+}
+
+const weedPhotoCache={};
 
 function taskToDb(t){ return { id:t.id, title:t.title, description:t.description, zone:t.zone, month:t.month, recurring:t.recurring, completed_years:t.completedYears }; }
 function dbToTask(r){ return { id:r.id, title:r.title||'', description:r.description||'', zone:r.zone||'all', month:r.month, recurring:r.recurring!==false, completedYears:r.completed_years||[] }; }
