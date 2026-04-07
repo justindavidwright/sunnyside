@@ -2056,40 +2056,58 @@ function renderWeeds(){
   }).join('');
   const countEl=document.getElementById('weed-results-count');
   if(countEl)countEl.textContent=`${visible} of ${WEEDS.length} plants shown`;
-  // Fetch Wikipedia photos async for any placeholder not yet loaded
-  fetchWeedPhotos();
+  fetchWeedPhotosQueued();
 }
 
-function fetchWeedPhotos(){
-  document.querySelectorAll('.weed-photo-placeholder[data-sci]').forEach(async (el)=>{
+const weedPhotoCache={};
+let weedFetchQueue=[];
+let weedFetchRunning=false;
+
+function fetchWeedPhotosQueued(){
+  // Collect placeholders that haven't been fetched yet
+  document.querySelectorAll('.weed-photo-placeholder[data-sci]').forEach(el=>{
+    const sci=el.dataset.sci;
     if(el.dataset.fetched) return;
     el.dataset.fetched='1';
-    const sci=el.dataset.sci;
-    // Check cache first
+    // If already cached, swap immediately
     if(weedPhotoCache[sci]){
-      swapWeedPhoto(el,weedPhotoCache[sci]);
+      swapWeedPhoto(el, weedPhotoCache[sci]);
       return;
     }
-    const result=await wikiImageLookup(sci);
-    if(result&&result.url){
-      weedPhotoCache[sci]=result.url;
-      swapWeedPhoto(el,result.url);
+    // Add to queue if not already queued
+    if(!weedFetchQueue.find(q=>q.sci===sci)){
+      weedFetchQueue.push({sci, elId:el.id});
     }
   });
+  if(!weedFetchRunning) processWeedQueue();
+}
+
+async function processWeedQueue(){
+  if(!weedFetchQueue.length){ weedFetchRunning=false; return; }
+  weedFetchRunning=true;
+  const {sci, elId}=weedFetchQueue.shift();
+  const result=await wikiImageLookup(sci);
+  if(result&&result.url){
+    weedPhotoCache[sci]=result.url;
+    // Find the placeholder by its specific id — never use a shared selector
+    const el=document.getElementById(elId);
+    if(el) swapWeedPhoto(el, result.url);
+  }
+  // Small delay between requests to avoid JSONP callback collisions
+  await new Promise(r=>setTimeout(r,300));
+  processWeedQueue();
 }
 
 function swapWeedPhoto(placeholder, url){
   const img=document.createElement('img');
   img.className='weed-photo';
   img.src=url;
-  img.alt=placeholder.dataset.sci;
+  img.alt=placeholder.dataset.sci||'';
   img.referrerPolicy='no-referrer';
   img.onerror=()=>img.remove();
-  placeholder.parentNode.insertBefore(img,placeholder);
+  placeholder.parentNode.insertBefore(img, placeholder);
   placeholder.style.display='none';
 }
-
-const weedPhotoCache={};
 
 function taskToDb(t){ return { id:t.id, title:t.title, description:t.description, zone:t.zone, month:t.month, recurring:t.recurring, completed_years:t.completedYears }; }
 function dbToTask(r){ return { id:r.id, title:r.title||'', description:r.description||'', zone:r.zone||'all', month:r.month, recurring:r.recurring!==false, completedYears:r.completed_years||[] }; }
