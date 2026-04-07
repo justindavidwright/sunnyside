@@ -88,8 +88,37 @@
   .toast.success { background: var(--forest); }
   .toast.err     { background: var(--rust); }
 
-  /* ── Stats ── */
-  .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
+  /* ── Weed Guide ── */
+  .weed-season-pill { padding:6px 14px; border-radius:20px; border:1.5px solid var(--parch-dk); background:#fff; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.12s; color:var(--stone); font-family:'DM Sans',sans-serif; }
+  .weed-season-pill:hover { border-color:var(--forest-mid); color:var(--forest); }
+  .weed-season-pill.active { background:var(--forest); color:#fff; border-color:var(--forest); }
+  .weed-card { background:var(--parch-lt); border-radius:var(--radius); box-shadow:var(--sh); overflow:hidden; border-top:4px solid var(--stone-lt); transition:box-shadow 0.15s; }
+  .weed-card:hover { box-shadow:var(--shl); }
+  .weed-card.wsev-high { border-top-color:#8b1a0a; }
+  .weed-card.wsev-med  { border-top-color:var(--gold); }
+  .weed-card.wsev-low  { border-top-color:var(--forest-mid); }
+  .weed-photo { width:100%; height:150px; object-fit:cover; display:block; }
+  .weed-photo-placeholder { width:100%; height:150px; background:linear-gradient(135deg,var(--forest-pale),var(--parch-dk)); display:flex; align-items:center; justify-content:center; font-size:36px; opacity:0.4; }
+  .weed-body { padding:12px 14px; }
+  .weed-common { font-family:'Zilla Slab',serif; font-size:17px; font-weight:600; color:var(--bark); margin-bottom:2px; line-height:1.2; }
+  .weed-sci    { font-size:11px; font-style:italic; color:var(--stone); margin-bottom:8px; }
+  .weed-tags   { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+  .wtag { font-size:10px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:2px 7px; border-radius:3px; }
+  .wtag-high { background:#fce8e4; color:#8b1a0a; }
+  .wtag-med  { background:var(--gold-pale); color:#7a5508; }
+  .wtag-low  { background:var(--forest-pale); color:var(--forest-mid); }
+  .wtag-spring { background:#e0f0d8; color:#2d5a1e; }
+  .wtag-summer { background:#fef3cc; color:#6a4a00; }
+  .wtag-fall   { background:var(--rust-pale); color:var(--rust); }
+  .wtag-winter { background:var(--stone-pale); color:var(--stone); }
+  .wtag-type   { background:var(--parch-dk); color:var(--bark-mid); }
+  .weed-desc { font-size:12px; color:var(--bark-mid); line-height:1.6; margin-bottom:10px; font-weight:300; }
+  .weed-section { background:var(--parch-dk); border-radius:var(--radius); padding:9px 11px; margin-bottom:8px; }
+  .weed-section-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--stone); margin-bottom:4px; }
+  .weed-section-text  { font-size:12px; color:var(--bark-mid); line-height:1.6; }
+  .weed-action { background:var(--rust-pale); border-radius:var(--radius); padding:9px 11px; margin-bottom:8px; }
+  .weed-action-label  { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--rust); margin-bottom:4px; }
+  .weed-window { font-size:11px; font-weight:700; color:var(--forest-mid); letter-spacing:0.02em; } display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
   .stat-card { background: var(--forest); color: var(--parch-lt); border-radius: var(--radius); padding: 14px 16px; position: relative; overflow: hidden; }
   .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--sage-lt); }
   .stat-n { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 34px; line-height: 1; }
@@ -405,9 +434,10 @@
       <button class="tab-btn active" onclick="switchTab('entries',this)">Field Notes</button>
       <button class="tab-btn"        onclick="switchTab('bloom',this)">Bloom Calendar</button>
       <button class="tab-btn"        onclick="switchTab('inventory',this)">Species Inventory</button>
-      <button class="tab-btn"        onclick="switchTab('mystery',this)">Mystery Log</button>
       <button class="tab-btn"        onclick="switchTab('maintenance',this)">Maintenance Log</button>
       <button class="tab-btn"        onclick="switchTab('calendar',this)">Care Calendar</button>
+      <button class="tab-btn"        onclick="switchTab('weeds',this)">Weed Guide</button>
+      <button class="tab-btn"        onclick="switchTab('mystery',this)">Mystery Log</button>
     </div>
   </div>
 </header>
@@ -485,6 +515,39 @@
       <button class="btn-primary" onclick="openTaskModal()">+ Add Task</button>
     </div>
     <div id="calendar-wrap"></div>
+  </div>
+
+  <div class="view" id="view-weeds">
+    <div class="section-head">
+      <div><h2>Weed Guide</h2><p>Invasives &amp; weeds of the Lehigh Valley — ID, timing, and control</p></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:12px;align-items:center">
+      <input type="text" id="weed-search" placeholder="Search by name, description, or tip…" oninput="renderWeeds()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
+      <select id="weed-type-filter" onchange="renderWeeds()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;cursor:pointer">
+        <option value="">All types</option>
+        <option value="annual">Annual</option>
+        <option value="biennial">Biennial</option>
+        <option value="perennial">Perennial</option>
+        <option value="shrub">Woody shrub</option>
+        <option value="vine">Vine</option>
+        <option value="grass">Grass</option>
+      </select>
+      <select id="weed-sev-filter" onchange="renderWeeds()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;cursor:pointer">
+        <option value="">All severity</option>
+        <option value="high">⚠️ High priority</option>
+        <option value="med">Medium priority</option>
+        <option value="low">Monitor</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="weed-season-pills">
+      <button class="weed-season-pill active" data-season="" onclick="setWeedSeason('')">All seasons</button>
+      <button class="weed-season-pill" data-season="spring" onclick="setWeedSeason('spring')">🌱 Spring</button>
+      <button class="weed-season-pill" data-season="summer" onclick="setWeedSeason('summer')">☀️ Summer</button>
+      <button class="weed-season-pill" data-season="fall" onclick="setWeedSeason('fall')">🍂 Fall</button>
+      <button class="weed-season-pill" data-season="winter" onclick="setWeedSeason('winter')">❄️ Winter</button>
+    </div>
+    <div style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--stone);margin-bottom:12px" id="weed-results-count"></div>
+    <div class="sp-grid" id="weed-grid"></div>
   </div>
 
   <div class="view" id="view-maintenance">
@@ -862,7 +925,7 @@
 <script>
 // ── Supabase init ──
 const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
-const SUPA_KEY =   'sb_publishable_0tiRCzNqEJWGVWUxz84oDQ_0Jyn-7IE';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── Constants ──
@@ -1122,6 +1185,7 @@ function switchTab(id,btn){
   if(id==='bloom')renderBloom();
   if(id==='maintenance')renderMaintenance();
   if(id==='calendar')renderCalendar();
+  if(id==='weeds')renderWeeds();
 }
 
 // ── Modals ──
@@ -1861,6 +1925,153 @@ async function quickSolveMystery(id){
 
 
 let tasks = [];
+
+// ── Weed Guide ──
+const WEEDS = [
+  { common:'Japanese Stiltgrass', sci:'Microstegium vimineum', type:'grass', sev:'high', seasons:['summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Microstegium_vimineum_kz1.jpg/640px-Microstegium_vimineum_kz1.jpg',
+    desc:'Already confirmed on your property. Shade-tolerant annual grass that carpets woodland floors. Sets seed August–September — timing your control effort around this is critical.',
+    id:'Pale green lance-shaped leaves with a silvery reflective midrib stripe — that center stripe is the giveaway. Low-growing, sprawling. Looks like a delicate bamboo seedling in early summer.',
+    action:'Pull or cut before seed set (late July–August). Do not compost — bag and bin. One good pull season before seeds form prevents thousands next year.',
+    window:'🗓 Best action: Late July through August before seed set' },
+  { common:'Garlic Mustard', sci:'Alliaria petiolata', type:'biennial', sev:'high', seasons:['spring'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Alliaria_petiolata_-_garlic_mustard_-_desc-flower.jpg/640px-Alliaria_petiolata_-_garlic_mustard_-_desc-flower.jpg',
+    desc:'One of the most damaging woodland invasives in the Lehigh Valley. Produces chemicals that inhibit soil fungi native plants depend on. Common along boundary edges and bamboo understory.',
+    id:'Year 1: low rosette of kidney-shaped scalloped leaves. Year 2: upright stem 12–36" with triangular leaves and clusters of small white 4-petaled flowers. Crush a leaf — smells distinctly of garlic.',
+    action:'Pull by hand before flowers open (March–April). Once in flower, bag immediately — cut plants can still set seed. Must be done consistently for several years to exhaust the seed bank.',
+    window:'🗓 Best action: March–April before flowering' },
+  { common:'Porcelain Berry', sci:'Ampelopsis glandulosa', type:'vine', sev:'high', seasons:['summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Ampelopsis_glandulosa_var_brevipedunculata_20150830.jpg/640px-Ampelopsis_glandulosa_var_brevipedunculata_20150830.jpg',
+    desc:'Already confirmed on your property. Closely resembles native grape — often goes unnoticed until it has smothered a large area. Iridescent blue-purple berries spread by birds widely.',
+    id:'Deeply lobed leaves similar to grape. Berries turn white to turquoise to purple — multicolored clusters on one vine are distinctive. Cut stem: white pith (native grapes have brown pith).',
+    action:'Cut vines at the base — do not pull. Cut repeatedly through the season to exhaust root reserves. Do not compost berries. Control before berries ripen.',
+    window:'🗓 Best action: Spring through summer, before berries ripen' },
+  { common:'Multiflora Rose', sci:'Rosa multiflora', type:'shrub', sev:'high', seasons:['spring','summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Rosa_multiflora_1.jpg/640px-Rosa_multiflora_1.jpg',
+    desc:'PA Class B noxious weed. Likely among the unidentified shrubby plants in your middle yard. Forms impenetrable thorny thickets. One plant can produce a million seeds per year viable for 20 years.',
+    id:'Arching thorny canes, compound leaves with 7–9 leaflets. Key ID: fringed stipules at the base of each leaf stem — no other common shrub has this fringe. Small white fragrant flowers in late May.',
+    action:'Small plants: dig from moist soil in spring. Large shrubs: cut repeatedly — will resprout vigorously. Persistence over several seasons required. Fall basal oil treatment most effective on mature shrubs.',
+    window:'🗓 Best action: Spring (digging) or fall (cut and treat)' },
+  { common:'Lesser Celandine', sci:'Ficaria verna', type:'perennial', sev:'high', seasons:['spring'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Ficaria_verna_subsp._verna_sl5.jpg/640px-Ficaria_verna_subsp._verna_sl5.jpg',
+    desc:'Already confirmed on your property. Removal window is extremely short — goes completely dormant by May. Spreads by tiny underground bulbils. Thrives in moist areas.',
+    id:'Glossy dark green heart-shaped leaves, bright yellow buttercup-like flowers with 8–12 petals. Low-growing carpet appearing February/March. Completely disappears by May.',
+    action:'Dig carefully to remove bulbils — do NOT compost. Window is mid-March to late April only. Mark all locations so you can find them next year.',
+    window:'🗓 Best action: Mid-March through April only — window closes in May' },
+  { common:'Oriental Bittersweet', sci:'Celastrus orbiculatus', type:'vine', sev:'high', seasons:['summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Celastrus_orbiculatus_20141017_1.jpg/640px-Celastrus_orbiculatus_20141017_1.jpg',
+    desc:'Extremely aggressive woody vine that can girdle and kill large trees. Very likely along your Mariton boundary and within the bamboo grove. Showy orange-and-yellow berries in fall are how most people notice it — too late.',
+    id:'Round glossy leaves with fine-toothed edges. Orange-and-yellow berries along the FULL length of stem (native bittersweet only fruits at stem tips — the key difference). Stems can become arm-thick on old plants.',
+    action:'Cut vines at the base repeatedly — never pull. For large stem-girding vines cut out a 12" section of stem. Fall and winter are easiest to spot.',
+    window:'🗓 Best action: Fall through spring when visible; summer for first-year seedlings' },
+  { common:'Bush Honeysuckle', sci:'Lonicera tatarica / maackii', type:'shrub', sev:'med', seasons:['spring','summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Lonicera_tatarica_kz.jpg/640px-Lonicera_tatarica_kz.jpg',
+    desc:'Very likely among the unidentified shrubby plants you described — one of the most common invasive shrubs in the Lehigh Valley. Leafs out earlier and holds leaves later than natives.',
+    id:'Opposite egg-shaped leaves, smooth edges. Older stems hollow — cut a stem and look for hollow pith (the definitive field test). Fragrant pink-white flowers in late spring. Red or orange paired berries in fall.',
+    action:'Small shrubs: pull when soil is moist. Large shrubs: cut to ground in late fall/winter, follow up cutting all resprouts for 2–3 seasons. Hollow pith is the fastest field confirmation.',
+    window:'🗓 Best action: Late fall/winter for large shrubs; spring for seedlings' },
+  { common:'Japanese Barberry', sci:'Berberis thunbergii', type:'shrub', sev:'med', seasons:['spring','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Berberis_thunbergii_2.jpg/640px-Berberis_thunbergii_2.jpg',
+    desc:'PA noxious weed since 2021. Dense spiny shrub common in older PA gardens. Linked to increased black-legged tick populations in infested areas. Leafs out earlier than natives — easiest to spot in early spring.',
+    id:'Dense spiny shrub with single thorns (multiflora rose has curved paired thorns). Tiny oval leaves, often purple-red. Leafs out very early in spring — visible before most other shrubs. Bright red oblong berries in fall.',
+    action:'Wear thick gloves. Dig small plants; cut large ones to ground and follow up on resprouts. Eliminate before berries form to prevent bird dispersal.',
+    window:'🗓 Best action: Early spring when it stands out leafed before natives' },
+  { common:'Japanese Honeysuckle', sci:'Lonicera japonica', type:'vine', sev:'med', seasons:['spring','summer'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Lonicera_japonica1.jpg/640px-Lonicera_japonica1.jpg',
+    desc:'Extremely fragrant white-yellow flowers make it tempting to keep — resist this. Semi-evergreen vine over shrubs and saplings, shading out plants year-round. Common along sunny edges and road boundary.',
+    id:'Semi-evergreen opposite oval leaves. White flowers aging to yellow, very fragrant especially evenings. Pairs of small black berries in fall. The distinctive sweet honeysuckle scent in May is the easiest ID.',
+    action:'Pull new vines from the root when soil is moist. For established vines: cut at the base and follow up cutting resprouts repeatedly. Focus on removing vines climbing into trees.',
+    window:'🗓 Best action: Spring pulling; summer before berries; winter for large vines' },
+  { common:'Mile-a-Minute Weed', sci:'Persicaria perfoliata', type:'annual', sev:'med', seasons:['summer'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Persicaria_perfoliata.jpg/640px-Persicaria_perfoliata.jpg',
+    desc:'Grows 6 inches per day in peak summer. Annual vine that smothers everything using reflexed barbs. Common along the Delaware River corridor near Riegelsville — check your road boundary.',
+    id:'Triangular leaves — very distinctive shape. Backward-pointing prickles on stems. Circular cup-like bracts surround the stem at nodes. Blue-purple berries in fall.',
+    action:'Annual — prevent seed set and you win. Pull entire plant before berries form in August–September. Gloves essential. Check road and Mariton boundary edges in June.',
+    window:'🗓 Best action: June through July before barbs form and before berries' },
+  { common:'Wineberry', sci:'Rubus phoenicolasius', type:'shrub', sev:'med', seasons:['spring','summer'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Rubus_phoenicolasius1.jpg/640px-Rubus_phoenicolasius1.jpg',
+    desc:'Already in your inventory. Invasive raspberry relative. The edible red berries (ripe July) are why people let it spread. Common in your bamboo grove and along boundaries.',
+    id:'Arching canes covered in sticky orange-red glandular hairs — no other common shrub looks like this. Compound leaves with 3 leaflets, white beneath. Red berries ripen July.',
+    action:'Cut canes to ground before tip-rooting in summer. Harvest berries first if you want — at least prevents bird dispersal. Repeated cutting over 2–3 seasons weakens root reserves.',
+    window:'🗓 Best action: Spring cutting and before tip-rooting in August' },
+  { common:'Japanese Knotweed', sci:'Reynoutria japonica', type:'perennial', sev:'high', seasons:['spring','summer','fall'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Reynoutria_japonica_20100818.jpg/640px-Reynoutria_japonica_20100818.jpg',
+    desc:'Watch for this along your road boundary — extremely common in the Delaware River corridor near Riegelsville. One of the most difficult invasives to control once established. Bamboo-like hollow stems to 10 feet.',
+    id:'Hollow bamboo-like stems with nodes, reddish when young. Large heart-to-shovel-shaped leaves. White flower clusters in August. Dies back in winter leaving tan stalks. DO NOT cut and discard — any fragment can root.',
+    action:'If you find it: do not cut without a disposal plan. Cut stems (do not pull) and bag to landfill — not compost. Consult Penn State Extension. This is a multi-year battle.',
+    window:'🗓 Watch: Check road and stream edges in spring; stalks visible all winter' },
+  { common:'Common Buckthorn', sci:'Rhamnus cathartica', type:'shrub', sev:'low', seasons:['fall','winter'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Rhamnus_cathartica_fruits.jpg/640px-Rhamnus_cathartica_fruits.jpg',
+    desc:'May be present among the unidentified shrubby plants. Best spotted in November when it keeps leaves after everything else has dropped. Dense shade and allelopathic chemicals suppress native plants.',
+    id:'Opposite oval toothed leaves that stay green very late into fall. Branch tips often end in a thorn. Black berries in fall. Cut a stem: distinctive yellow-orange sapwood is the definitive ID.',
+    action:'Seedlings and small shrubs: pull or dig. Large shrubs: cut in fall and treat stump immediately. Do a November boundary walk when it stands out still green.',
+    window:'🗓 Best action: November when still green, or early spring' },
+  { common:'Crown Vetch', sci:'Securigera varia', type:'perennial', sev:'low', seasons:['spring','summer'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Crown_Vetch_Securigera_varia.jpg/640px-Crown_Vetch_Securigera_varia.jpg',
+    desc:'Planted along PA highways for erosion control, frequently escapes. May be present along the road boundary. Forms dense low mats that smother native plants.',
+    id:'Sprawling vine-like plant with pinnately compound leaves of 11–25 small oval leaflets. Pink and white crown-shaped flower clusters June–August. Spreads extensively by rhizomes.',
+    action:'Hand pull repeatedly to exhaust root reserves over 2–3 seasons. Mowing alone does not kill it. Focus on preventing spread from road edge inward.',
+    window:'🗓 Best action: Spring before it expands' },
+  { common:'Yellow Archangel', sci:'Lamium galeobdolon', type:'perennial', sev:'low', seasons:['spring','summer'],
+    photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lamium_galeobdolon_20050424_002.jpg/640px-Lamium_galeobdolon_20050424_002.jpg',
+    desc:'Already in your inventory. Spreads aggressively as groundcover under shrubs and trees — will outcompete native woodland plants. Silver-marked leaves are attractive, which is why it was planted.',
+    id:'Low spreading stems that root at nodes. Oval toothed leaves often marked with silver patches. Yellow hooded flowers in spring. Forms dense mats under woody plants.',
+    action:'Pull runners before they root at nodes in spring. Remove flower heads before seed sets. Consistent annual removal keeps it contained.',
+    window:'🗓 Best action: Spring before runners spread and before flowering' },
+];
+
+let weedSeasonFilter='';
+
+function setWeedSeason(s){
+  weedSeasonFilter=s;
+  document.querySelectorAll('.weed-season-pill').forEach(p=>p.classList.toggle('active',p.dataset.season===s));
+  renderWeeds();
+}
+
+function renderWeeds(){
+  const q=(document.getElementById('weed-search')?.value||'').toLowerCase().trim();
+  const type=document.getElementById('weed-type-filter')?.value||'';
+  const sev=document.getElementById('weed-sev-filter')?.value||'';
+  const grid=document.getElementById('weed-grid');
+  if(!grid)return;
+  const sevLabel={high:'⚠️ High priority',med:'Medium priority',low:'Monitor'};
+  const typeLabel={annual:'Annual',biennial:'Biennial',perennial:'Perennial',shrub:'Woody shrub',vine:'Vine',grass:'Grass'};
+  const seasonLabel={spring:'🌱 Spring',summer:'☀️ Summer',fall:'🍂 Fall',winter:'❄️ Winter'};
+  let visible=0;
+  grid.innerHTML=WEEDS.map(w=>{
+    const matchQ=!q||[w.common,w.sci,w.desc,w.id,w.action].join(' ').toLowerCase().includes(q);
+    const matchType=!type||w.type===type;
+    const matchSev=!sev||w.sev===sev;
+    const matchSeason=!weedSeasonFilter||(w.seasons&&w.seasons.includes(weedSeasonFilter));
+    const show=matchQ&&matchType&&matchSev&&matchSeason;
+    if(show)visible++;
+    return`<div class="weed-card wsev-${w.sev}"${show?'':' style="display:none"'}>
+      ${w.photo?`<img class="weed-photo" src="${w.photo}" alt="${w.common}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`:
+        `<div class="weed-photo-placeholder">🌿</div>`}
+      <div class="weed-body">
+        <div class="weed-common">${w.common}</div>
+        <div class="weed-sci">${w.sci}</div>
+        <div class="weed-tags">
+          <span class="wtag wtag-type">${typeLabel[w.type]||w.type}</span>
+          <span class="wtag wtag-${w.sev}">${sevLabel[w.sev]||w.sev}</span>
+          ${w.seasons.map(s=>`<span class="wtag wtag-${s}">${seasonLabel[s]||s}</span>`).join('')}
+        </div>
+        <div class="weed-desc">${w.desc}</div>
+        <div class="weed-section">
+          <div class="weed-section-label">How to identify</div>
+          <div class="weed-section-text">${w.id}</div>
+        </div>
+        <div class="weed-action">
+          <div class="weed-action-label">What to do</div>
+          <div class="weed-section-text">${w.action}</div>
+        </div>
+        <div class="weed-window">${w.window}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const countEl=document.getElementById('weed-results-count');
+  if(countEl)countEl.textContent=`${visible} of ${WEEDS.length} plants shown`;
+}
 
 function taskToDb(t){ return { id:t.id, title:t.title, description:t.description, zone:t.zone, month:t.month, recurring:t.recurring, completed_years:t.completedYears }; }
 function dbToTask(r){ return { id:r.id, title:r.title||'', description:r.description||'', zone:r.zone||'all', month:r.month, recurring:r.recurring!==false, completedYears:r.completed_years||[] }; }
