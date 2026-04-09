@@ -281,7 +281,7 @@
   .maint-date { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stone-lt); min-width: 52px; padding-top: 2px; flex-shrink: 0; }
 
   /* ── Modals ── */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(38,32,15,0.65); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px 16px; overflow-y: auto; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(38,32,15,0.65); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px 16px; padding-bottom: max(20px, env(safe-area-inset-bottom)); overflow-y: auto; }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--parch-lt); border-radius: var(--radius); box-shadow: 0 20px 72px rgba(38,32,15,0.35); width: 100%; max-width: 600px; margin: auto; overflow: hidden; }
   .modal-head { background: var(--forest); color: var(--parch-lt); padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 3px solid var(--rust); }
@@ -290,7 +290,7 @@
   .modal-x { background: none; border: none; color: var(--sage-lt); font-size: 26px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
   .modal-x:hover { color: var(--parch-lt); }
   .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 72vh; overflow-y: auto; }
-  .modal-foot { padding: 14px 20px; border-top: 1px solid var(--parch-dk); display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-foot { padding: 14px 20px; padding-bottom: max(14px, env(safe-area-inset-bottom)); border-top: 1px solid var(--parch-dk); display: flex; justify-content: flex-end; gap: 10px; }
 
   .fg { display: flex; flex-direction: column; gap: 5px; }
   .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -818,6 +818,17 @@
       <div class="fg"><label class="fl">Additional notes</label><textarea id="ee-bloom-text" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Actions taken</label><textarea id="ee-actions" rows="2"></textarea></div>
       <div class="fg"><label class="fl">Open questions</label><textarea id="ee-questions" rows="2"></textarea></div>
+      <div class="fg">
+        <label class="fl">Photos</label>
+        <div class="photo-upload-area" onclick="document.getElementById('ee-photo-input').click()">
+          <label class="upload-label" style="pointer-events:none">
+            <span style="font-size:22px;opacity:0.4">⊕</span>
+            <span><strong>Add photos</strong> — tap to upload from camera roll</span>
+          </label>
+          <input type="file" id="ee-photo-input" accept="image/*" multiple onchange="handleEePhotoUpload(this)">
+        </div>
+        <div class="photo-preview-row" id="ee-photo-preview-row"></div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closeModal('modal-edit-entry')">Cancel</button>
@@ -1245,6 +1256,7 @@ function openEditEntry(id){
   const e=entries.find(en=>en.id===id); if(!e)return;
   editingEntryId=id;
   editBloomSp=[...(e.bloomSpeciesIds||[])];
+  editPendingPhotos=[];
   document.getElementById('ee-date').value=e.date||'';
   document.getElementById('ee-temp').value=e.temp||'';
   document.getElementById('ee-conditions').value=e.conditions||'';
@@ -1256,6 +1268,7 @@ function openEditEntry(id){
   document.getElementById('ee-sbs-zone').value='';
   renderEeSbsList();
   renderEeSbsSelectedPills();
+  renderEePhotoPreviews();
   document.getElementById('modal-edit-entry').classList.add('open');
 }
 async function saveEditEntry(){
@@ -1269,6 +1282,8 @@ async function saveEditEntry(){
   e.actions=document.getElementById('ee-actions').value.trim();
   e.questions=document.getElementById('ee-questions').value.trim();
   e.bloomSpeciesIds=[...editBloomSp];
+  // Merge: existing photos (possibly with removals) + new pending photos
+  e.photos=[...(e.photos||[]), ...editPendingPhotos];
   setSyncDot('syncing');
   const {error}=await sb.from('entries').update(entryToDb(e)).eq('id',id);
   if(error){setSyncDot('error');toast('Save failed','err');return;}
@@ -1682,6 +1697,53 @@ function handleSpeciesPhotoUpload(input){
   input.value='';
 }
 
+let editPendingPhotos = [];
+
+function handleEePhotoUpload(input){
+  Array.from(input.files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        const MAX=800; let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        editPendingPhotos.push(canvas.toDataURL('image/jpeg',0.78));
+        renderEePhotoPreviews();
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function renderEePhotoPreviews(){
+  const row=document.getElementById('ee-photo-preview-row');
+  if(!row)return;
+  // Show existing entry photos + new pending ones
+  const e=entries.find(en=>en.id===editingEntryId);
+  const existing=(e&&e.photos)||[];
+  row.innerHTML=
+    existing.map((src,i)=>`<div class="photo-preview-item">
+      <img class="photo-preview-img" src="${src}">
+      <button class="photo-remove-btn" onclick="removeEeExistingPhoto(${i})">×</button>
+    </div>`).join('')+
+    editPendingPhotos.map((src,i)=>`<div class="photo-preview-item">
+      <img class="photo-preview-img" src="${src}">
+      <button class="photo-remove-btn" onclick="editPendingPhotos.splice(${i},1);renderEePhotoPreviews()">×</button>
+    </div>`).join('');
+}
+
+function removeEeExistingPhoto(idx){
+  const e=entries.find(en=>en.id===editingEntryId);
+  if(!e)return;
+  e.photos=e.photos.filter((_,i)=>i!==idx);
+  renderEePhotoPreviews();
+}
+
 function handleEditSpeciesPhotoUpload(input){
   const file=input.files[0]; if(!file)return;
   const reader=new FileReader();
@@ -1990,6 +2052,7 @@ const WEEDS = [
     action:'If you find it: do not cut without a disposal plan. Cut stems (do not pull) and bag to landfill — not compost. Consult Penn State Extension. This is a multi-year battle.',
     window:'🗓 Watch: Check road and stream edges in spring; stalks visible all winter' },
   { common:'Common Buckthorn', sci:'Rhamnus cathartica', type:'shrub', sev:'low', seasons:['fall','winter'],
+    photoOverride:'https://inaturalist-open-data.s3.amazonaws.com/photos/261880988/large.jpg',
     desc:'May be present among the unidentified shrubby plants. Best spotted in November when it keeps leaves after everything else has dropped. Dense shade and allelopathic chemicals suppress native plants.',
     id:'Opposite oval toothed leaves that stay green very late into fall. Branch tips often end in a thorn. Black berries in fall. Cut a stem: distinctive yellow-orange sapwood is the definitive ID.',
     action:'Seedlings and small shrubs: pull or dig. Large shrubs: cut in fall and treat stump immediately. Do a November boundary walk when it stands out still green.',
@@ -2032,7 +2095,10 @@ function renderWeeds(){
     const show=matchQ&&matchType&&matchSev&&matchSeason;
     if(show)visible++;
     return`<div class="weed-card wsev-${w.sev}"${show?'':' style="display:none"'}>
-      <div class="weed-photo-placeholder" id="wphoto-${w.sci.replace(/[^a-zA-Z]/g,'_')}" data-sci="${w.sci}">🌿</div>
+      ${w.photoOverride
+        ? `<img class="weed-photo" src="${w.photoOverride}" alt="${w.common}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+        : `<div class="weed-photo-placeholder" id="wphoto-${w.sci.replace(/[^a-zA-Z]/g,'_')}" data-sci="${w.sci}">🌿</div>`
+      }
       <div class="weed-body">
         <div class="weed-common">${w.common}</div>
         <div class="weed-sci">${w.sci}</div>
