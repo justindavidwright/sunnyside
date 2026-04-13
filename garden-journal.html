@@ -137,6 +137,7 @@
   .zt-road       { background: var(--stone-pale);  color: var(--stone); }
   .zt-driveway   { background: var(--clay-pale);   color: var(--clay); }
   .zt-frontyard  { background: var(--forest-pale); color: var(--forest); }
+  .zt-daffodilhill { background: #f5edd0; color: #7a5c08; }
   .zt-midyard    { background: var(--sage-pale);   color: var(--sage); }
   .zt-backyard   { background: #d8eacc;            color: var(--fern); }
   .zt-greenhouse { background: var(--plum-pale);   color: var(--plum); }
@@ -149,6 +150,7 @@
   .zl-road       { border-left-color: var(--stone); }
   .zl-driveway   { border-left-color: var(--clay); }
   .zl-frontyard  { border-left-color: var(--forest-mid); }
+  .zl-daffodilhill { border-left-color: #9a7c10; }
   .zl-midyard    { border-left-color: var(--sage); }
   .zl-backyard   { border-left-color: var(--fern); }
   .zl-greenhouse { border-left-color: var(--plum); }
@@ -231,6 +233,7 @@
   .sc-road       { border-top-color: var(--stone); }
   .sc-driveway   { border-top-color: var(--clay); }
   .sc-frontyard  { border-top-color: var(--forest-mid); }
+  .sc-daffodilhill { border-top-color: #9a7c10; }
   .sc-midyard    { border-top-color: var(--sage); }
   .sc-backyard   { border-top-color: var(--fern); }
   .sc-greenhouse { border-top-color: var(--plum); }
@@ -329,6 +332,7 @@
   .zp-road       { background: var(--stone-pale);  border-color: var(--stone);      color: var(--stone); }
   .zp-driveway   { background: var(--clay-pale);   border-color: var(--clay);       color: var(--clay); }
   .zp-frontyard  { background: var(--forest-pale); border-color: var(--forest-mid); color: var(--forest); }
+  .zp-daffodilhill { background: #f5edd0; border-color: #9a7c10; color: #7a5c08; }
   .zp-midyard    { background: var(--sage-pale);   border-color: var(--sage);       color: var(--sage); }
   .zp-backyard   { background: #d8eacc;            border-color: var(--fern);       color: var(--fern); }
   .zp-greenhouse { background: var(--plum-pale);   border-color: var(--plum);       color: var(--plum); }
@@ -459,6 +463,7 @@
         <option value="">All zones</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
+        <option value="daffodilhill">Daffodil Hill</option>
         <option value="midyard">Middle Yard</option>
         <option value="backyard">Back Yard</option>
         <option value="greenhouse">Greenhouse</option>
@@ -561,6 +566,7 @@
         <option value="">All zones</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
+        <option value="daffodilhill">Daffodil Hill</option>
         <option value="midyard">Middle Yard</option>
         <option value="backyard">Back Yard</option>
         <option value="greenhouse">Greenhouse</option>
@@ -596,6 +602,7 @@
               <option value="">All zones</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
+              <option value="daffodilhill">Daffodil Hill</option>
               <option value="midyard">Middle Yard</option>
               <option value="backyard">Back Yard</option>
               <option value="greenhouse">Greenhouse</option>
@@ -758,6 +765,7 @@
             <option value="Road">Road</option>
             <option value="Mariton">Mariton</option>
             <option value="Front Yard">Front Yard</option>
+            <option value="Daffodil Hill">Daffodil Hill</option>
             <option value="Middle Yard">Middle Yard</option>
             <option value="Back Yard">Back Yard</option>
             <option value="Greenhouse">Greenhouse</option>
@@ -804,6 +812,7 @@
               <option value="">All zones</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
+              <option value="daffodilhill">Daffodil Hill</option>
               <option value="midyard">Middle Yard</option>
               <option value="backyard">Back Yard</option>
               <option value="greenhouse">Greenhouse</option>
@@ -853,6 +862,7 @@
             <option value="Road">Road</option>
             <option value="Mariton">Mariton</option>
             <option value="Front Yard">Front Yard</option>
+            <option value="Daffodil Hill">Daffodil Hill</option>
             <option value="Middle Yard">Middle Yard</option>
             <option value="Back Yard">Back Yard</option>
             <option value="Greenhouse">Greenhouse</option>
@@ -914,6 +924,7 @@
             <option value="road">Road</option>
             <option value="driveway">Mariton</option>
             <option value="frontyard">Front Yard</option>
+            <option value="daffodilhill">Daffodil Hill</option>
             <option value="midyard">Middle Yard</option>
             <option value="backyard">Back Yard</option>
             <option value="greenhouse">Greenhouse</option>
@@ -945,8 +956,9 @@ const ZONES = [
   { id:'japanese',   label:'Japanese Garden', color:'#2a5e58' },
   { id:'road',       label:'Road',            color:'#68605a' },
   { id:'driveway',   label:'Mariton',        color:'#44381e' },
-  { id:'frontyard',  label:'Front Yard',      color:'#3d6628' },
-  { id:'midyard',    label:'Middle Yard',     color:'#6b8c5a' },
+  { id:'frontyard',    label:'Front Yard',      color:'#3d6628' },
+  { id:'daffodilhill', label:'Daffodil Hill',   color:'#9a7c10' },
+  { id:'midyard',      label:'Middle Yard',     color:'#6b8c5a' },
   { id:'backyard',   label:'Back Yard',       color:'#4a6e3a' },
   { id:'greenhouse', label:'Greenhouse',      color:'#5e3050' },
 ];
@@ -2517,8 +2529,9 @@ function renderBloom(){
   const BLOOM_ZONES=[
     {id:null,      label:'All',            color:'var(--forest)'},
     {id:'japanese',label:'Japanese Garden',color:'#2a5e58'},
-    {id:'frontyard',label:'Front Yard',    color:'#3d6628'},
-    {id:'midyard', label:'Middle Yard',    color:'#6b8c5a'},
+    {id:'frontyard',   label:'Front Yard',    color:'#3d6628'},
+    {id:'daffodilhill',label:'Daffodil Hill', color:'#9a7c10'},
+    {id:'midyard',     label:'Middle Yard',    color:'#6b8c5a'},
     {id:'backyard',label:'Back Yard',      color:'#4a6e3a'},
     {id:'greenhouse',label:'Greenhouse',   color:'#5e3050'},
     {id:'road',    label:'Road',           color:'#68605a'},
