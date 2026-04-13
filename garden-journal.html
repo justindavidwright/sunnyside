@@ -802,6 +802,10 @@
         <div class="fg"><label class="fl">Temperature</label><input type="text" id="ee-temp" placeholder="e.g. 54°F / 38°F overnight"></div>
       </div>
       <div class="fg"><label class="fl">Conditions</label><input type="text" id="ee-conditions"></div>
+      <div class="fg">
+        <label class="fl">Zones / locations</label>
+        <div class="zone-pills" id="ee-zone-pills"></div>
+      </div>
       <div class="fg"><label class="fl">What I observed</label><textarea id="ee-observed"></textarea></div>
       <div class="fg">
         <label class="fl">Species blooming / notable</label>
@@ -1278,6 +1282,7 @@ function openEditEntry(id){
   document.getElementById('ee-questions').value=e.questions||'';
   document.getElementById('ee-sbs-search').value='';
   document.getElementById('ee-sbs-zone').value='';
+  buildZonePillsIn('ee-zone-pills', e.zones||[]);
   renderEeSbsList();
   renderEeSbsSelectedPills();
   renderEePhotoPreviews();
@@ -1294,6 +1299,7 @@ async function saveEditEntry(){
   e.actions=document.getElementById('ee-actions').value.trim();
   e.questions=document.getElementById('ee-questions').value.trim();
   e.bloomSpeciesIds=[...editBloomSp];
+  e.zones=[...document.querySelectorAll('#ee-zone-pills input:checked')].map(c=>c.value);
   // Merge: existing photos (possibly with removals) + new pending photos
   e.photos=[...(e.photos||[]), ...editPendingPhotos];
   setSyncDot('syncing');
@@ -1832,6 +1838,23 @@ function getSpZonePills(containerId){
 }
 
 // ── Zone pills (for field notes entry) ──
+function buildZonePillsIn(containerId, selectedZones){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  wrap.innerHTML='';
+  ZONES.forEach(z=>{
+    const isSelected=selectedZones.includes(z.id);
+    const lbl=document.createElement('label');
+    lbl.className='zone-pill'+(isSelected?` zp-${z.id}`:'');
+    lbl.dataset.zone=z.id;
+    lbl.innerHTML=`<input type="checkbox" value="${z.id}"${isSelected?' checked':''}> ${z.label}`;
+    lbl.querySelector('input').addEventListener('change',function(){
+      lbl.className=this.checked?`zone-pill zp-${z.id}`:'zone-pill';
+    });
+    wrap.appendChild(lbl);
+  });
+}
+
 function buildZonePills(){
   const wrap=document.getElementById('zone-pill-group'); wrap.innerHTML='';
   ZONES.forEach(z=>{
