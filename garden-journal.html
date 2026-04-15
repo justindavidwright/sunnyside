@@ -1634,7 +1634,7 @@ function renderSbsList(){
   const filtered=species.filter(s=>
     (!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)))&&
     (!z||((s.zones&&s.zones.includes(z))||s.zone===z))
-  );
+  ).sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
   if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?(z?'No species in this zone':'No matches'):'No species yet — add some first'}</div>`;return;}
   list.innerHTML=filtered.map(s=>{
     const sel=pendingBloomSp.includes(s.id);
@@ -1668,7 +1668,7 @@ function renderEeSbsList(){
   const filtered=species.filter(s=>
     (!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)))&&
     (!z||((s.zones&&s.zones.includes(z))||s.zone===z))
-  );
+  ).sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
   if(!filtered.length){list.innerHTML=`<div class="sbs-empty">${species.length?(z?'No species in this zone':'No matches'):'No species yet'}</div>`;return;}
   list.innerHTML=filtered.map(s=>{
     const sel=editBloomSp.includes(s.id);
