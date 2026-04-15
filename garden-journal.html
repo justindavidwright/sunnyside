@@ -597,8 +597,7 @@
         <label class="fl">Species blooming / notable today</label>
         <div class="species-bloom-selector">
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
-            <input class="sbs-search" type="text" id="sbs-search" placeholder="Search species…" oninput="renderSbsList()" autocomplete="off" style="border-bottom:none;flex:1">
-            <select id="sbs-zone" onchange="renderSbsList()" style="border:none;border-left:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0">
+            <select id="sbs-zone" onchange="renderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
@@ -609,12 +608,8 @@
               <option value="road">Road</option>
               <option value="driveway">Mariton</option>
             </select>
-          </div>
-          <div class="sbs-list" id="sbs-list"></div>
-        </div>
-        <div class="sbs-selected-pills" id="sbs-selected-pills"></div>
-      </div>
-      <div class="fg"><label class="fl">Additional notes</label><textarea id="e-bloom-text" placeholder="Anything else noteworthy — pests, wildlife, soil conditions..." rows="2"></textarea></div>
+            <input class="sbs-search" type="text" id="sbs-search" placeholder="Search species…" oninput="renderSbsList()" autocomplete="off" style="border:none;border-bottom:none;flex:1;min-width:0">
+          </div> placeholder="Anything else noteworthy — pests, wildlife, soil conditions..." rows="2"></textarea></div>
       <div class="fg"><label class="fl">Actions taken</label><textarea id="e-actions" placeholder="Pruning, watering, bamboo shoot removal, fertilizing..." rows="2"></textarea></div>
       <div class="fg"><label class="fl">Open questions</label><textarea id="e-questions" placeholder="Things to research, plants to identify, things to watch..." rows="2"></textarea></div>
       <div class="fg">
@@ -811,8 +806,7 @@
         <label class="fl">Species blooming / notable</label>
         <div class="species-bloom-selector">
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
-            <input class="sbs-search" type="text" id="ee-sbs-search" placeholder="Search species…" oninput="renderEeSbsList()" autocomplete="off" style="border-bottom:none;flex:1">
-            <select id="ee-sbs-zone" onchange="renderEeSbsList()" style="border:none;border-left:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0">
+            <select id="ee-sbs-zone" onchange="renderEeSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
@@ -823,6 +817,7 @@
               <option value="road">Road</option>
               <option value="driveway">Mariton</option>
             </select>
+            <input class="sbs-search" type="text" id="ee-sbs-search" placeholder="Search species…" oninput="renderEeSbsList()" autocomplete="off" style="border:none;border-bottom:none;flex:1;min-width:0">
           </div>
           <div class="sbs-list" id="ee-sbs-list"></div>
         </div>
