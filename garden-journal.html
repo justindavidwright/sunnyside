@@ -2688,12 +2688,21 @@ function mapCancelMarker(){
 }
 
 async function mapConfirmMarker(){
-  if(!sMapPendingLatLng){ mapToast('No location selected', 'err'); return; }
+  const btn = document.querySelector('#modal-add-marker .btn-primary');
+  if(!sMapPendingLatLng){
+    alert('No location selected — click a spot on the map first.');
+    return;
+  }
   const spId = document.getElementById('map-marker-species').value;
   const customLabel = document.getElementById('map-marker-label').value.trim();
   const notes = document.getElementById('map-marker-notes').value.trim();
 
-  if(!spId && !customLabel){ mapToast('Choose a species or enter a label', 'err'); return; }
+  if(!spId && !customLabel){
+    alert('Please select a species or enter a custom label.');
+    return;
+  }
+
+  if(btn){ btn.textContent = 'Saving…'; btn.disabled = true; }
 
   const row = {
     id: Date.now(),
@@ -2704,16 +2713,27 @@ async function mapConfirmMarker(){
     notes: notes || null,
   };
 
-  const { error } = await sb.from('map_markers').insert(row);
-  if(error){ mapToast('Save failed — run the SQL setup first', 'err'); console.error(error); return; }
+  try {
+    const { error } = await sb.from('map_markers').insert(row);
+    if(error){
+      if(btn){ btn.textContent = 'Place Marker'; btn.disabled = false; }
+      alert('Database error: ' + error.message + '\n\nMake sure you have run the map_markers SQL setup in Supabase.');
+      return;
+    }
+  } catch(e) {
+    if(btn){ btn.textContent = 'Place Marker'; btn.disabled = false; }
+    alert('Unexpected error: ' + e.message);
+    return;
+  }
 
   sMapDbMarkers.push(row);
   const sp = species.find(s => s.id === row.species_id);
   mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
 
   document.getElementById('modal-add-marker').classList.remove('open');
+  if(btn){ btn.textContent = 'Place Marker'; btn.disabled = false; }
   mapToggleAddMode();
-  mapToast(`Marker placed ✓`);
+  toast('Marker placed ✓');
 }
 
 // ── Toggle zones / labels ──
