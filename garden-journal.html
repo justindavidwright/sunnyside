@@ -1051,6 +1051,17 @@
 const MAPS_KEY = 'AIzaSyBPA2D2xD0VsgPYg8CHOXAoqNtojl4VL7M';
 const PROPERTY_CENTER = { lat: 40.60569024329201, lng: -75.20595206314749 };
 const PROPERTY_ZOOM = 20;
+// Map-specific zone config (dict keyed by id, separate from journal ZONES array)
+const MAP_ZONES = {
+  japanese:    { label:'Japanese Garden', color:'#00e5cc', fillOpacity:0.38 },
+  road:        { label:'Road',            color:'#a0a0b0', fillOpacity:0.45 },
+  frontyard:   { label:'Front Yard',      color:'#44dd44', fillOpacity:0.38 },
+  daffodilhill:{ label:'Daffodil Hill',   color:'#ffe033', fillOpacity:0.50 },
+  midyard:     { label:'Middle Yard',     color:'#e07830', fillOpacity:0.40 },
+  backyard:    { label:'Back Yard',       color:'#4488ff', fillOpacity:0.42 },
+  greenhouse:  { label:'Greenhouse',      color:'#dd55ff', fillOpacity:0.52 },
+  driveway:    { label:'Mariton',         color:'#cc8833', fillOpacity:0.28 },
+};
 const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -2385,7 +2396,7 @@ function mapDrawZones(){
   });
 
     zoneDefs.forEach(z => {
-    const zone = ZONES[z.id];
+    const zone = MAP_ZONES[z.id];
     const poly = new google.maps.Polygon({
       paths: z.coords,
       strokeColor: zone.color,
@@ -2448,7 +2459,7 @@ function mapRenderAllMarkers(){
 }
 
 function mapAddMarker(id, lat, lng, sp, customLabel, notes){
-  const color = sp && sp.zone ? (ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
+  const color = sp && sp.zone ? (MAP_ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
   const label = sp ? (sp.common||sp.scientific) : (customLabel||'?');
 
   // Custom SVG pin
@@ -2496,7 +2507,7 @@ function mapShowPopup(marker){
   const zones = sp && sp.zones && sp.zones.length ? sp.zones :
                 sp && sp.zone ? [sp.zone] : [];
   const zoneTags = zones.map(z => {
-    const zd = ZONES[z] || { label: z, color: '#68605a' };
+    const zd = MAP_MAP_ZONES[z] || { label: z, color: '#68605a' };
     return `<span class="map-popup-zone-tag" style="background:${zd.color}22;color:${zd.color};border:1px solid ${zd.color}44">${zd.label}</span>`;
   }).join('');
 
