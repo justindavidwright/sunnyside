@@ -234,10 +234,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--parchment); color: 
       <div class="legend-swatch" style="background:rgba(154,124,16,0.55)"></div>Daffodil Hill
     </div>
     <div class="legend-item" onclick="focusZone('midyard')">
-      <div class="legend-swatch" style="background:rgba(224,120,48,0.65)"></div>Middle Yard
+      <div class="legend-swatch" style="background:rgba(107,140,90,0.55)"></div>Middle Yard
     </div>
     <div class="legend-item" onclick="focusZone('backyard')">
-      <div class="legend-swatch" style="background:rgba(68,136,255,0.65)"></div>Back Yard
+      <div class="legend-swatch" style="background:rgba(74,110,58,0.55)"></div>Back Yard
     </div>
     <div class="legend-item" onclick="focusZone('greenhouse')">
       <div class="legend-swatch" style="background:rgba(94,48,80,0.55)"></div>Greenhouse
@@ -416,7 +416,7 @@ function initMap(){
 // ── Zone polygons — clean topology from KMZ v2 ──
 function drawZones(){
   const zoneDefs = [
-    { id:'road', label_lat:40.6056008, label_lng:-75.2059490, coords:[
+    { id:'road', label_lat:40.6055200, label_lng:-75.2059200, coords:[
       {lat:40.6054947,lng:-75.2062217},
       {lat:40.6054278,lng:-75.2061944},
       {lat:40.6055744,lng:-75.2056965},
@@ -499,12 +499,13 @@ function drawZones(){
       {lat:40.6058585,lng:-75.2061999},
       {lat:40.6058266,lng:-75.2063277},
     ]},
-    { id:'backyard', label_lat:40.60620, label_lng:-75.20628, coords:[
+    { id:'backyard', label_lat:40.60630, label_lng:-75.20645, coords:[
       {lat:40.6064841,lng:-75.2063469},
       {lat:40.606311,lng:-75.2067318},
       {lat:40.6059034,lng:-75.206445},
       {lat:40.6059961,lng:-75.206154},
       {lat:40.6060758,lng:-75.206182},
+      {lat:40.6060618,lng:-75.2061768},
       {lat:40.6061116,lng:-75.2060675},
     ]},
     { id:'driveway', label_lat:40.6090, label_lng:-75.2055, coords:[
@@ -546,7 +547,7 @@ function drawZones(){
     position:{lat:40.6056722,lng:-75.2059500},
     map,
     icon:{path:google.maps.SymbolPath.CIRCLE,scale:0},
-    label:{text:'BARN',color:'#ffffff',fontSize:'10px',fontWeight:'700',fontFamily:'DM Sans,sans-serif'},
+    label:{text:'HOUSE',color:'#ffffff',fontSize:'10px',fontWeight:'700',fontFamily:'DM Sans,sans-serif'},
     zIndex:5,
   });
 
