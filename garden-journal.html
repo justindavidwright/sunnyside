@@ -1024,11 +1024,25 @@
     <div class="modal-body">
       <div class="fg">
         <label class="fl">Species</label>
-        <input type="text" id="map-species-search" placeholder="Type to search species…" oninput="mapFilterSpecies()" autocomplete="off"
-          style="border-bottom:none;border-radius:var(--radius) var(--radius) 0 0">
-        <div id="map-species-list" style="border:1.5px solid var(--parch-dk);border-top:none;border-radius:0 0 var(--radius) var(--radius);max-height:160px;overflow-y:auto;background:#fff"></div>
+        <div class="species-bloom-selector">
+          <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
+            <select id="map-sbs-zone" onchange="mapRenderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
+              <option value="">All zones</option>
+              <option value="japanese">Japanese Garden</option>
+              <option value="frontyard">Front Yard</option>
+              <option value="daffodilhill">Daffodil Hill</option>
+              <option value="midyard">Middle Yard</option>
+              <option value="backyard">Back Yard</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="road">Road</option>
+              <option value="driveway">Mariton</option>
+            </select>
+            <input class="sbs-search" type="text" id="map-sbs-search" placeholder="Search species…" oninput="mapRenderSbsList()" autocomplete="off" style="border:none;border-bottom:none;flex:1;min-width:0">
+          </div>
+          <div class="sbs-list" id="map-sbs-list"></div>
+        </div>
+        <div class="sbs-selected-pills" id="map-sbs-pills"></div>
         <input type="hidden" id="map-marker-species" value="">
-        <div id="map-species-selected" style="display:none;margin-top:6px;padding:6px 10px;background:var(--forest-pale);border-radius:var(--radius);font-size:13px;color:var(--forest);font-weight:500"></div>
       </div>
       <div class="fg"><label class="fl">Or custom label</label>
         <input type="text" id="map-marker-label" placeholder="e.g. Unknown bamboo #3, Large oak…">
@@ -2155,7 +2169,7 @@ let tasks = [];
 // ── State ──
 let sMap, sMapMarkers = [], sMapZonePolygons = [], sMapZoneLabels = [];
 let sMapSpecies = [], sMapDbMarkers = [];
-let sMapAddMode = false, sMapPendingLatLng = null;
+let sMapAddMode = false, sMapPendingLatLng = null, sMapPolygonClickHandled = false;
 let sMapZonesVisible = true, sMapLabelsVisible = true;
 let sMapActivePopupMarker = null;
 
@@ -2246,9 +2260,10 @@ function initSunnysideMap(){
   // Draw zone overlays — approximate polygons based on property description
   mapDrawZones();
 
-  // Click handler for placing markers
+  // Click handler for placing markers (only fires on open map, not polygon areas)
   sMap.addListener('click', (e) => {
     if(!sMapAddMode) return;
+    if(sMapPolygonClickHandled){ sMapPolygonClickHandled=false; return; }
     sMapPendingLatLng = e.latLng;
     mapShowAddMarkerModal();
   });
@@ -2425,7 +2440,7 @@ function mapDrawZones(){
       poly.getPath().forEach(c => bounds.extend(c));
       sMap.fitBounds(bounds, 20);
       if(!sMapAddMode) return;
-      // In add mode: drop all zone fills, keep borders, open modal
+      sMapPolygonClickHandled = true; // prevent map click from also firing
       sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
       sMapPendingLatLng = e.latLng;
       mapShowAddMarkerModal();
@@ -2620,45 +2635,50 @@ function mapShowAddMarkerModal(){
   document.getElementById('map-marker-species').value = '';
   document.getElementById('map-marker-label').value = '';
   document.getElementById('map-marker-notes').value = '';
-  document.getElementById('map-species-search').value = '';
-  document.getElementById('map-species-selected').style.display = 'none';
-  document.getElementById('map-species-selected').textContent = '';
-  mapFilterSpecies();
+  document.getElementById('map-sbs-search').value = '';
+  document.getElementById('map-sbs-zone').value = '';
+  document.getElementById('map-sbs-pills').innerHTML = '';
+  mapRenderSbsList();
   document.getElementById('modal-add-marker').classList.add('open');
 }
 
-function mapFilterSpecies(){
-  const q = (document.getElementById('map-species-search').value||'').toLowerCase();
-  const list = document.getElementById('map-species-list');
-  const filtered = species
-    .filter(s => !q ||
-      (s.common&&s.common.toLowerCase().includes(q)) ||
-      (s.scientific&&s.scientific.toLowerCase().includes(q)))
-    .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
+function mapRenderSbsList(){
+  const q=(document.getElementById('map-sbs-search').value||'').toLowerCase();
+  const z=document.getElementById('map-sbs-zone').value||'';
+  const list=document.getElementById('map-sbs-list');
+  const selId=parseInt(document.getElementById('map-marker-species').value)||null;
+  const filtered=species.filter(s=>
+    (!q||(s.scientific&&s.scientific.toLowerCase().includes(q))||(s.common&&s.common.toLowerCase().includes(q)))&&
+    (!z||((s.zones&&s.zones.includes(z))||s.zone===z))
+  ).sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
   if(!filtered.length){
-    list.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:var(--stone)">No matches</div>';
+    list.innerHTML=`<div class="sbs-empty">${species.length?(z?'No species in this zone':'No matches'):'No species yet'}</div>`;
     return;
   }
-  list.innerHTML = filtered.map(s => {
-    const name = s.common || s.scientific;
-    const sub  = s.common ? s.scientific : '';
-    return `<div onclick="mapSelectSpecies(${s.id},'${name.replace(/'/g,"\'")}')"
-      style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--parch-dk);font-size:13px;transition:background 0.1s"
-      onmouseover="this.style.background='var(--forest-pale)'"
-      onmouseout="this.style.background=''">
-      <div style="font-weight:500;color:var(--bark)">${name}</div>
-      ${sub?`<div style="font-size:11px;font-style:italic;color:var(--stone)">${sub}</div>`:''}
+  list.innerHTML=filtered.map(s=>{
+    const sel=selId===s.id;
+    const thumb=s.refPhoto?`<img src="${s.refPhoto}" alt="" referrerpolicy="no-referrer">`:`<div class="sbs-item-noimg">🌿</div>`;
+    return`<div class="sbs-item${sel?' selected':''}" onclick="mapSelectSpecies(${s.id})">
+      ${thumb}
+      <div class="sbs-item-info"><div class="sbs-item-sci">${s.common||s.scientific}</div>${s.common?`<div class="sbs-item-comm">${s.scientific}</div>`:''}</div>
+      ${sel?'<span class="sbs-item-check">✓</span>':''}
     </div>`;
   }).join('');
 }
 
-function mapSelectSpecies(id, name){
+function mapSelectSpecies(id){
   document.getElementById('map-marker-species').value = id;
-  document.getElementById('map-species-search').value = '';
-  document.getElementById('map-species-list').innerHTML = '';
-  const sel = document.getElementById('map-species-selected');
-  sel.textContent = '✓ ' + name;
-  sel.style.display = 'block';
+  const s=species.find(sp=>sp.id===id);
+  const name=s?(s.common||s.scientific):'Unknown';
+  document.getElementById('map-sbs-pills').innerHTML=
+    `<span class="sbs-pill">${name} <span onclick="mapClearSpecies()">×</span></span>`;
+  mapRenderSbsList();
+}
+
+function mapClearSpecies(){
+  document.getElementById('map-marker-species').value='';
+  document.getElementById('map-sbs-pills').innerHTML='';
+  mapRenderSbsList();
 }
 
 function mapCancelMarker(){
