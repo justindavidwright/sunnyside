@@ -234,10 +234,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--parchment); color: 
       <div class="legend-swatch" style="background:rgba(154,124,16,0.55)"></div>Daffodil Hill
     </div>
     <div class="legend-item" onclick="focusZone('midyard')">
-      <div class="legend-swatch" style="background:rgba(107,140,90,0.55)"></div>Middle Yard
+      <div class="legend-swatch" style="background:rgba(224,120,48,0.65)"></div>Middle Yard
     </div>
     <div class="legend-item" onclick="focusZone('backyard')">
-      <div class="legend-swatch" style="background:rgba(74,110,58,0.55)"></div>Back Yard
+      <div class="legend-swatch" style="background:rgba(68,136,255,0.65)"></div>Back Yard
     </div>
     <div class="legend-item" onclick="focusZone('greenhouse')">
       <div class="legend-swatch" style="background:rgba(94,48,80,0.55)"></div>Greenhouse
@@ -305,8 +305,8 @@ const ZONES = {
   road:        { label:'Road',            color:'#a0a0b0', fillOpacity:0.45 },
   frontyard:   { label:'Front Yard',      color:'#44dd44', fillOpacity:0.38 },
   daffodilhill:{ label:'Daffodil Hill',   color:'#ffe033', fillOpacity:0.50 },
-  midyard:     { label:'Middle Yard',     color:'#88cc55', fillOpacity:0.38 },
-  backyard:    { label:'Back Yard',       color:'#33bb55', fillOpacity:0.38 },
+  midyard:     { label:'Middle Yard',     color:'#e07830', fillOpacity:0.40 },
+  backyard:    { label:'Back Yard',       color:'#4488ff', fillOpacity:0.42 },
   greenhouse:  { label:'Greenhouse',      color:'#dd55ff', fillOpacity:0.52 },
   driveway:    { label:'Mariton',         color:'#cc8833', fillOpacity:0.28 },
 };
@@ -416,7 +416,7 @@ function initMap(){
 // ── Zone polygons — clean topology from KMZ v2 ──
 function drawZones(){
   const zoneDefs = [
-    { id:'road', label_lat:40.60548, label_lng:-75.20590, coords:[
+    { id:'road', label_lat:40.6056008, label_lng:-75.2059490, coords:[
       {lat:40.6054947,lng:-75.2062217},
       {lat:40.6054278,lng:-75.2061944},
       {lat:40.6055744,lng:-75.2056965},
@@ -437,7 +437,7 @@ function drawZones(){
       {lat:40.6054947,lng:-75.2062217},
       {lat:40.6055968,lng:-75.2058226},
     ]},
-    { id:'greenhouse', label_lat:40.60578, label_lng:-75.20628, coords:[
+    { id:'greenhouse', label_lat:40.6057761, label_lng:-75.2062279, coords:[
       {lat:40.6058266,lng:-75.2063277},
       // shared with japanese/midyard
       {lat:40.6056911,lng:-75.2062513},
@@ -486,6 +486,7 @@ function drawZones(){
       {lat:40.6056759,lng:-75.2063089},
       {lat:40.6059034,lng:-75.206445},
       {lat:40.6059961,lng:-75.206154},
+      {lat:40.6060758,lng:-75.206182},
       {lat:40.6060618,lng:-75.2061768},
       {lat:40.6061116,lng:-75.2060675},
       {lat:40.6059304,lng:-75.2059441},
@@ -539,6 +540,14 @@ function drawZones(){
     ],
     strokeColor:'#ffffff',strokeOpacity:0.9,strokeWeight:2,
     fillColor:'#ffffff',fillOpacity:0.08,map,zIndex:4,
+  });
+  // Barn label
+  new google.maps.Marker({
+    position:{lat:40.6056722,lng:-75.2059500},
+    map,
+    icon:{path:google.maps.SymbolPath.CIRCLE,scale:0},
+    label:{text:'BARN',color:'#ffffff',fontSize:'10px',fontWeight:'700',fontFamily:'DM Sans,sans-serif'},
+    zIndex:5,
   });
 
     zoneDefs.forEach(z => {
