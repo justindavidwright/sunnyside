@@ -626,7 +626,7 @@
         <div style="width:32px;height:32px;border:3px solid var(--forest-pale);border-top-color:var(--forest-mid);border-radius:50%;animation:spin 0.8s linear infinite"></div>
         <div style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone)">Loading map…</div>
       </div>
-      <div class="map-instructions-bar" id="map-instructions">Click anywhere on your property to place a species marker</div>
+      <div class="map-instructions-bar" id="map-instructions">Click anywhere on the map to place a species marker</div>
       <div class="map-zone-legend" id="map-zone-legend">
         <div class="map-legend-title">Zones</div>
         <div class="map-legend-item" onclick="mapFocusZone('japanese')"><div class="map-legend-swatch" style="background:#00e5cc"></div>Japanese Garden</div>
@@ -1331,6 +1331,10 @@ async function loadAll(){
     setLoading(100);
     setTimeout(()=>setLoading(0), 400);
     renderAll();
+    // Pre-load marker species_ids so "Map ↗" buttons show on species cards
+    sb.from('map_markers').select('id,species_id').then(({data}) => {
+      if(data && data.length){ sMapDbMarkers = data; renderSpecies(); }
+    });
   } catch(e){
     setSyncDot('error');
     setLoading(0);
@@ -2271,10 +2275,9 @@ function initSunnysideMap(){
   // Draw zone overlays — approximate polygons based on property description
   mapDrawZones();
 
-  // Click handler for placing markers (only fires on open map, not polygon areas)
+  // Click handler for placing markers
   sMap.addListener('click', (e) => {
     if(!sMapAddMode) return;
-    if(sMapPolygonClickHandled){ sMapPolygonClickHandled=false; return; }
     sMapPendingLatLng = e.latLng;
     mapShowAddMarkerModal();
   });
@@ -2446,17 +2449,8 @@ function mapDrawZones(){
       if(sMapAddMode) return;
       poly.setOptions({ fillOpacity: 0, strokeWeight: 2 });
     });
-    // Click only fires in add mode (clickable toggled on by mapToggleAddMode)
-    poly.addListener('click', (e) => {
-      if(!sMapAddMode) return;
-      const bounds = new google.maps.LatLngBounds();
-      poly.getPath().forEach(c => bounds.extend(c));
-      sMap.fitBounds(bounds, 20);
-      sMapPolygonClickHandled = true;
-      sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
-      sMapPendingLatLng = e.latLng;
-      mapShowAddMarkerModal();
-    });
+    // No polygon click listener — markers must be clickable freely
+    // In add mode, user clicks directly on the map canvas
 
     // Zone label — use explicit label position if provided, else centroid
     const labelPos = (z.label_lat && z.label_lng)
@@ -2696,18 +2690,15 @@ function mapToggleAddMode(){
     btn.textContent = '✕ Cancel Placement';
     instructions.classList.add('visible');
     sMap.getDiv().style.cursor = 'crosshair';
-    // Make polygons clickable so user can click a zone to zoom+place
-    sMapZonePolygons.forEach(p => p.setOptions({ clickable: true }));
+    // Polygons stay non-clickable — markers receive all clicks
   } else {
     btn.classList.remove('active');
     btn.textContent = '＋ Place Marker';
     instructions.classList.remove('visible');
     sMap.getDiv().style.cursor = '';
     sMapPendingLatLng = null;
-    // Restore zone fill opacities and make non-clickable again
-    sMapZonePolygons.forEach(p => {
-      p.setOptions({ fillOpacity: 0, clickable: false });
-    });
+    // Restore zone fills to 0 (borders only mode)
+    sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
   }
 }
 
