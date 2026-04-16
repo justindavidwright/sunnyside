@@ -122,13 +122,14 @@
   /* ── Property Map ── */
   #view-map { padding: 0 !important; }
   #view-map.active { display: flex !important; flex-direction: column; }
+  #map-container { position: relative; flex: 1; min-height: 0; }
+  #sunnyside-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
   .map-toolbar-inner { background: var(--forest); color: var(--parch-lt); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border-bottom: 2px solid var(--rust); flex-shrink: 0; }
   .map-toolbar-title { font-family: 'Zilla Slab', serif; font-size: 16px; font-weight: 600; }
   .map-toolbar-sub   { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage-lt); }
   .map-tbtn { background: rgba(242,234,212,0.10); color: var(--parch-lt); border: 1.5px solid rgba(242,234,212,0.22); padding: 5px 12px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
   .map-tbtn:hover { background: rgba(242,234,212,0.18); }
   .map-tbtn.active { background: var(--rust); border-color: var(--rust); }
-  #sunnyside-map { width: 100%; height: 100%; position: absolute; inset: 0; }
   .map-zone-legend { position: absolute; bottom: 16px; left: 12px; background: rgba(250,246,236,0.95); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(38,32,15,0.22); padding: 10px 14px; z-index: 5; min-width: 150px; border-left: 3px solid var(--forest); }
   .map-legend-title { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px; }
   .map-legend-item  { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; color: var(--bark-mid); cursor: pointer; }
@@ -609,7 +610,7 @@
     <div id="maintenance-wrap"></div>
   </div>
 
-  <div class="view" id="view-map" style="padding:0;margin:-28px -16px -80px;display:none;flex-direction:column;height:calc(100vh - 90px)">
+  <div class="view" id="view-map" style="padding:0;margin:-28px -16px -80px;display:none;flex-direction:column;height:calc(100vh - 90px);overflow:hidden">
     <div class="map-toolbar-inner">
       <div>
         <div class="map-toolbar-title">Sunnyside</div>
@@ -620,8 +621,8 @@
       <button class="map-tbtn" id="map-btn-labels" onclick="mapToggleLabels()">Labels On</button>
       <button class="map-tbtn" onclick="mapResetView()">Reset View</button>
     </div>
-    <div style="position:relative;flex:1;min-height:0">
-      <div id="sunnyside-map"></div>
+    <div id="map-container" style="position:relative;flex:1;min-height:0;height:100%">
+      <div id="sunnyside-map" style="position:absolute;top:0;left:0;right:0;bottom:0"></div>
       <div class="map-instructions-bar" id="map-instructions">Click anywhere on your property to place a species marker</div>
       <div class="map-zone-legend" id="map-zone-legend">
         <div class="map-legend-title">Zones</div>
@@ -1307,7 +1308,13 @@ function switchTab(id,btn){
   if(id==='maintenance')renderMaintenance();
   if(id==='calendar')renderCalendar();
   if(id==='weeds')renderWeeds();
-  if(id==='map')initMapTab();
+  if(id==='map'){
+    initMapTab();
+    // Give the DOM a frame to paint the flex layout, then trigger Maps resize
+    setTimeout(()=>{
+      if(sMap) google.maps.event.trigger(sMap,'resize');
+    }, 50);
+  }
 }
 
 // ── Modals ──
