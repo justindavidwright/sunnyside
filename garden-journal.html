@@ -2282,23 +2282,18 @@ function initSunnysideMap(){
       mapShowAddMarkerModal();
       return;
     }
-    // Check if click is near any existing marker (within ~15px at current zoom)
+    // DIAGNOSTIC — remove after testing
     const clicked = e.latLng;
     const zoom = sMap.getZoom();
-    // At zoom 20 ~0.3m/px; threshold = 20px ~ 6m ~ 0.00006 degrees
     const threshold = 0.00006 * Math.pow(2, 20 - zoom);
     let nearest = null, nearestDist = Infinity;
     sMapMarkers.forEach(m => {
-      const mlat = m.getPosition().lat();
-      const mlng = m.getPosition().lng();
-      const dlat = clicked.lat() - mlat;
-      const dlng = clicked.lng() - mlng;
+      const dlat = clicked.lat() - m.getPosition().lat();
+      const dlng = clicked.lng() - m.getPosition().lng();
       const dist = Math.sqrt(dlat*dlat + dlng*dlng);
-      if(dist < threshold && dist < nearestDist){
-        nearestDist = dist;
-        nearest = m;
-      }
+      if(dist < threshold && dist < nearestDist){ nearestDist = dist; nearest = m; }
     });
+    alert('Click fired! Markers: ' + sMapMarkers.length + ', nearest dist: ' + (nearest ? nearestDist.toFixed(6) : 'none') + ', threshold: ' + threshold.toFixed(6));
     if(nearest) mapShowPopup(nearest);
   });
 
