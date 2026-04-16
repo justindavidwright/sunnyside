@@ -2421,6 +2421,7 @@ function mapDrawZones(){
       fillOpacity: zone.fillOpacity,
       map: sMap,
       zIndex: 1,
+      clickable: false,
     });
     poly.zoneId = z.id;
     sMapZonePolygons.push(poly);
@@ -2434,13 +2435,13 @@ function mapDrawZones(){
       if(sMapAddMode) return;
       poly.setOptions({ fillOpacity: zone.fillOpacity, strokeWeight: 2 });
     });
-    // Click: zoom to zone normally; in add mode also drop fills and open modal
+    // Click only fires in add mode (clickable toggled on by mapToggleAddMode)
     poly.addListener('click', (e) => {
+      if(!sMapAddMode) return;
       const bounds = new google.maps.LatLngBounds();
       poly.getPath().forEach(c => bounds.extend(c));
       sMap.fitBounds(bounds, 20);
-      if(!sMapAddMode) return;
-      sMapPolygonClickHandled = true; // prevent map click from also firing
+      sMapPolygonClickHandled = true;
       sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
       sMapPendingLatLng = e.latLng;
       mapShowAddMarkerModal();
@@ -2540,7 +2541,10 @@ function mapShowPopup(marker){
   sMapActivePopupMarker = marker;
   const sp = marker.speciesData;
   const label = sp ? (sp.common||sp.scientific) : (marker.customLabel||'Unknown');
-  const sci = sp ? sp.scientific : '';
+  const sci = sp ? sp.scientific : (marker.customLabel ? '' : '');
+  // Show custom label as subtitle if species also present
+  const customNote = (!sp && marker.customLabel) ? '' :
+                     (sp && marker.customLabel) ? marker.customLabel : '';
 
   let photoHtml = '';
   if(sp && sp.ref_photo){
@@ -2563,6 +2567,7 @@ function mapShowPopup(marker){
     <div class="map-popup-body">
       <div class="map-popup-common">${label}</div>
       ${sci ? `<div class="map-popup-sci">${sci}</div>` : ''}
+      ${customNote ? `<div class="map-popup-sci">${customNote}</div>` : ''}
       ${zoneTags ? `<div class="map-popup-zones">${zoneTags}</div>` : ''}
       ${notesHtml}
     </div>
@@ -2643,6 +2648,8 @@ async function mapSaveEditMarker(id){
   if(btn){ btn.textContent='Place Marker'; btn.onclick=mapConfirmMarker; btn.disabled=false; }
   sMapPendingLatLng = null;
   toast('Marker updated ✓');
+  // Refresh species inventory so "X on map" counts update immediately
+  if(typeof renderSpecies === 'function') renderSpecies();
 }
 
 // ── Delete marker ──
@@ -2654,6 +2661,7 @@ async function mapDeleteMarker(id){
   mapRenderAllMarkers();
   mapClosePopup();
   mapToast('Marker removed');
+  if(typeof renderSpecies === 'function') renderSpecies();
 }
 
 // ── Add mode ──
@@ -2666,16 +2674,18 @@ function mapToggleAddMode(){
     btn.textContent = '✕ Cancel Placement';
     instructions.classList.add('visible');
     sMap.getDiv().style.cursor = 'crosshair';
+    // Make polygons clickable so user can click a zone to zoom+place
+    sMapZonePolygons.forEach(p => p.setOptions({ clickable: true }));
   } else {
     btn.classList.remove('active');
     btn.textContent = '＋ Place Marker';
     instructions.classList.remove('visible');
     sMap.getDiv().style.cursor = '';
     sMapPendingLatLng = null;
-    // Restore zone fill opacities
+    // Restore zone fill opacities and make non-clickable again
     sMapZonePolygons.forEach(p => {
       const z = MAP_ZONES[p.zoneId];
-      if(z) p.setOptions({ fillOpacity: z.fillOpacity });
+      if(z) p.setOptions({ fillOpacity: z.fillOpacity, clickable: false });
     });
   }
 }
@@ -2783,6 +2793,7 @@ async function mapConfirmMarker(){
   if(btn){ btn.textContent = 'Place Marker'; btn.disabled = false; }
   mapToggleAddMode();
   toast('Marker placed ✓');
+  if(typeof renderSpecies === 'function') renderSpecies();
 }
 
 // ── Toggle zones / labels ──
