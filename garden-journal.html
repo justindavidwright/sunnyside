@@ -2280,21 +2280,7 @@ function initSunnysideMap(){
     if(sMapAddMode){
       sMapPendingLatLng = e.latLng;
       mapShowAddMarkerModal();
-      return;
     }
-    // DIAGNOSTIC — remove after testing
-    const clicked = e.latLng;
-    const zoom = sMap.getZoom();
-    const threshold = 0.00006 * Math.pow(2, 20 - zoom);
-    let nearest = null, nearestDist = Infinity;
-    sMapMarkers.forEach(m => {
-      const dlat = clicked.lat() - m.getPosition().lat();
-      const dlng = clicked.lng() - m.getPosition().lng();
-      const dist = Math.sqrt(dlat*dlat + dlng*dlng);
-      if(dist < threshold && dist < nearestDist){ nearestDist = dist; nearest = m; }
-    });
-    alert('Click fired! Markers: ' + sMapMarkers.length + ', nearest dist: ' + (nearest ? nearestDist.toFixed(6) : 'none') + ', threshold: ' + threshold.toFixed(6));
-    if(nearest) mapShowPopup(nearest);
   });
 
   document.getElementById('map-loading-inner').style.display='none';
@@ -2530,11 +2516,12 @@ function mapAddMarker(id, lat, lng, sp, customLabel, notes, photo){
   const color = sp && sp.zone ? (MAP_ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
   const label = sp ? (sp.common||sp.scientific) : (customLabel||'?');
 
-  // Custom SVG pin
-  const svgPin = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-    <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
-    <circle cx="14" cy="14" r="6" fill="rgba(255,255,255,0.85)"/>
-    <text x="14" y="18" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" font-weight="700" fill="${color}">🌿</text>
+  // Custom SVG pin — solid rectangle body for reliable click detection
+  const svgPin = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+    <rect x="1" y="1" width="30" height="30" rx="6" ry="6" fill="${color}" stroke="rgba(255,255,255,0.8)" stroke-width="2"/>
+    <circle cx="16" cy="16" r="9" fill="rgba(255,255,255,0.25)"/>
+    <text x="16" y="20" text-anchor="middle" font-size="12" font-family="DM Sans,sans-serif" font-weight="700" fill="#fff">🌿</text>
+    <polygon points="16,40 8,30 24,30" fill="${color}" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-linejoin="round"/>
   </svg>`;
 
   const marker = new google.maps.Marker({
@@ -2542,11 +2529,15 @@ function mapAddMarker(id, lat, lng, sp, customLabel, notes, photo){
     map: sMap,
     icon: {
       url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgPin),
-      scaledSize: new google.maps.Size(28, 36),
-      anchor: new google.maps.Point(14, 36),
+      scaledSize: new google.maps.Size(32, 40),
+      anchor: new google.maps.Point(16, 40),
+      // labelOrigin places any label above the pin
+      labelOrigin: new google.maps.Point(14, -4),
     },
     title: label,
     zIndex: 10,
+    optimized: false,
+    clickable: true,
   });
 
   marker.markerId = id;
@@ -2555,8 +2546,10 @@ function mapAddMarker(id, lat, lng, sp, customLabel, notes, photo){
   marker.markerNotes = notes;
   marker.markerPhoto = photo || null;
 
-  // Don't use marker click events — they get swallowed by overlays
-  // Click detection is handled by sMap's click listener via proximity check
+  marker.addListener('click', (e) => {
+    e.stop(); // prevent map click from also firing
+    mapShowPopup(marker);
+  });
   sMapMarkers.push(marker);
 }
 
