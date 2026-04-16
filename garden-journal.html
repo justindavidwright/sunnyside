@@ -623,6 +623,10 @@
     </div>
     <div id="map-container" style="position:relative;flex:1;min-height:0;height:100%">
       <div id="sunnyside-map" style="position:absolute;top:0;left:0;right:0;bottom:0"></div>
+      <div id="map-loading-inner" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--parchment);z-index:1;pointer-events:none">
+        <div style="width:32px;height:32px;border:3px solid var(--forest-pale);border-top-color:var(--forest-mid);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone)">Loading map…</div>
+      </div>
       <div class="map-instructions-bar" id="map-instructions">Click anywhere on your property to place a species marker</div>
       <div class="map-zone-legend" id="map-zone-legend">
         <div class="map-legend-title">Zones</div>
@@ -2202,6 +2206,10 @@ function mapPopulateSpeciesSelect(){
 
 // ── Map init ──
 function initSunnysideMap(){
+  // Hide loading indicator
+  const loader = document.getElementById('map-loading-inner');
+  if(loader) loader.style.display = 'none';
+
   sMap = new google.maps.Map(document.getElementById('sunnyside-map'), {
     center: PROPERTY_CENTER,
     zoom: PROPERTY_ZOOM,
@@ -2218,6 +2226,9 @@ function initSunnysideMap(){
     zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
     styles: [],
   });
+
+  // Force resize after a tick to ensure container has painted
+  setTimeout(() => google.maps.event.trigger(sMap, 'resize'), 100);
 
   // Draw zone overlays — approximate polygons based on property description
   mapDrawZones();
@@ -2666,12 +2677,33 @@ let sMapInitialized = false;
 function initMapTab(){
   if(sMapInitialized) return;
   sMapInitialized = true;
-  // Load Google Maps script dynamically
+  // Ensure callback is global BEFORE script loads
+  window.initSunnysideMap = function(){
+    try {
+      initSunnysideMap();
+    } catch(e) {
+      document.getElementById('map-container').innerHTML =
+        `<div style="padding:30px;font-family:'DM Sans',sans-serif;color:#a83c18">
+          <strong>Map error:</strong> ${e.message}
+        </div>`;
+    }
+  };
+  window.gm_authFailure = function(){
+    document.getElementById('map-container').innerHTML =
+      `<div style="padding:30px;font-family:'DM Sans',sans-serif;color:#a83c18;line-height:1.7">
+        <strong>API key error.</strong> Check that the Maps JavaScript API is enabled
+        and the key restriction includes <code>justindavidwright.github.io/*</code>
+      </div>`;
+  };
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&callback=initSunnysideMap&v=weekly`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&callback=initSunnysideMap&v=weekly&loading=async`;
   script.async = true;
-  script.defer = true;
-  window.initSunnysideMap = initSunnysideMap;
+  script.onerror = () => {
+    document.getElementById('map-container').innerHTML =
+      `<div style="padding:30px;font-family:'DM Sans',sans-serif;color:#a83c18">
+        <strong>Failed to load Google Maps script.</strong> Check network connection.
+      </div>`;
+  };
   document.head.appendChild(script);
 }
 
