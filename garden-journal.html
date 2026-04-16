@@ -1022,8 +1022,13 @@
       <button class="modal-x" onclick="mapCancelMarker()">×</button>
     </div>
     <div class="modal-body">
-      <div class="fg"><label class="fl">Species</label>
-        <select id="map-marker-species"><option value="">— Select a species —</option></select>
+      <div class="fg">
+        <label class="fl">Species</label>
+        <input type="text" id="map-species-search" placeholder="Type to search species…" oninput="mapFilterSpecies()" autocomplete="off"
+          style="border-bottom:none;border-radius:var(--radius) var(--radius) 0 0">
+        <div id="map-species-list" style="border:1.5px solid var(--parch-dk);border-top:none;border-radius:0 0 var(--radius) var(--radius);max-height:160px;overflow-y:auto;background:#fff"></div>
+        <input type="hidden" id="map-marker-species" value="">
+        <div id="map-species-selected" style="display:none;margin-top:6px;padding:6px 10px;background:var(--forest-pale);border-radius:var(--radius);font-size:13px;color:var(--forest);font-weight:500"></div>
       </div>
       <div class="fg"><label class="fl">Or custom label</label>
         <input type="text" id="map-marker-label" placeholder="e.g. Unknown bamboo #3, Large oak…">
@@ -2208,12 +2213,8 @@ async function mapCreateMarkersTable(){
 }
 
 function mapPopulateSpeciesSelect(){
-  const sel = document.getElementById('map-marker-species');
-  sel.innerHTML = '<option value="">— Select a species —</option>' +
-    [...species]
-      .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific))
-      .map(s=>`<option value="${s.id}">${s.common||s.scientific}${s.common?' ('+s.scientific+')':''}</option>`)
-      .join('');
+  // Species list now populated dynamically via mapFilterSpecies()
+  // Nothing to do here — kept for compatibility
 }
 
 // ── Map init ──
@@ -2418,16 +2419,14 @@ function mapDrawZones(){
       if(sMapAddMode) return;
       poly.setOptions({ fillOpacity: zone.fillOpacity, strokeWeight: 2 });
     });
-    // In add mode: clicking a zone zooms to it and drops fill to show satellite clearly
+    // Click: zoom to zone normally; in add mode also drop fills and open modal
     poly.addListener('click', (e) => {
-      if(!sMapAddMode) return;
-      // Zoom to this zone's bounds
       const bounds = new google.maps.LatLngBounds();
       poly.getPath().forEach(c => bounds.extend(c));
       sMap.fitBounds(bounds, 20);
-      // Drop all zone fills, keep borders so boundaries still visible
+      if(!sMapAddMode) return;
+      // In add mode: drop all zone fills, keep borders, open modal
       sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
-      // Use the click location as the pending marker position
       sMapPendingLatLng = e.latLng;
       mapShowAddMarkerModal();
     });
@@ -2621,7 +2620,45 @@ function mapShowAddMarkerModal(){
   document.getElementById('map-marker-species').value = '';
   document.getElementById('map-marker-label').value = '';
   document.getElementById('map-marker-notes').value = '';
+  document.getElementById('map-species-search').value = '';
+  document.getElementById('map-species-selected').style.display = 'none';
+  document.getElementById('map-species-selected').textContent = '';
+  mapFilterSpecies();
   document.getElementById('modal-add-marker').classList.add('open');
+}
+
+function mapFilterSpecies(){
+  const q = (document.getElementById('map-species-search').value||'').toLowerCase();
+  const list = document.getElementById('map-species-list');
+  const filtered = species
+    .filter(s => !q ||
+      (s.common&&s.common.toLowerCase().includes(q)) ||
+      (s.scientific&&s.scientific.toLowerCase().includes(q)))
+    .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific));
+  if(!filtered.length){
+    list.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:var(--stone)">No matches</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(s => {
+    const name = s.common || s.scientific;
+    const sub  = s.common ? s.scientific : '';
+    return `<div onclick="mapSelectSpecies(${s.id},'${name.replace(/'/g,"\'")}')"
+      style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--parch-dk);font-size:13px;transition:background 0.1s"
+      onmouseover="this.style.background='var(--forest-pale)'"
+      onmouseout="this.style.background=''">
+      <div style="font-weight:500;color:var(--bark)">${name}</div>
+      ${sub?`<div style="font-size:11px;font-style:italic;color:var(--stone)">${sub}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function mapSelectSpecies(id, name){
+  document.getElementById('map-marker-species').value = id;
+  document.getElementById('map-species-search').value = '';
+  document.getElementById('map-species-list').innerHTML = '';
+  const sel = document.getElementById('map-species-selected');
+  sel.textContent = '✓ ' + name;
+  sel.style.display = 'block';
 }
 
 function mapCancelMarker(){
@@ -2650,7 +2687,7 @@ async function mapConfirmMarker(){
   const { error } = await sb.from('map_markers').insert(row);
   if(error){ mapToast('Save failed — run the SQL setup first', 'err'); console.error(error); return; }
 
-  dbMarkers.push(row);
+  sMapDbMarkers.push(row);
   const sp = species.find(s => s.id === row.species_id);
   mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
 
