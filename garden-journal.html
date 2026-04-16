@@ -2677,10 +2677,11 @@ let sMapInitialized = false;
 function initMapTab(){
   if(sMapInitialized) return;
   sMapInitialized = true;
-  // Ensure callback is global BEFORE script loads
+  // Store direct reference BEFORE assigning to window
+  const mapInitFn = initSunnysideMap;
   window.initSunnysideMap = function(){
     try {
-      initSunnysideMap();
+      mapInitFn();
     } catch(e) {
       document.getElementById('map-container').innerHTML =
         `<div style="padding:30px;font-family:'DM Sans',sans-serif;color:#a83c18">
