@@ -1050,6 +1050,17 @@
       <div class="fg"><label class="fl">Notes</label>
         <textarea id="map-marker-notes" rows="2" placeholder="Condition, size, anything notable…" style="resize:vertical"></textarea>
       </div>
+      <div class="fg">
+        <label class="fl">Photo (optional)</label>
+        <div class="photo-upload-area" onclick="document.getElementById('map-photo-input').click()" style="padding:10px">
+          <label class="upload-label" style="pointer-events:none;font-size:13px">
+            <span style="font-size:18px;opacity:0.4">⊕</span>
+            <span>Tap to add a photo of this specimen</span>
+          </label>
+          <input type="file" id="map-photo-input" accept="image/*" onchange="mapHandlePhotoUpload(this)" style="display:none">
+        </div>
+        <div id="map-photo-preview" style="margin-top:6px"></div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn-cancel" onclick="mapCancelMarker()">Cancel</button>
@@ -1071,14 +1082,14 @@ const PROPERTY_CENTER = { lat: 40.60569024329201, lng: -75.20595206314749 };
 const PROPERTY_ZOOM = 20;
 // Map-specific zone config (dict keyed by id, separate from journal ZONES array)
 const MAP_ZONES = {
-  japanese:    { label:'Japanese Garden', color:'#00e5cc', fillOpacity:0.38 },
-  road:        { label:'Road',            color:'#a0a0b0', fillOpacity:0.45 },
-  frontyard:   { label:'Front Yard',      color:'#44dd44', fillOpacity:0.38 },
-  daffodilhill:{ label:'Daffodil Hill',   color:'#ffe033', fillOpacity:0.50 },
-  midyard:     { label:'Middle Yard',     color:'#e07830', fillOpacity:0.40 },
-  backyard:    { label:'Back Yard',       color:'#4488ff', fillOpacity:0.42 },
-  greenhouse:  { label:'Greenhouse',      color:'#dd55ff', fillOpacity:0.52 },
-  driveway:    { label:'Mariton',         color:'#cc8833', fillOpacity:0.28 },
+  japanese:    { label:'Japanese Garden', color:'#00e5cc', fillOpacity:0,    hoverOpacity:0.35 },
+  road:        { label:'Road',            color:'#a0a0b0', fillOpacity:0,    hoverOpacity:0.40 },
+  frontyard:   { label:'Front Yard',      color:'#44dd44', fillOpacity:0,    hoverOpacity:0.35 },
+  daffodilhill:{ label:'Daffodil Hill',   color:'#ffe033', fillOpacity:0,    hoverOpacity:0.45 },
+  midyard:     { label:'Middle Yard',     color:'#e07830', fillOpacity:0,    hoverOpacity:0.38 },
+  backyard:    { label:'Back Yard',       color:'#4488ff', fillOpacity:0,    hoverOpacity:0.40 },
+  greenhouse:  { label:'Greenhouse',      color:'#dd55ff', fillOpacity:0,    hoverOpacity:0.48 },
+  driveway:    { label:'Mariton',         color:'#cc8833', fillOpacity:0,    hoverOpacity:0.25 },
 };
 const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
@@ -2415,10 +2426,10 @@ function mapDrawZones(){
     const poly = new google.maps.Polygon({
       paths: z.coords,
       strokeColor: zone.color,
-      strokeOpacity: 0.9,
-      strokeWeight: 2,
+      strokeOpacity: 1.0,
+      strokeWeight: 3,
       fillColor: zone.color,
-      fillOpacity: zone.fillOpacity,
+      fillOpacity: 0,
       map: sMap,
       zIndex: 1,
       clickable: false,
@@ -2429,11 +2440,11 @@ function mapDrawZones(){
     // Hover: brighten fill (only when not in add mode)
     poly.addListener('mouseover', () => {
       if(!sMapZonesVisible || sMapAddMode) return;
-      poly.setOptions({ fillOpacity: zone.fillOpacity * 3.5, strokeWeight: 3 });
+      poly.setOptions({ fillOpacity: zone.hoverOpacity, strokeWeight: 3 });
     });
     poly.addListener('mouseout', () => {
       if(sMapAddMode) return;
-      poly.setOptions({ fillOpacity: zone.fillOpacity, strokeWeight: 2 });
+      poly.setOptions({ fillOpacity: 0, strokeWeight: 2 });
     });
     // Click only fires in add mode (clickable toggled on by mapToggleAddMode)
     poly.addListener('click', (e) => {
@@ -2499,12 +2510,11 @@ function mapRenderAllMarkers(){
 
   sMapDbMarkers.forEach(mk => {
     const sp = species.find(s => s.id === mk.species_id);
-    const label = sp ? (sp.common||sp.scientific) : (mk.custom_label||'Unknown');
-    mapAddMarker(mk.id, mk.lat, mk.lng, sp, mk.custom_label, mk.notes);
+    mapAddMarker(mk.id, mk.lat, mk.lng, sp, mk.custom_label, mk.notes, mk.photo);
   });
 }
 
-function mapAddMarker(id, lat, lng, sp, customLabel, notes){
+function mapAddMarker(id, lat, lng, sp, customLabel, notes, photo){
   const color = sp && sp.zone ? (MAP_ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
   const label = sp ? (sp.common||sp.scientific) : (customLabel||'?');
 
@@ -2531,6 +2541,7 @@ function mapAddMarker(id, lat, lng, sp, customLabel, notes){
   marker.speciesData = sp;
   marker.customLabel = customLabel;
   marker.markerNotes = notes;
+  marker.markerPhoto = photo || null;
 
   marker.addListener('click', () => mapShowPopup(marker));
   sMapMarkers.push(marker);
@@ -2547,8 +2558,9 @@ function mapShowPopup(marker){
                      (sp && marker.customLabel) ? marker.customLabel : '';
 
   let photoHtml = '';
-  if(sp && sp.ref_photo){
-    photoHtml = `<img class="map-popup-photo" src="${sp.ref_photo}" alt="${label}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
+  const photoSrc = marker.markerPhoto || (sp && sp.ref_photo) || null;
+  if(photoSrc){
+    photoHtml = `<img class="map-popup-photo" src="${photoSrc}" alt="${label}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
   } else {
     photoHtml = `<div class="map-popup-placeholder">🌿</div>`;
   }
@@ -2613,6 +2625,15 @@ function mapOpenEditMarker(id){
   } else {
     document.getElementById('map-sbs-pills').innerHTML = '';
   }
+  // Show existing photo
+  mapPendingPhoto = undefined;
+  document.getElementById('map-photo-input').value = '';
+  const mapEditPrev = document.getElementById('map-photo-preview');
+  if(mk.photo){
+    mapEditPrev.innerHTML = `<div style="position:relative;display:inline-block"><img src="${mk.photo}" style="width:80px;height:80px;object-fit:cover;border-radius:var(--radius);border:2px solid var(--parch-dk)"><button onclick="mapPendingPhoto=null;document.getElementById('map-photo-preview').innerHTML=''" style="position:absolute;top:-6px;right:-6px;background:var(--rust);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1">×</button></div>`;
+  } else {
+    mapEditPrev.innerHTML = '';
+  }
   mapRenderSbsList();
   // Switch modal to edit mode
   const head = document.querySelector('#modal-add-marker .modal-head div p');
@@ -2635,6 +2656,7 @@ async function mapSaveEditMarker(id){
     species_id: spId ? parseInt(spId) : null,
     custom_label: customLabel || null,
     notes: notes || null,
+    ...(mapPendingPhoto !== undefined ? { photo: mapPendingPhoto } : {}),
   };
   const { error } = await sb.from('map_markers').update(updates).eq('id', id);
   if(error){ if(btn){btn.textContent='Save Changes';btn.disabled=false;} alert('Save failed: '+error.message); return; }
@@ -2684,10 +2706,36 @@ function mapToggleAddMode(){
     sMapPendingLatLng = null;
     // Restore zone fill opacities and make non-clickable again
     sMapZonePolygons.forEach(p => {
-      const z = MAP_ZONES[p.zoneId];
-      if(z) p.setOptions({ fillOpacity: z.fillOpacity, clickable: false });
+      p.setOptions({ fillOpacity: 0, clickable: false });
     });
   }
+}
+
+let mapPendingPhoto = null;
+
+function mapHandlePhotoUpload(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800; let w=img.width, h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      mapPendingPhoto = canvas.toDataURL('image/jpeg', 0.78);
+      const prev = document.getElementById('map-photo-preview');
+      prev.innerHTML = `<div style="position:relative;display:inline-block">
+        <img src="${mapPendingPhoto}" style="width:80px;height:80px;object-fit:cover;border-radius:var(--radius);border:2px solid var(--parch-dk)">
+        <button onclick="mapPendingPhoto=null;document.getElementById('map-photo-preview').innerHTML='';document.getElementById('map-photo-input').value=''"
+          style="position:absolute;top:-6px;right:-6px;background:var(--rust);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1">×</button>
+      </div>`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value='';
 }
 
 function mapShowAddMarkerModal(){
@@ -2697,6 +2745,9 @@ function mapShowAddMarkerModal(){
   document.getElementById('map-sbs-search').value = '';
   document.getElementById('map-sbs-zone').value = '';
   document.getElementById('map-sbs-pills').innerHTML = '';
+  document.getElementById('map-photo-preview').innerHTML = '';
+  document.getElementById('map-photo-input').value = '';
+  mapPendingPhoto = null;
   mapRenderSbsList();
   document.getElementById('modal-add-marker').classList.add('open');
 }
@@ -2770,6 +2821,7 @@ async function mapConfirmMarker(){
     species_id: spId ? parseInt(spId) : null,
     custom_label: customLabel || null,
     notes: notes || null,
+    photo: mapPendingPhoto || null,
   };
 
   try {
@@ -2787,7 +2839,7 @@ async function mapConfirmMarker(){
 
   sMapDbMarkers.push(row);
   const sp = species.find(s => s.id === row.species_id);
-  mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
+  mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes, row.photo);
 
   document.getElementById('modal-add-marker').classList.remove('open');
   if(btn){ btn.textContent = 'Place Marker'; btn.disabled = false; }
@@ -3309,7 +3361,7 @@ function renderSpecies(){
         ${obs?``:''}
         <div class="sp-card-actions">
           <button class="sp-btn-edit" onclick="openEditSpecies(${s.id})">Edit</button>
-          ${(()=>{ const cnt=getSpeciesMarkerCount(s.id); return cnt ? `<button class="sp-btn-edit" style="color:var(--forest-mid);border-color:var(--forest-pale)" onclick="switchTab('map',document.querySelectorAll('.tab-btn')[6]);setTimeout(()=>mapHighlightSpecies(${s.id}),800)">${cnt} on map ↗</button>` : ''; })()}
+          ${(()=>{ const cnt=getSpeciesMarkerCount(s.id); return cnt ? `<button class="sp-btn-edit" style="color:var(--forest-mid);border-color:var(--forest-pale)" onclick="switchTab('map',document.querySelectorAll('.tab-btn')[6]);setTimeout(()=>mapHighlightSpecies(${s.id}),800)">Map ↗</button>` : ''; })()}
           <button class="sp-btn-delete" onclick="deleteSpecies(${s.id})">Delete</button>
         </div>
       </div>
