@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunnyside — Property Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bark:       #26200f;
+  --bark-mid:   #44381e;
+  --parchment:  #f2ead4;
+  --parch-lt:   #faf6ec;
+  --parch-dk:   #dfd5b8;
+  --forest:     #2d4a1e;
+  --forest-mid: #3d6628;
+  --forest-lt:  #5a8c3a;
+  --forest-pale:#daecd0;
+  --sage-lt:    #8aad76;
+  --rust:       #a83c18;
+  --rust-pale:  #f5ddd0;
+  --gold:       #9a6e10;
+  --stone:      #68605a;
+  --stone-pale: #e2ddd8;
+  --radius: 4px;
+  --sh:  0 2px 10px rgba(38,32,15,0.12);
+  --shl: 0 8px 32px rgba(38,32,15,0.22);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--parchment); color: var(--bark); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Toolbar ── */
+.map-toolbar {
+  background: var(--forest);
+  color: var(--parch-lt);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: 0 3px 0 var(--rust), 0 6px 20px rgba(38,32,15,0.3);
+  z-index: 10;
+  flex-shrink: 0;
+}
+.toolbar-title { font-family: 'Zilla Slab', serif; font-size: 18px; font-weight: 600; margin-right: 4px; }
+.toolbar-sub   { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage-lt); }
+.toolbar-sep   { width: 1px; height: 28px; background: rgba(242,234,212,0.18); flex-shrink: 0; }
+.toolbar-btn {
+  background: rgba(242,234,212,0.10);
+  color: var(--parch-lt);
+  border: 1.5px solid rgba(242,234,212,0.22);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.toolbar-btn:hover { background: rgba(242,234,212,0.18); border-color: rgba(242,234,212,0.5); }
+.toolbar-btn.active { background: var(--rust); border-color: var(--rust); }
+.toolbar-btn.danger { border-color: rgba(168,60,24,0.5); color: #ffb8a0; }
+.toolbar-btn.danger:hover { background: rgba(168,60,24,0.3); }
+
+/* ── Map container ── */
+#map { flex: 1; width: 100%; }
+
+/* ── Zone legend ── */
+.zone-legend {
+  position: absolute;
+  bottom: 32px;
+  left: 12px;
+  background: rgba(250,246,236,0.95);
+  border-radius: var(--radius);
+  box-shadow: var(--shl);
+  padding: 10px 14px;
+  z-index: 5;
+  min-width: 160px;
+  border-left: 3px solid var(--forest);
+}
+.legend-title { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px; }
+.legend-item  { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 12px; color: var(--bark-mid); cursor: pointer; transition: opacity 0.15s; }
+.legend-item:hover { opacity: 0.7; }
+.legend-item:last-child { margin-bottom: 0; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Marker popup ── */
+.map-popup {
+  position: absolute;
+  background: var(--parch-lt);
+  border-radius: var(--radius);
+  box-shadow: var(--shl);
+  padding: 0;
+  z-index: 20;
+  width: 240px;
+  border-top: 4px solid var(--forest-mid);
+  display: none;
+  animation: popIn 0.15s ease;
+}
+.map-popup.open { display: block; }
+@keyframes popIn { from { opacity:0; transform:scale(0.92) translateY(4px); } to { opacity:1; transform:none; } }
+.popup-photo { width: 100%; height: 120px; object-fit: cover; display: block; }
+.popup-photo-placeholder { width: 100%; height: 80px; background: var(--forest-pale); display: flex; align-items: center; justify-content: center; font-size: 28px; opacity: 0.5; }
+.popup-body { padding: 10px 12px; }
+.popup-common { font-family: 'Zilla Slab', serif; font-size: 15px; font-weight: 600; color: var(--bark); margin-bottom: 2px; }
+.popup-sci    { font-size: 11px; font-style: italic; color: var(--stone); margin-bottom: 6px; }
+.popup-zones  { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.popup-zone-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; }
+.popup-notes  { font-size: 12px; color: var(--bark-mid); line-height: 1.55; margin-bottom: 8px; font-weight: 300; }
+.popup-foot   { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--parch-dk); }
+.popup-btn    { flex: 1; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px; border-radius: var(--radius); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.popup-btn-close  { background: var(--stone-pale); color: var(--stone); }
+.popup-btn-delete { background: var(--rust-pale); color: var(--rust); }
+.popup-close-x { position: absolute; top: 6px; right: 8px; background: none; border: none; color: var(--parch-lt); font-size: 18px; cursor: pointer; line-height: 1; padding: 2px 4px; z-index: 1; }
+
+/* ── Add marker modal ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(38,32,15,0.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--parch-lt); border-radius: var(--radius); box-shadow: 0 20px 72px rgba(38,32,15,0.35); width: 100%; max-width: 420px; overflow: hidden; }
+.modal-head { background: var(--forest); color: var(--parch-lt); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+.modal-head h3 { font-family: 'Zilla Slab', serif; font-size: 18px; font-weight: 600; }
+.modal-head p  { font-size: 11px; color: var(--sage-lt); margin-top: 2px; }
+.modal-x { background: none; border: none; color: var(--parch-lt); font-size: 22px; cursor: pointer; padding: 0 2px; line-height: 1; }
+.modal-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; }
+.modal-foot { padding: 12px 18px; border-top: 1px solid var(--parch-dk); display: flex; justify-content: flex-end; gap: 8px; }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fl { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stone); }
+.fg select, .fg input, .fg textarea {
+  padding: 9px 11px;
+  border: 1.5px solid var(--parch-dk);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--bark);
+  background: #fff;
+  width: 100%;
+}
+.fg select:focus, .fg input:focus { outline: none; border-color: var(--forest-mid); }
+.btn-primary { background: var(--forest-mid); color: #fff; border: none; padding: 9px 18px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; }
+.btn-cancel  { background: var(--stone-pale); color: var(--stone); border: none; padding: 9px 14px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; }
+
+/* ── Toast ── */
+.toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300; pointer-events: none; }
+.toast { background: var(--bark); color: var(--parch-lt); font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 20px; box-shadow: var(--shl); opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.ok  { background: var(--forest-mid); }
+.toast.err { background: var(--rust); }
+
+/* ── Instructions overlay ── */
+.map-instructions {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(45,74,30,0.92);
+  color: var(--parch-lt);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.map-instructions.visible { opacity: 1; }
+
+/* ── Loading ── */
+.map-loading {
+  position: absolute;
+  inset: 0;
+  background: var(--parchment);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 50;
+}
+.map-loading h3 { font-family: 'Zilla Slab', serif; font-size: 22px; color: var(--forest); }
+.map-loading p  { font-size: 13px; color: var(--stone); }
+.loading-spinner { width: 36px; height: 36px; border: 3px solid var(--forest-pale); border-top-color: var(--forest-mid); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .zone-legend { display: none; }
+  .toolbar-sep { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="map-toolbar">
+  <div>
+    <div class="toolbar-title">Sunnyside</div>
+    <div class="toolbar-sub">Property Map · Riegelsville PA</div>
+  </div>
+  <div class="toolbar-sep"></div>
+  <button class="toolbar-btn" id="btn-add-mode" onclick="toggleAddMode()">＋ Place Marker</button>
+  <button class="toolbar-btn" id="btn-toggle-zones" onclick="toggleZones()">Zones On</button>
+  <button class="toolbar-btn" id="btn-toggle-labels" onclick="toggleLabels()">Labels On</button>
+  <button class="toolbar-btn" onclick="resetView()">Reset View</button>
+</div>
+
+<div style="position:relative;flex:1;overflow:hidden">
+  <div id="map"></div>
+
+  <div class="map-loading" id="map-loading">
+    <div class="loading-spinner"></div>
+    <h3>Loading Sunnyside</h3>
+    <p>Centering on 180 Sunnyside Road…</p>
+  </div>
+
+  <div class="map-instructions" id="map-instructions">Click anywhere on your property to place a species marker</div>
+
+  <!-- Zone legend -->
+  <div class="zone-legend" id="zone-legend">
+    <div class="legend-title">Zones</div>
+    <div class="legend-item" onclick="focusZone('japanese')">
+      <div class="legend-swatch" style="background:rgba(42,94,88,0.55)"></div>Japanese Garden
+    </div>
+    <div class="legend-item" onclick="focusZone('road')">
+      <div class="legend-swatch" style="background:rgba(104,96,90,0.55)"></div>Road
+    </div>
+    <div class="legend-item" onclick="focusZone('frontyard')">
+      <div class="legend-swatch" style="background:rgba(61,102,40,0.55)"></div>Front Yard
+    </div>
+    <div class="legend-item" onclick="focusZone('daffodilhill')">
+      <div class="legend-swatch" style="background:rgba(154,124,16,0.55)"></div>Daffodil Hill
+    </div>
+    <div class="legend-item" onclick="focusZone('midyard')">
+      <div class="legend-swatch" style="background:rgba(107,140,90,0.55)"></div>Middle Yard
+    </div>
+    <div class="legend-item" onclick="focusZone('backyard')">
+      <div class="legend-swatch" style="background:rgba(74,110,58,0.55)"></div>Back Yard
+    </div>
+    <div class="legend-item" onclick="focusZone('greenhouse')">
+      <div class="legend-swatch" style="background:rgba(94,48,80,0.55)"></div>Greenhouse
+    </div>
+    <div class="legend-item" onclick="focusZone('driveway')">
+      <div class="legend-swatch" style="background:rgba(68,56,30,0.45)"></div>Mariton
+    </div>
+  </div>
+
+  <!-- Marker popup -->
+  <div class="map-popup" id="marker-popup">
+    <button class="popup-close-x" onclick="closePopup()">×</button>
+    <div id="popup-content"></div>
+  </div>
+</div>
+
+<!-- Add Marker Modal -->
+<div class="modal-overlay" id="modal-add-marker">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3>Place Marker</h3>
+        <p>Tag a species at this location</p>
+      </div>
+      <button class="modal-x" onclick="cancelMarker()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label class="fl">Species</label>
+        <select id="marker-species">
+          <option value="">— Select a species —</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Or type a custom label (if not in inventory)</label>
+        <input type="text" id="marker-custom-label" placeholder="e.g. Unknown bamboo #3, Large oak stump…">
+      </div>
+      <div class="fg">
+        <label class="fl">Notes (optional)</label>
+        <textarea id="marker-notes" rows="2" placeholder="Condition, size, anything notable…" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="cancelMarker()">Cancel</button>
+      <button class="btn-primary" onclick="confirmMarker()">Place Marker</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+
+<script>
+// ── Config ──
+const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
+const MAPS_KEY = 'AIzaSyBPA2D2xD0VsgPYg8CHOXAoqNtojl4VL7M';
+const PROPERTY_CENTER = { lat: 40.5842, lng: -75.1913 }; // 180 Sunnyside Rd, Williams Twp PA
+const PROPERTY_ZOOM = 19;
+
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── Zone config ──
+const ZONES = {
+  japanese:    { label:'Japanese Garden', color:'#2a5e58', fillOpacity:0.18 },
+  road:        { label:'Road',            color:'#68605a', fillOpacity:0.20 },
+  frontyard:   { label:'Front Yard',      color:'#3d6628', fillOpacity:0.18 },
+  daffodilhill:{ label:'Daffodil Hill',   color:'#9a7c10', fillOpacity:0.22 },
+  midyard:     { label:'Middle Yard',     color:'#6b8c5a', fillOpacity:0.18 },
+  backyard:    { label:'Back Yard',       color:'#4a6e3a', fillOpacity:0.18 },
+  greenhouse:  { label:'Greenhouse',      color:'#5e3050', fillOpacity:0.25 },
+  driveway:    { label:'Mariton',         color:'#44381e', fillOpacity:0.14 },
+};
+
+// ── State ──
+let map, markers = [], zonePolygons = [], zoneLabels = [];
+let species = [], dbMarkers = [];
+let addMode = false, pendingLatLng = null;
+let zonesVisible = true, labelsVisible = true;
+let activePopupMarker = null;
+
+// ── Toast ──
+function toast(msg, type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ── Load data ──
+async function loadData(){
+  try {
+    const [spRes, mkRes] = await Promise.all([
+      sb.from('species').select('*').order('common'),
+      sb.from('map_markers').select('*')
+    ]);
+    if(spRes.error) throw spRes.error;
+    species = spRes.data || [];
+    dbMarkers = mkRes.data || [];
+    populateSpeciesSelect();
+    renderAllMarkers();
+  } catch(e){
+    // map_markers table may not exist yet — create it
+    if(e.message && e.message.includes('does not exist')){
+      toast('Creating map_markers table…');
+      await createMarkersTable();
+    } else {
+      toast('Could not load species data', 'err');
+      console.error(e);
+    }
+  }
+}
+
+async function createMarkersTable(){
+  // We can't create tables via anon key — guide user
+  toast('Run the SQL setup below first', 'err');
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(38,32,15,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  el.innerHTML = `<div style="background:#faf6ec;border-radius:4px;padding:24px;max-width:500px;font-family:'DM Sans',sans-serif">
+    <h3 style="font-family:'Zilla Slab',serif;font-size:20px;margin-bottom:12px;color:#2d4a1e">One-time setup required</h3>
+    <p style="font-size:13px;color:#44381e;margin-bottom:14px;line-height:1.6">Run this SQL in your Supabase editor to create the markers table, then reload the page:</p>
+    <pre style="background:#26200f;color:#daecd0;padding:14px;border-radius:4px;font-size:12px;overflow-x:auto;margin-bottom:16px">create table if not exists map_markers (
+  id bigint primary key,
+  lat double precision not null,
+  lng double precision not null,
+  species_id bigint references species(id) on delete set null,
+  custom_label text,
+  notes text,
+  created_at timestamptz default now()
+);</pre>
+    <button onclick="this.closest('div[style]').remove()" style="background:#3d6628;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Got it</button>
+  </div>`;
+  document.body.appendChild(el);
+}
+
+function populateSpeciesSelect(){
+  const sel = document.getElementById('marker-species');
+  sel.innerHTML = '<option value="">— Select a species —</option>' +
+    [...species]
+      .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific))
+      .map(s=>`<option value="${s.id}">${s.common||s.scientific}${s.common?' ('+s.scientific+')':''}</option>`)
+      .join('');
+}
+
+// ── Map init ──
+function initMap(){
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: PROPERTY_CENTER,
+    zoom: PROPERTY_ZOOM,
+    mapTypeId: 'satellite',
+    tilt: 0,
+    rotateControl: false,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+      mapTypeIds: ['satellite','hybrid','roadmap']
+    },
+    streetViewControl: false,
+    fullscreenControl: false,
+    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+    styles: [],
+  });
+
+  // Draw zone overlays — approximate polygons based on property description
+  drawZones();
+
+  // Click handler for placing markers
+  map.addListener('click', (e) => {
+    if(!addMode) return;
+    pendingLatLng = e.latLng;
+    showAddMarkerModal();
+  });
+
+  document.getElementById('map-loading').style.display='none';
+  loadData();
+}
+
+// ── Zone polygons (approximate, based on property description) ──
+// 180 Sunnyside Rd is ~1 acre on a hillside. North = Mariton sanctuary.
+// Tiers: Road (south) → Japanese Garden → Front Yard → Daffodil Hill →
+//        Middle Yard → Back Yard → Mariton (north)
+// Property is roughly 180ft wide × 250ft deep on a north-facing hillside
+function drawZones(){
+  // Base coordinates — property center approximation
+  // Each tier is ~35-40ft of elevation gain moving north
+  const C = PROPERTY_CENTER;
+  const d = 0.00028; // ~30 meters per degree lat at this location (approx)
+
+  // Zone polygon definitions — relative offsets from center
+  // These are approximate and the user will correct them via marker placement
+  const zoneDefs = [
+    {
+      id: 'road',
+      coords: [
+        {lat: C.lat - 3.0*d, lng: C.lng - 2.5*d},
+        {lat: C.lat - 3.0*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 2.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 2.2*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'japanese',
+      coords: [
+        {lat: C.lat - 2.2*d, lng: C.lng - 2.5*d},
+        {lat: C.lat - 2.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 1.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 1.2*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'frontyard',
+      coords: [
+        {lat: C.lat - 1.2*d, lng: C.lng - 2.5*d},
+        {lat: C.lat - 1.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 0.4*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 0.4*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'daffodilhill',
+      coords: [
+        {lat: C.lat - 0.4*d, lng: C.lng - 2.5*d},
+        {lat: C.lat - 0.4*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 0.3*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 0.3*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'midyard',
+      coords: [
+        {lat: C.lat + 0.3*d, lng: C.lng - 2.5*d},
+        {lat: C.lat + 0.3*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 1.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 1.2*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'backyard',
+      coords: [
+        {lat: C.lat + 1.2*d, lng: C.lng - 2.5*d},
+        {lat: C.lat + 1.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 2.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 2.2*d, lng: C.lng - 2.5*d},
+      ]
+    },
+    {
+      id: 'greenhouse',
+      coords: [
+        {lat: C.lat - 1.0*d, lng: C.lng + 1.2*d},
+        {lat: C.lat - 1.0*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 0.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat - 0.2*d, lng: C.lng + 1.2*d},
+      ]
+    },
+    {
+      id: 'driveway',
+      coords: [
+        {lat: C.lat + 2.2*d, lng: C.lng - 2.5*d},
+        {lat: C.lat + 2.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 3.2*d, lng: C.lng + 2.5*d},
+        {lat: C.lat + 3.2*d, lng: C.lng - 2.5*d},
+      ]
+    },
+  ];
+
+  zoneDefs.forEach(z => {
+    const zone = ZONES[z.id];
+    const poly = new google.maps.Polygon({
+      paths: z.coords,
+      strokeColor: zone.color,
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: zone.color,
+      fillOpacity: zone.fillOpacity,
+      map: map,
+      zIndex: 1,
+    });
+    poly.zoneId = z.id;
+    zonePolygons.push(poly);
+
+    // Zone label
+    const bounds = new google.maps.LatLngBounds();
+    z.coords.forEach(c => bounds.extend(c));
+    const center = bounds.getCenter();
+
+    const label = new google.maps.Marker({
+      position: center,
+      map: map,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 },
+      label: {
+        text: zone.label.toUpperCase(),
+        color: '#fff',
+        fontSize: '10px',
+        fontWeight: '700',
+        fontFamily: 'DM Sans, sans-serif',
+      },
+      zIndex: 2,
+    });
+    zoneLabels.push(label);
+  });
+}
+
+// ── Render markers from DB ──
+function renderAllMarkers(){
+  // Clear existing
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+
+  dbMarkers.forEach(mk => {
+    const sp = species.find(s => s.id === mk.species_id);
+    const label = sp ? (sp.common||sp.scientific) : (mk.custom_label||'Unknown');
+    addMapMarker(mk.id, mk.lat, mk.lng, sp, mk.custom_label, mk.notes);
+  });
+}
+
+function addMapMarker(id, lat, lng, sp, customLabel, notes){
+  const color = sp && sp.zone ? (ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
+  const label = sp ? (sp.common||sp.scientific) : (customLabel||'?');
+
+  // Custom SVG pin
+  const svgPin = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <circle cx="14" cy="14" r="6" fill="rgba(255,255,255,0.85)"/>
+    <text x="14" y="18" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" font-weight="700" fill="${color}">🌿</text>
+  </svg>`;
+
+  const marker = new google.maps.Marker({
+    position: { lat, lng },
+    map: map,
+    icon: {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgPin),
+      scaledSize: new google.maps.Size(28, 36),
+      anchor: new google.maps.Point(14, 36),
+    },
+    title: label,
+    zIndex: 10,
+  });
+
+  marker.markerId = id;
+  marker.speciesData = sp;
+  marker.customLabel = customLabel;
+  marker.markerNotes = notes;
+
+  marker.addListener('click', () => showPopup(marker));
+  markers.push(marker);
+}
+
+// ── Popup ──
+function showPopup(marker){
+  activePopupMarker = marker;
+  const sp = marker.speciesData;
+  const label = sp ? (sp.common||sp.scientific) : (marker.customLabel||'Unknown');
+  const sci = sp ? sp.scientific : '';
+
+  let photoHtml = '';
+  if(sp && sp.ref_photo){
+    photoHtml = `<img class="popup-photo" src="${sp.ref_photo}" alt="${label}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
+  } else {
+    photoHtml = `<div class="popup-photo-placeholder">🌿</div>`;
+  }
+
+  const zones = sp && sp.zones && sp.zones.length ? sp.zones :
+                sp && sp.zone ? [sp.zone] : [];
+  const zoneTags = zones.map(z => {
+    const zd = ZONES[z] || { label: z, color: '#68605a' };
+    return `<span class="popup-zone-tag" style="background:${zd.color}22;color:${zd.color};border:1px solid ${zd.color}44">${zd.label}</span>`;
+  }).join('');
+
+  const notes = marker.markerNotes ? `<div class="popup-notes">${marker.markerNotes}</div>` : '';
+
+  document.getElementById('popup-content').innerHTML = `
+    ${photoHtml}
+    <div class="popup-body">
+      <div class="popup-common">${label}</div>
+      ${sci ? `<div class="popup-sci">${sci}</div>` : ''}
+      ${zoneTags ? `<div class="popup-zones">${zoneTags}</div>` : ''}
+      ${notes}
+    </div>
+    <div class="popup-foot">
+      <button class="popup-btn popup-btn-close" onclick="closePopup()">Close</button>
+      <button class="popup-btn popup-btn-delete" onclick="deleteMarker(${marker.markerId})">Remove</button>
+    </div>
+  `;
+
+  // Position popup near marker
+  const popup = document.getElementById('marker-popup');
+  popup.classList.add('open');
+
+  // Use map projection to position popup
+  const projection = map.getProjection();
+  if(projection){
+    positionPopup(marker.getPosition());
+  }
+}
+
+function positionPopup(latLng){
+  const popup = document.getElementById('marker-popup');
+  const mapDiv = document.getElementById('map');
+  const mapRect = mapDiv.getBoundingClientRect();
+
+  const projection = map.getProjection();
+  const point = projection.fromLatLngToPoint(latLng);
+  const mapBounds = map.getBounds();
+  const ne = projection.fromLatLngToPoint(mapBounds.getNorthEast());
+  const sw = projection.fromLatLngToPoint(mapBounds.getSouthWest());
+  const scale = Math.pow(2, map.getZoom());
+
+  const x = (point.x - sw.x) * scale;
+  const y = (point.y - ne.y) * scale;
+
+  let left = x - 120;
+  let top = y - popup.offsetHeight - 50;
+
+  // Keep within bounds
+  left = Math.max(10, Math.min(left, mapRect.width - 260));
+  top = Math.max(10, top < 10 ? y + 20 : top);
+
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+
+function closePopup(){
+  document.getElementById('marker-popup').classList.remove('open');
+  activePopupMarker = null;
+}
+
+// ── Delete marker ──
+async function deleteMarker(id){
+  if(!confirm('Remove this marker from the map?')) return;
+  const { error } = await sb.from('map_markers').delete().eq('id', id);
+  if(error){ toast('Delete failed', 'err'); return; }
+  dbMarkers = dbMarkers.filter(m => m.id !== id);
+  renderAllMarkers();
+  closePopup();
+  toast('Marker removed');
+}
+
+// ── Add mode ──
+function toggleAddMode(){
+  addMode = !addMode;
+  const btn = document.getElementById('btn-add-mode');
+  const instructions = document.getElementById('map-instructions');
+  if(addMode){
+    btn.classList.add('active');
+    btn.textContent = '✕ Cancel Placement';
+    instructions.classList.add('visible');
+    map.getDiv().style.cursor = 'crosshair';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '＋ Place Marker';
+    instructions.classList.remove('visible');
+    map.getDiv().style.cursor = '';
+    pendingLatLng = null;
+  }
+}
+
+function showAddMarkerModal(){
+  document.getElementById('marker-species').value = '';
+  document.getElementById('marker-custom-label').value = '';
+  document.getElementById('marker-notes').value = '';
+  document.getElementById('modal-add-marker').classList.add('open');
+}
+
+function cancelMarker(){
+  document.getElementById('modal-add-marker').classList.remove('open');
+  pendingLatLng = null;
+  toggleAddMode(); // turn off add mode
+}
+
+async function confirmMarker(){
+  if(!pendingLatLng){ toast('No location selected', 'err'); return; }
+  const spId = document.getElementById('marker-species').value;
+  const customLabel = document.getElementById('marker-custom-label').value.trim();
+  const notes = document.getElementById('marker-notes').value.trim();
+
+  if(!spId && !customLabel){ toast('Choose a species or enter a label', 'err'); return; }
+
+  const row = {
+    id: Date.now(),
+    lat: pendingLatLng.lat(),
+    lng: pendingLatLng.lng(),
+    species_id: spId ? parseInt(spId) : null,
+    custom_label: customLabel || null,
+    notes: notes || null,
+  };
+
+  const { error } = await sb.from('map_markers').insert(row);
+  if(error){ toast('Save failed — run the SQL setup first', 'err'); console.error(error); return; }
+
+  dbMarkers.push(row);
+  const sp = species.find(s => s.id === row.species_id);
+  addMapMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
+
+  document.getElementById('modal-add-marker').classList.remove('open');
+  toggleAddMode();
+  toast(`Marker placed ✓`);
+}
+
+// ── Toggle zones / labels ──
+function toggleZones(){
+  zonesVisible = !zonesVisible;
+  zonePolygons.forEach(p => p.setMap(zonesVisible ? map : null));
+  const btn = document.getElementById('btn-toggle-zones');
+  btn.textContent = zonesVisible ? 'Zones On' : 'Zones Off';
+  btn.classList.toggle('active', !zonesVisible);
+}
+
+function toggleLabels(){
+  labelsVisible = !labelsVisible;
+  zoneLabels.forEach(l => l.setMap(labelsVisible ? map : null));
+  const btn = document.getElementById('btn-toggle-labels');
+  btn.textContent = labelsVisible ? 'Labels On' : 'Labels Off';
+  btn.classList.toggle('active', !labelsVisible);
+}
+
+function resetView(){
+  map.setCenter(PROPERTY_CENTER);
+  map.setZoom(PROPERTY_ZOOM);
+  map.setMapTypeId('satellite');
+}
+
+function focusZone(zoneId){
+  // Find the zone polygon and zoom to its bounds
+  const poly = zonePolygons.find(p => p.zoneId === zoneId);
+  if(!poly) return;
+  const bounds = new google.maps.LatLngBounds();
+  poly.getPath().forEach(c => bounds.extend(c));
+  map.fitBounds(bounds, 40);
+}
+
+// Close popup when clicking map
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('marker-popup');
+  if(popup.classList.contains('open') && !popup.contains(e.target)){
+    // only close if clicking the map itself
+    if(e.target.id === 'map' || e.target.closest('#map')){
+      closePopup();
+    }
+  }
+});
+</script>
+
+<!-- Load Google Maps -->
+<script>
+(function(){
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&callback=initMap&v=weekly`;
+  script.async = true;
+  script.defer = true;
+  script.onerror = () => {
+    document.getElementById('map-loading').innerHTML = `
+      <div style="text-align:center;padding:40px;font-family:'DM Sans',sans-serif">
+        <div style="font-size:36px;margin-bottom:16px">⚠️</div>
+        <h3 style="font-family:'Zilla Slab',serif;color:#a83c18;margin-bottom:8px">Maps failed to load</h3>
+        <p style="color:#68605a;font-size:14px">Check that your API key is correct and the Maps JavaScript API is enabled in Google Console.</p>
+      </div>`;
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+</body>
+</html>
