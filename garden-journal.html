@@ -2418,7 +2418,8 @@ function mapDrawZones(){
   // Barn label
   new google.maps.Marker({
     position:{lat:40.6056722,lng:-75.2059500},
-    sMap,
+    map:sMap,
+    clickable:false,
     icon:{path:google.maps.SymbolPath.CIRCLE,scale:0},
     label:{text:'HOUSE',color:'#ffffff',fontSize:'10px',fontWeight:'700',fontFamily:'DM Sans,sans-serif'},
     zIndex:5,
@@ -2473,6 +2474,8 @@ function mapDrawZones(){
         fontFamily: 'DM Sans, sans-serif',
       },
       zIndex: 2,
+      clickable: false,
+      optimized: false,
     });
     sMapZoneLabels.push(label);
   });
