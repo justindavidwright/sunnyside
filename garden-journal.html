@@ -2373,7 +2373,7 @@ function mapDrawZones(){
       {lat:40.6056722,lng:-75.2058711},
     ],
     strokeColor:'#ffffff',strokeOpacity:0.9,strokeWeight:2,
-    fillColor:'#ffffff',fillOpacity:0.08,map,zIndex:4,
+    fillColor:'#ffffff',fillOpacity:0.08,map:sMap,zIndex:4,
   });
   // Barn label
   new google.maps.Marker({
@@ -2490,7 +2490,7 @@ function mapShowPopup(marker){
   if(sp && sp.ref_photo){
     photoHtml = `<img class="map-popup-photo" src="${sp.ref_photo}" alt="${label}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
   } else {
-    photoHtml = `<div class="map-map-popup-placeholder">🌿</div>`;
+    photoHtml = `<div class="map-popup-placeholder">🌿</div>`;
   }
 
   const zones = sp && sp.zones && sp.zones.length ? sp.zones :
@@ -2529,7 +2529,7 @@ function mapShowPopup(marker){
 
 function mapPositionPopup(latLng){
   const popup = document.getElementById('map-marker-popup');
-  const mapDiv = document.getElementById('map');
+  const mapDiv = document.getElementById('sunnyside-map');
   const mapRect = mapDiv.getBoundingClientRect();
 
   const projection = sMap.getProjection();
@@ -2633,7 +2633,7 @@ async function mapConfirmMarker(){
 // ── Toggle zones / labels ──
 function mapToggleZones(){
   sMapZonesVisible = !sMapZonesVisible;
-  sMapZonePolygons.forEach(p => p.setMap(sMapZonesVisible ? map : null));
+  sMapZonePolygons.forEach(p => p.setMap(sMapZonesVisible ? sMap : null));
   const btn = document.getElementById('map-btn-zones');
   btn.textContent = sMapZonesVisible ? 'Zones On' : 'Zones Off';
   btn.classList.toggle('active', !sMapZonesVisible);
@@ -2641,7 +2641,7 @@ function mapToggleZones(){
 
 function mapToggleLabels(){
   sMapLabelsVisible = !sMapLabelsVisible;
-  sMapZoneLabels.forEach(l => l.setMap(sMapLabelsVisible ? map : null));
+  sMapZoneLabels.forEach(l => l.setMap(sMapLabelsVisible ? sMap : null));
   const btn = document.getElementById('map-btn-labels');
   btn.textContent = sMapLabelsVisible ? 'Labels On' : 'Labels Off';
   btn.classList.toggle('active', !sMapLabelsVisible);
@@ -2667,7 +2667,7 @@ document.addEventListener('click', (e) => {
   const popup = document.getElementById('map-marker-popup');
   if(popup.classList.contains('open') && !popup.contains(e.target)){
     // only close if clicking the map itself
-    if(e.target.id === 'map' || e.target.closest('#map')){
+    if(e.target.id === 'sunnyside-map' || e.target.closest('#sunnyside-map')){
       mapClosePopup();
     }
   }
