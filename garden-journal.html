@@ -2473,6 +2473,24 @@ function mapDrawZones(){
 }
 
 // ── Render markers from DB ──
+function getSpeciesMarkerCount(speciesId){
+  return sMapDbMarkers.filter(m => m.species_id === speciesId).length;
+}
+
+function mapHighlightSpecies(speciesId){
+  // Bounce all markers for this species
+  sMapMarkers.forEach(m => {
+    if(m.speciesData && m.speciesData.id === speciesId){
+      // Zoom to first match
+      sMap.panTo(m.getPosition());
+      sMap.setZoom(21);
+      // Animate by briefly changing icon
+      const origIcon = m.getIcon();
+      setTimeout(()=>{ try{ mapShowPopup(m); }catch(e){} }, 400);
+    }
+  });
+}
+
 function mapRenderAllMarkers(){
   // Clear existing
   sMapMarkers.forEach(m => m.setMap(null));
@@ -2534,11 +2552,11 @@ function mapShowPopup(marker){
   const zones = sp && sp.zones && sp.zones.length ? sp.zones :
                 sp && sp.zone ? [sp.zone] : [];
   const zoneTags = zones.map(z => {
-    const zd = MAP_MAP_ZONES[z] || { label: z, color: '#68605a' };
+    const zd = MAP_ZONES[z] || { label: z, color: '#68605a' };
     return `<span class="map-popup-zone-tag" style="background:${zd.color}22;color:${zd.color};border:1px solid ${zd.color}44">${zd.label}</span>`;
   }).join('');
 
-  const notes = marker.markerNotes ? `<div class="map-popup-notes">${marker.markerNotes}</div>` : '';
+  const notesHtml = marker.markerNotes ? `<div class="map-popup-notes">${marker.markerNotes}</div>` : '';
 
   document.getElementById('map-popup-content').innerHTML = `
     ${photoHtml}
@@ -2546,54 +2564,85 @@ function mapShowPopup(marker){
       <div class="map-popup-common">${label}</div>
       ${sci ? `<div class="map-popup-sci">${sci}</div>` : ''}
       ${zoneTags ? `<div class="map-popup-zones">${zoneTags}</div>` : ''}
-      ${notes}
+      ${notesHtml}
     </div>
     <div class="map-popup-foot">
       <button class="map-popup-btn map-popup-close-btn" onclick="mapClosePopup()">Close</button>
+      <button class="map-popup-btn" style="background:var(--forest-pale);color:var(--forest)" onclick="mapOpenEditMarker(${marker.markerId})">Edit</button>
       <button class="map-popup-btn map-popup-delete-btn" onclick="mapDeleteMarker(${marker.markerId})">Remove</button>
     </div>
   `;
 
-  // Position popup near marker
   const popup = document.getElementById('map-marker-popup');
   popup.classList.add('open');
-
-  // Use map projection to position popup
-  const projection = sMap.getProjection();
-  if(projection){
-    mapPositionPopup(marker.getPosition());
-  }
-}
-
-function mapPositionPopup(latLng){
-  const popup = document.getElementById('map-marker-popup');
-  const mapDiv = document.getElementById('sunnyside-map');
-  const mapRect = mapDiv.getBoundingClientRect();
-
-  const projection = sMap.getProjection();
-  const point = projection.fromLatLngToPoint(latLng);
-  const mapBounds = sMap.getBounds();
-  const ne = projection.fromLatLngToPoint(mapBounds.getNorthEast());
-  const sw = projection.fromLatLngToPoint(mapBounds.getSouthWest());
-  const scale = Math.pow(2, sMap.getZoom());
-
-  const x = (point.x - sw.x) * scale;
-  const y = (point.y - ne.y) * scale;
-
-  let left = x - 120;
-  let top = y - popup.offsetHeight - 50;
-
-  // Keep within bounds
-  left = Math.max(10, Math.min(left, mapRect.width - 260));
-  top = Math.max(10, top < 10 ? y + 20 : top);
-
-  popup.style.left = left + 'px';
-  popup.style.top = top + 'px';
+  // Position in top-right of map container so it's always visible
+  popup.style.right = '12px';
+  popup.style.top = '12px';
+  popup.style.left = 'auto';
 }
 
 function mapClosePopup(){
   document.getElementById('map-marker-popup').classList.remove('open');
   sMapActivePopupMarker = null;
+}
+
+// ── Edit marker ──
+function mapOpenEditMarker(id){
+  const mk = sMapDbMarkers.find(m => m.id === id);
+  if(!mk) return;
+  mapClosePopup();
+  // Reuse the add marker modal in edit mode
+  document.getElementById('map-marker-label').value = mk.custom_label || '';
+  document.getElementById('map-marker-notes').value = mk.notes || '';
+  document.getElementById('map-marker-species').value = mk.species_id || '';
+  document.getElementById('map-sbs-search').value = '';
+  document.getElementById('map-sbs-zone').value = '';
+  // Show selected species pill if any
+  if(mk.species_id){
+    const sp = species.find(s => s.id === mk.species_id);
+    if(sp){
+      const name = sp.common || sp.scientific;
+      document.getElementById('map-sbs-pills').innerHTML =
+        `<span class="sbs-pill">${name} <span onclick="mapClearSpecies()">×</span></span>`;
+    }
+  } else {
+    document.getElementById('map-sbs-pills').innerHTML = '';
+  }
+  mapRenderSbsList();
+  // Switch modal to edit mode
+  const head = document.querySelector('#modal-add-marker .modal-head div p');
+  if(head) head.textContent = 'Edit this marker';
+  const btn = document.querySelector('#modal-add-marker .btn-primary');
+  if(btn){ btn.textContent = 'Save Changes'; btn.onclick = () => mapSaveEditMarker(id); }
+  // Keep the pending lat/lng from the existing marker
+  sMapPendingLatLng = { lat: ()=>mk.lat, lng: ()=>mk.lng };
+  document.getElementById('modal-add-marker').classList.add('open');
+}
+
+async function mapSaveEditMarker(id){
+  const btn = document.querySelector('#modal-add-marker .btn-primary');
+  const spId = document.getElementById('map-marker-species').value;
+  const customLabel = document.getElementById('map-marker-label').value.trim();
+  const notes = document.getElementById('map-marker-notes').value.trim();
+  if(!spId && !customLabel){ alert('Please select a species or enter a custom label.'); return; }
+  if(btn){ btn.textContent = 'Saving…'; btn.disabled = true; }
+  const updates = {
+    species_id: spId ? parseInt(spId) : null,
+    custom_label: customLabel || null,
+    notes: notes || null,
+  };
+  const { error } = await sb.from('map_markers').update(updates).eq('id', id);
+  if(error){ if(btn){btn.textContent='Save Changes';btn.disabled=false;} alert('Save failed: '+error.message); return; }
+  // Update local state
+  const mk = sMapDbMarkers.find(m => m.id === id);
+  if(mk){ Object.assign(mk, updates); }
+  // Refresh markers
+  mapRenderAllMarkers();
+  document.getElementById('modal-add-marker').classList.remove('open');
+  // Reset button back to add mode
+  if(btn){ btn.textContent='Place Marker'; btn.onclick=mapConfirmMarker; btn.disabled=false; }
+  sMapPendingLatLng = null;
+  toast('Marker updated ✓');
 }
 
 // ── Delete marker ──
@@ -3249,6 +3298,7 @@ function renderSpecies(){
         ${obs?``:''}
         <div class="sp-card-actions">
           <button class="sp-btn-edit" onclick="openEditSpecies(${s.id})">Edit</button>
+          ${(()=>{ const cnt=getSpeciesMarkerCount(s.id); return cnt ? `<button class="sp-btn-edit" style="color:var(--forest-mid);border-color:var(--forest-pale)" onclick="switchTab('map',document.querySelectorAll('.tab-btn')[6]);setTimeout(()=>mapHighlightSpecies(${s.id}),800)">${cnt} on map ↗</button>` : ''; })()}
           <button class="sp-btn-delete" onclick="deleteSpecies(${s.id})">Delete</button>
         </div>
       </div>
