@@ -618,7 +618,6 @@
       </div>
       <button class="map-tbtn" id="map-btn-add" onclick="mapToggleAddMode()">＋ Place Marker</button>
       <button class="map-tbtn" id="map-btn-zones" onclick="mapToggleZones()">Zones On</button>
-      <button class="map-tbtn" id="map-btn-labels" onclick="mapToggleLabels()">Labels On</button>
       <button class="map-tbtn" onclick="mapResetView()">Reset View</button>
     </div>
     <div id="map-container" style="position:relative;flex:1;min-height:0;height:100%">
@@ -2226,7 +2225,7 @@ function initSunnysideMap(){
   sMap = new google.maps.Map(document.getElementById('sunnyside-map'), {
     center: PROPERTY_CENTER,
     zoom: PROPERTY_ZOOM,
-    mapTypeId: 'satellite',
+    mapTypeId: 'hybrid',
     tilt: 0,
     rotateControl: false,
     mapTypeControl: true,
@@ -2410,13 +2409,27 @@ function mapDrawZones(){
     poly.zoneId = z.id;
     sMapZonePolygons.push(poly);
 
-    // Hover: brighten fill and show name
+    // Hover: brighten fill (only when not in add mode)
     poly.addListener('mouseover', () => {
-      if(!sMapZonesVisible) return;
+      if(!sMapZonesVisible || sMapAddMode) return;
       poly.setOptions({ fillOpacity: zone.fillOpacity * 3.5, strokeWeight: 3 });
     });
     poly.addListener('mouseout', () => {
+      if(sMapAddMode) return;
       poly.setOptions({ fillOpacity: zone.fillOpacity, strokeWeight: 2 });
+    });
+    // In add mode: clicking a zone zooms to it and drops fill to show satellite clearly
+    poly.addListener('click', (e) => {
+      if(!sMapAddMode) return;
+      // Zoom to this zone's bounds
+      const bounds = new google.maps.LatLngBounds();
+      poly.getPath().forEach(c => bounds.extend(c));
+      sMap.fitBounds(bounds, 20);
+      // Drop all zone fills, keep borders so boundaries still visible
+      sMapZonePolygons.forEach(p => p.setOptions({ fillOpacity: 0 }));
+      // Use the click location as the pending marker position
+      sMapPendingLatLng = e.latLng;
+      mapShowAddMarkerModal();
     });
 
     // Zone label — use explicit label position if provided, else centroid
@@ -2596,6 +2609,11 @@ function mapToggleAddMode(){
     instructions.classList.remove('visible');
     sMap.getDiv().style.cursor = '';
     sMapPendingLatLng = null;
+    // Restore zone fill opacities
+    sMapZonePolygons.forEach(p => {
+      const z = MAP_ZONES[p.zoneId];
+      if(z) p.setOptions({ fillOpacity: z.fillOpacity });
+    });
   }
 }
 
@@ -2609,7 +2627,7 @@ function mapShowAddMarkerModal(){
 function mapCancelMarker(){
   document.getElementById('modal-add-marker').classList.remove('open');
   sMapPendingLatLng = null;
-  toggleAddMode(); // turn off add mode
+  mapToggleAddMode();
 }
 
 async function mapConfirmMarker(){
@@ -2637,25 +2655,24 @@ async function mapConfirmMarker(){
   mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
 
   document.getElementById('modal-add-marker').classList.remove('open');
-  toggleAddMode();
+  mapToggleAddMode();
   mapToast(`Marker placed ✓`);
 }
 
 // ── Toggle zones / labels ──
 function mapToggleZones(){
   sMapZonesVisible = !sMapZonesVisible;
+  sMapLabelsVisible = sMapZonesVisible;
   sMapZonePolygons.forEach(p => p.setMap(sMapZonesVisible ? sMap : null));
+  sMapZoneLabels.forEach(l => l.setMap(sMapLabelsVisible ? sMap : null));
   const btn = document.getElementById('map-btn-zones');
   btn.textContent = sMapZonesVisible ? 'Zones On' : 'Zones Off';
   btn.classList.toggle('active', !sMapZonesVisible);
 }
 
 function mapToggleLabels(){
-  sMapLabelsVisible = !sMapLabelsVisible;
-  sMapZoneLabels.forEach(l => l.setMap(sMapLabelsVisible ? sMap : null));
-  const btn = document.getElementById('map-btn-labels');
-  btn.textContent = sMapLabelsVisible ? 'Labels On' : 'Labels Off';
-  btn.classList.toggle('active', !sMapLabelsVisible);
+  // Now handled by mapToggleZones — kept for compatibility
+  mapToggleZones();
 }
 
 function mapResetView(){
@@ -2665,12 +2682,11 @@ function mapResetView(){
 }
 
 function mapFocusZone(zoneId){
-  // Find the zone polygon and zoom to its bounds
-  const poly = zonePolygons.find(p => p.zoneId === zoneId);
+  const poly = sMapZonePolygons.find(p => p.zoneId === zoneId);
   if(!poly) return;
   const bounds = new google.maps.LatLngBounds();
   poly.getPath().forEach(c => bounds.extend(c));
-  sMap.fitBounds(bounds, 40);
+  sMap.fitBounds(bounds, 20);
 }
 
 // Close popup when clicking map
