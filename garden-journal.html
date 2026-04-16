@@ -119,6 +119,37 @@
   .weed-action { background:var(--rust-pale); border-radius:var(--radius); padding:9px 11px; margin-bottom:8px; }
   .weed-action-label  { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--rust); margin-bottom:4px; }
   .weed-window { font-size:11px; font-weight:700; color:var(--forest-mid); letter-spacing:0.02em; }
+  /* ── Property Map ── */
+  #view-map { padding: 0 !important; }
+  #view-map.active { display: flex !important; flex-direction: column; }
+  .map-toolbar-inner { background: var(--forest); color: var(--parch-lt); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border-bottom: 2px solid var(--rust); flex-shrink: 0; }
+  .map-toolbar-title { font-family: 'Zilla Slab', serif; font-size: 16px; font-weight: 600; }
+  .map-toolbar-sub   { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage-lt); }
+  .map-tbtn { background: rgba(242,234,212,0.10); color: var(--parch-lt); border: 1.5px solid rgba(242,234,212,0.22); padding: 5px 12px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .map-tbtn:hover { background: rgba(242,234,212,0.18); }
+  .map-tbtn.active { background: var(--rust); border-color: var(--rust); }
+  #sunnyside-map { width: 100%; height: 100%; position: absolute; inset: 0; }
+  .map-zone-legend { position: absolute; bottom: 16px; left: 12px; background: rgba(250,246,236,0.95); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(38,32,15,0.22); padding: 10px 14px; z-index: 5; min-width: 150px; border-left: 3px solid var(--forest); }
+  .map-legend-title { font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px; }
+  .map-legend-item  { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; color: var(--bark-mid); cursor: pointer; }
+  .map-legend-swatch { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+  .map-popup-el { position: absolute; background: var(--parch-lt); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(38,32,15,0.22); z-index: 20; width: 240px; border-top: 4px solid var(--forest-mid); display: none; animation: mapPopIn 0.15s ease; }
+  .map-popup-el.open { display: block; }
+  @keyframes mapPopIn { from { opacity:0; transform:scale(0.92) translateY(4px); } to { opacity:1; transform:none; } }
+  .map-popup-photo { width: 100%; height: 110px; object-fit: cover; display: block; }
+  .map-popup-placeholder { width: 100%; height: 70px; background: var(--forest-pale); display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: 0.5; }
+  .map-popup-body { padding: 10px 12px; }
+  .map-popup-common { font-family: 'Zilla Slab', serif; font-size: 15px; font-weight: 600; color: var(--bark); margin-bottom: 2px; }
+  .map-popup-sci    { font-size: 11px; font-style: italic; color: var(--stone); margin-bottom: 6px; }
+  .map-popup-zones  { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .map-popup-zone-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; }
+  .map-popup-notes  { font-size: 12px; color: var(--bark-mid); line-height: 1.55; margin-bottom: 8px; font-weight: 300; }
+  .map-popup-foot   { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--parch-dk); }
+  .map-popup-btn    { flex: 1; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px; border-radius: var(--radius); border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .map-popup-close-btn  { background: var(--stone-pale); color: var(--stone); }
+  .map-popup-delete-btn { background: var(--rust-pale); color: var(--rust); }
+  .map-instructions-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(45,74,30,0.92); color: var(--parch-lt); font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 20px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.3s; white-space: nowrap; }
+  .map-instructions-bar.visible { opacity: 1; }
   .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 26px; }
   .stat-card { background: var(--forest); color: var(--parch-lt); border-radius: var(--radius); padding: 14px 16px; position: relative; overflow: hidden; }
   .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--sage-lt); }
@@ -442,6 +473,7 @@
       <button class="tab-btn"        onclick="switchTab('maintenance',this)">Maintenance Log</button>
       <button class="tab-btn"        onclick="switchTab('calendar',this)">Care Calendar</button>
       <button class="tab-btn"        onclick="switchTab('weeds',this)">Weed Guide</button>
+      <button class="tab-btn"        onclick="switchTab('map',this)">Property Map</button>
       <button class="tab-btn"        onclick="switchTab('mystery',this)">Mystery Log</button>
     </div>
   </div>
@@ -576,6 +608,40 @@
     </div>
     <div id="maintenance-wrap"></div>
   </div>
+
+  <div class="view" id="view-map" style="padding:0;margin:-28px -16px -80px;display:none;flex-direction:column;height:calc(100vh - 90px)">
+    <div class="map-toolbar-inner">
+      <div>
+        <div class="map-toolbar-title">Sunnyside</div>
+        <div class="map-toolbar-sub">Property Map · Riegelsville PA</div>
+      </div>
+      <button class="map-tbtn" id="map-btn-add" onclick="mapToggleAddMode()">＋ Place Marker</button>
+      <button class="map-tbtn" id="map-btn-zones" onclick="mapToggleZones()">Zones On</button>
+      <button class="map-tbtn" id="map-btn-labels" onclick="mapToggleLabels()">Labels On</button>
+      <button class="map-tbtn" onclick="mapResetView()">Reset View</button>
+    </div>
+    <div style="position:relative;flex:1;min-height:0">
+      <div id="sunnyside-map"></div>
+      <div class="map-instructions-bar" id="map-instructions">Click anywhere on your property to place a species marker</div>
+      <div class="map-zone-legend" id="map-zone-legend">
+        <div class="map-legend-title">Zones</div>
+        <div class="map-legend-item" onclick="mapFocusZone('japanese')"><div class="map-legend-swatch" style="background:#00e5cc"></div>Japanese Garden</div>
+        <div class="map-legend-item" onclick="mapFocusZone('road')"><div class="map-legend-swatch" style="background:#a0a0b0"></div>Road</div>
+        <div class="map-legend-item" onclick="mapFocusZone('frontyard')"><div class="map-legend-swatch" style="background:#44dd44"></div>Front Yard</div>
+        <div class="map-legend-item" onclick="mapFocusZone('daffodilhill')"><div class="map-legend-swatch" style="background:#ffe033"></div>Daffodil Hill</div>
+        <div class="map-legend-item" onclick="mapFocusZone('midyard')"><div class="map-legend-swatch" style="background:#e07830"></div>Middle Yard</div>
+        <div class="map-legend-item" onclick="mapFocusZone('backyard')"><div class="map-legend-swatch" style="background:#4488ff"></div>Back Yard</div>
+        <div class="map-legend-item" onclick="mapFocusZone('greenhouse')"><div class="map-legend-swatch" style="background:#dd55ff"></div>Greenhouse</div>
+        <div class="map-legend-item" onclick="mapFocusZone('driveway')"><div class="map-legend-swatch" style="background:#cc8833"></div>Mariton</div>
+      </div>
+      <div class="map-popup-el" id="map-marker-popup">
+        <button style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--parch-lt);font-size:18px;cursor:pointer;z-index:1;padding:2px 4px" onclick="mapClosePopup()">×</button>
+        <div id="map-popup-content"></div>
+      </div>
+    </div>
+  </div>
+
+
 </main>
 
 <!-- ENTRY MODAL -->
@@ -943,6 +1009,32 @@
   </div>
 </div>
 
+
+<!-- ADD MARKER MODAL -->
+<div class="modal-overlay" id="modal-add-marker">
+  <div class="modal">
+    <div class="modal-head" style="background:var(--forest)">
+      <div><h2>Place Marker</h2><p style="font-size:11px;color:var(--sage-lt);margin-top:2px">Tag a species at this location</p></div>
+      <button class="modal-x" onclick="mapCancelMarker()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label class="fl">Species</label>
+        <select id="map-marker-species"><option value="">— Select a species —</option></select>
+      </div>
+      <div class="fg"><label class="fl">Or custom label</label>
+        <input type="text" id="map-marker-label" placeholder="e.g. Unknown bamboo #3, Large oak…">
+      </div>
+      <div class="fg"><label class="fl">Notes</label>
+        <textarea id="map-marker-notes" rows="2" placeholder="Condition, size, anything notable…" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="mapCancelMarker()">Cancel</button>
+      <button class="btn-primary" onclick="mapConfirmMarker()">Place Marker</button>
+    </div>
+  </div>
+</div>
+
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
@@ -951,6 +1043,7 @@
 
 <script>
 // ── Supabase init ──
+const MAPS_KEY = 'AIzaSyBPA2D2xD0VsgPYg8CHOXAoqNtojl4VL7M';
 const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -1214,6 +1307,7 @@ function switchTab(id,btn){
   if(id==='maintenance')renderMaintenance();
   if(id==='calendar')renderCalendar();
   if(id==='weeds')renderWeeds();
+  if(id==='map')initMapTab();
 }
 
 // ── Modals ──
@@ -2023,6 +2117,557 @@ async function quickSolveMystery(id){
 
 
 let tasks = [];
+
+
+// ── Config ──
+// (duplicate removed)
+
+
+
+// ── State ──
+let sMap, sMapMarkers = [], sMapZonePolygons = [], sMapZoneLabels = [];
+let sMapSpecies = [], sMapDbMarkers = [];
+let sMapAddMode = false, sMapPendingLatLng = null;
+let sMapZonesVisible = true, sMapLabelsVisible = true;
+let sMapActivePopupMarker = null;
+
+// ── Toast ──
+function mapToast(msg, type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ── Load data ──
+async function mapLoadData(){
+  try {
+    const [spRes, mkRes] = await Promise.all([
+      sb.from('species').select('*').order('common'),
+      sb.from('map_markers').select('*')
+    ]);
+    if(spRes.error) throw spRes.error;
+    sMapSpecies = (spRes.data || []).map(r=>({...r,id:r.id,scientific:r.scientific,common:r.common,zone:r.zone,zones:r.zones||[],ref_photo:r.ref_photo,ref_credit:r.ref_credit}));
+    sMapDbMarkers = mkRes.data || [];
+    mapPopulateSpeciesSelect();
+    mapRenderAllMarkers();
+  } catch(e){
+    // map_markers table may not exist yet — create it
+    if(e.message && e.message.includes('does not exist')){
+      mapToast('Creating map_markers table…');
+      await mapCreateMarkersTable();
+    } else {
+      mapToast('Could not load species data', 'err');
+      console.error(e);
+    }
+  }
+}
+
+async function mapCreateMarkersTable(){
+  // We can't create tables via anon key — guide user
+  mapToast('Run the SQL setup below first', 'err');
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(38,32,15,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  el.innerHTML = `<div style="background:#faf6ec;border-radius:4px;padding:24px;max-width:500px;font-family:'DM Sans',sans-serif">
+    <h3 style="font-family:'Zilla Slab',serif;font-size:20px;margin-bottom:12px;color:#2d4a1e">One-time setup required</h3>
+    <p style="font-size:13px;color:#44381e;margin-bottom:14px;line-height:1.6">Run this SQL in your Supabase editor to create the markers table, then reload the page:</p>
+    <pre style="background:#26200f;color:#daecd0;padding:14px;border-radius:4px;font-size:12px;overflow-x:auto;margin-bottom:16px">create table if not exists map_markers (
+  id bigint primary key,
+  lat double precision not null,
+  lng double precision not null,
+  species_id bigint references species(id) on delete set null,
+  custom_label text,
+  notes text,
+  created_at timestamptz default now()
+);</pre>
+    <button onclick="this.closest('div[style]').remove()" style="background:#3d6628;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Got it</button>
+  </div>`;
+  document.body.appendChild(el);
+}
+
+function mapPopulateSpeciesSelect(){
+  const sel = document.getElementById('map-marker-species');
+  sel.innerHTML = '<option value="">— Select a species —</option>' +
+    [...species]
+      .sort((a,b)=>(a.common||a.scientific).localeCompare(b.common||b.scientific))
+      .map(s=>`<option value="${s.id}">${s.common||s.scientific}${s.common?' ('+s.scientific+')':''}</option>`)
+      .join('');
+}
+
+// ── Map init ──
+function initSunnysideMap(){
+  sMap = new google.maps.Map(document.getElementById('sunnyside-map'), {
+    center: PROPERTY_CENTER,
+    zoom: PROPERTY_ZOOM,
+    mapTypeId: 'satellite',
+    tilt: 0,
+    rotateControl: false,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+      mapTypeIds: ['satellite','hybrid','roadmap']
+    },
+    streetViewControl: false,
+    fullscreenControl: false,
+    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
+    styles: [],
+  });
+
+  // Draw zone overlays — approximate polygons based on property description
+  mapDrawZones();
+
+  // Click handler for placing markers
+  sMap.addListener('click', (e) => {
+    if(!sMapAddMode) return;
+    sMapPendingLatLng = e.latLng;
+    mapShowAddMarkerModal();
+  });
+
+  document.getElementById('map-loading-inner').style.display='none';
+  mapLoadData();
+}
+
+// ── Zone polygons — clean topology from KMZ v2 ──
+function mapDrawZones(){
+  const zoneDefs = [
+    { id:'road', label_lat:40.6055200, label_lng:-75.2059200, coords:[
+      {lat:40.6054947,lng:-75.2062217},
+      {lat:40.6054278,lng:-75.2061944},
+      {lat:40.6055744,lng:-75.2056965},
+      {lat:40.6057693,lng:-75.2058449},
+      {lat:40.6057419,lng:-75.2059139},
+      {lat:40.6055968,lng:-75.2058226},
+    ]},
+    { id:'japanese', label_lat:40.60560, label_lng:-75.20610, coords:[
+      {lat:40.6056722,lng:-75.2058711},
+      {lat:40.6056253,lng:-75.2059951},
+      {lat:40.6056966,lng:-75.2060354},
+      // shared with barn/frontyard NE — averaged
+      {lat:40.6057211,lng:-75.2061265},
+      // shared with greenhouse/midyard
+      {lat:40.6056911,lng:-75.2062513},
+      {lat:40.6056759,lng:-75.2063089},
+      {lat:40.605581,lng:-75.2062657},
+      {lat:40.6054947,lng:-75.2062217},
+      {lat:40.6055968,lng:-75.2058226},
+    ]},
+    { id:'greenhouse', label_lat:40.6057761, label_lng:-75.2062279, coords:[
+      {lat:40.6058266,lng:-75.2063277},
+      // shared with japanese/midyard
+      {lat:40.6056911,lng:-75.2062513},
+      // shared with frontyard bottom
+      {lat:40.6057211,lng:-75.2061265},
+      // shared with frontyard/midyard top
+      {lat:40.6058585,lng:-75.2061999},
+    ]},
+    { id:'frontyard', label_lat:40.60582, label_lng:-75.20600, coords:[
+      // top-right shared with greenhouse
+      {lat:40.6058585,lng:-75.2061999},
+      // shared with japanese/barn
+      {lat:40.6057211,lng:-75.2061265},
+      {lat:40.6056966,lng:-75.2060354},
+      // shared with road
+      {lat:40.6057693,lng:-75.2058449},
+      // bottom (shared with road bottom edge)
+      {lat:40.6059297,lng:-75.2059401},
+      // shared with midyard bottom
+      {lat:40.6058925,lng:-75.2060782},
+      {lat:40.6058645,lng:-75.2060795},
+      // shared with midyard — fill the gap triangle by going straight here
+      {lat:40.6058492,lng:-75.206096},
+      // gap fill — skip the notch, go directly to daffodil hill bottom
+      {lat:40.605809,lng:-75.2060433},
+      {lat:40.6058197,lng:-75.2061111},
+      // shared with daffodil hill top
+      {lat:40.6058503,lng:-75.2061117},
+      // shared with midyard left edge
+      {lat:40.6058505,lng:-75.2061614},
+      // shared with greenhouse bottom-left
+      {lat:40.6058585,lng:-75.2061999},
+    ]},
+    { id:'daffodilhill', label_lat:40.60583, label_lng:-75.20607, coords:[
+      {lat:40.6058503,lng:-75.2061117},
+      {lat:40.6058197,lng:-75.2061111},
+      {lat:40.605809,lng:-75.2060433},
+      // gap fill — connect back through the filled triangle
+      {lat:40.6058492,lng:-75.206096},
+      {lat:40.6058505,lng:-75.2061614},
+      {lat:40.6058503,lng:-75.2061117},
+    ]},
+    { id:'midyard', label_lat:40.60596, label_lng:-75.20618, coords:[
+      // shared with japanese/greenhouse
+      {lat:40.6056911,lng:-75.2062513},
+      {lat:40.6056759,lng:-75.2063089},
+      {lat:40.6059034,lng:-75.206445},
+      {lat:40.6059961,lng:-75.206154},
+      {lat:40.6060758,lng:-75.206182},
+      {lat:40.6060618,lng:-75.2061768},
+      {lat:40.6061116,lng:-75.2060675},
+      {lat:40.6059304,lng:-75.2059441},
+      {lat:40.6058925,lng:-75.2060782},
+      // no wait — midyard bottom shared with frontyard
+      {lat:40.6058645,lng:-75.2060795},
+      {lat:40.6058492,lng:-75.206096},
+      {lat:40.6058505,lng:-75.2061614},
+      // shared with greenhouse
+      {lat:40.6058585,lng:-75.2061999},
+      {lat:40.6058266,lng:-75.2063277},
+    ]},
+    { id:'backyard', label_lat:40.60630, label_lng:-75.20645, coords:[
+      {lat:40.6064841,lng:-75.2063469},
+      {lat:40.606311,lng:-75.2067318},
+      {lat:40.6059034,lng:-75.206445},
+      {lat:40.6059961,lng:-75.206154},
+      {lat:40.6060758,lng:-75.206182},
+      {lat:40.6060618,lng:-75.2061768},
+      {lat:40.6061116,lng:-75.2060675},
+    ]},
+    { id:'driveway', label_lat:40.6090, label_lng:-75.2055, coords:[
+      {lat:40.6064633,lng:-75.2044004},
+      {lat:40.6078235,lng:-75.2021688},
+      {lat:40.6081493,lng:-75.2024692},
+      {lat:40.6086055,lng:-75.2014607},
+      {lat:40.6082715,lng:-75.2011066},
+      {lat:40.608915,lng:-75.1995295},
+      {lat:40.6095258,lng:-75.1994544},
+      {lat:40.6108127,lng:-75.1997655},
+      {lat:40.6126697,lng:-75.2015358},
+      {lat:40.6165301,lng:-75.2034455},
+      {lat:40.6159682,lng:-75.2079516},
+      {lat:40.6153655,lng:-75.208928},
+      {lat:40.6126371,lng:-75.2115887},
+      {lat:40.6110489,lng:-75.2100438},
+      {lat:40.6112281,lng:-75.2096575},
+      {lat:40.6107394,lng:-75.2094215},
+      {lat:40.6102019,lng:-75.2106768},
+      {lat:40.6059257,lng:-75.2077049},
+      {lat:40.6073511,lng:-75.2050656},
+    ]},
+  ];
+
+  // Barn outline as landmark reference
+  new google.maps.Polygon({
+    paths:[
+      {lat:40.6057419,lng:-75.2059139},
+      {lat:40.6056966,lng:-75.2060354},
+      {lat:40.6056253,lng:-75.2059951},
+      {lat:40.6056722,lng:-75.2058711},
+    ],
+    strokeColor:'#ffffff',strokeOpacity:0.9,strokeWeight:2,
+    fillColor:'#ffffff',fillOpacity:0.08,map,zIndex:4,
+  });
+  // Barn label
+  new google.maps.Marker({
+    position:{lat:40.6056722,lng:-75.2059500},
+    sMap,
+    icon:{path:google.maps.SymbolPath.CIRCLE,scale:0},
+    label:{text:'HOUSE',color:'#ffffff',fontSize:'10px',fontWeight:'700',fontFamily:'DM Sans,sans-serif'},
+    zIndex:5,
+  });
+
+    zoneDefs.forEach(z => {
+    const zone = ZONES[z.id];
+    const poly = new google.maps.Polygon({
+      paths: z.coords,
+      strokeColor: zone.color,
+      strokeOpacity: 0.9,
+      strokeWeight: 2,
+      fillColor: zone.color,
+      fillOpacity: zone.fillOpacity,
+      map: sMap,
+      zIndex: 1,
+    });
+    poly.zoneId = z.id;
+    sMapZonePolygons.push(poly);
+
+    // Hover: brighten fill and show name
+    poly.addListener('mouseover', () => {
+      if(!sMapZonesVisible) return;
+      poly.setOptions({ fillOpacity: zone.fillOpacity * 3.5, strokeWeight: 3 });
+    });
+    poly.addListener('mouseout', () => {
+      poly.setOptions({ fillOpacity: zone.fillOpacity, strokeWeight: 2 });
+    });
+
+    // Zone label — use explicit label position if provided, else centroid
+    const labelPos = (z.label_lat && z.label_lng)
+      ? { lat: z.label_lat, lng: z.label_lng }
+      : (() => {
+          const bounds = new google.maps.LatLngBounds();
+          z.coords.forEach(c => bounds.extend(c));
+          return bounds.getCenter();
+        })();
+
+    const label = new google.maps.Marker({
+      position: labelPos,
+      map: sMap,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0 },
+      label: {
+        text: zone.label.toUpperCase(),
+        color: '#ffffff',
+        fontSize: '10px',
+        fontWeight: '700',
+        fontFamily: 'DM Sans, sans-serif',
+      },
+      zIndex: 2,
+    });
+    sMapZoneLabels.push(label);
+  });
+}
+
+// ── Render markers from DB ──
+function mapRenderAllMarkers(){
+  // Clear existing
+  sMapMarkers.forEach(m => m.setMap(null));
+  sMapMarkers = [];
+
+  sMapDbMarkers.forEach(mk => {
+    const sp = species.find(s => s.id === mk.species_id);
+    const label = sp ? (sp.common||sp.scientific) : (mk.custom_label||'Unknown');
+    mapAddMarker(mk.id, mk.lat, mk.lng, sp, mk.custom_label, mk.notes);
+  });
+}
+
+function mapAddMarker(id, lat, lng, sp, customLabel, notes){
+  const color = sp && sp.zone ? (ZONES[sp.zone]?.color || '#3d6628') : '#68605a';
+  const label = sp ? (sp.common||sp.scientific) : (customLabel||'?');
+
+  // Custom SVG pin
+  const svgPin = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <circle cx="14" cy="14" r="6" fill="rgba(255,255,255,0.85)"/>
+    <text x="14" y="18" text-anchor="middle" font-size="9" font-family="DM Sans,sans-serif" font-weight="700" fill="${color}">🌿</text>
+  </svg>`;
+
+  const marker = new google.maps.Marker({
+    position: { lat, lng },
+    map: sMap,
+    icon: {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgPin),
+      scaledSize: new google.maps.Size(28, 36),
+      anchor: new google.maps.Point(14, 36),
+    },
+    title: label,
+    zIndex: 10,
+  });
+
+  marker.markerId = id;
+  marker.speciesData = sp;
+  marker.customLabel = customLabel;
+  marker.markerNotes = notes;
+
+  marker.addListener('click', () => mapShowPopup(marker));
+  sMapMarkers.push(marker);
+}
+
+// ── Popup ──
+function mapShowPopup(marker){
+  sMapActivePopupMarker = marker;
+  const sp = marker.speciesData;
+  const label = sp ? (sp.common||sp.scientific) : (marker.customLabel||'Unknown');
+  const sci = sp ? sp.scientific : '';
+
+  let photoHtml = '';
+  if(sp && sp.ref_photo){
+    photoHtml = `<img class="map-popup-photo" src="${sp.ref_photo}" alt="${label}" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
+  } else {
+    photoHtml = `<div class="map-map-popup-placeholder">🌿</div>`;
+  }
+
+  const zones = sp && sp.zones && sp.zones.length ? sp.zones :
+                sp && sp.zone ? [sp.zone] : [];
+  const zoneTags = zones.map(z => {
+    const zd = ZONES[z] || { label: z, color: '#68605a' };
+    return `<span class="map-popup-zone-tag" style="background:${zd.color}22;color:${zd.color};border:1px solid ${zd.color}44">${zd.label}</span>`;
+  }).join('');
+
+  const notes = marker.markerNotes ? `<div class="map-popup-notes">${marker.markerNotes}</div>` : '';
+
+  document.getElementById('map-popup-content').innerHTML = `
+    ${photoHtml}
+    <div class="map-popup-body">
+      <div class="map-popup-common">${label}</div>
+      ${sci ? `<div class="map-popup-sci">${sci}</div>` : ''}
+      ${zoneTags ? `<div class="map-popup-zones">${zoneTags}</div>` : ''}
+      ${notes}
+    </div>
+    <div class="map-popup-foot">
+      <button class="map-popup-btn map-popup-close-btn" onclick="mapClosePopup()">Close</button>
+      <button class="map-popup-btn map-popup-delete-btn" onclick="mapDeleteMarker(${marker.markerId})">Remove</button>
+    </div>
+  `;
+
+  // Position popup near marker
+  const popup = document.getElementById('map-marker-popup');
+  popup.classList.add('open');
+
+  // Use map projection to position popup
+  const projection = sMap.getProjection();
+  if(projection){
+    mapPositionPopup(marker.getPosition());
+  }
+}
+
+function mapPositionPopup(latLng){
+  const popup = document.getElementById('map-marker-popup');
+  const mapDiv = document.getElementById('map');
+  const mapRect = mapDiv.getBoundingClientRect();
+
+  const projection = sMap.getProjection();
+  const point = projection.fromLatLngToPoint(latLng);
+  const mapBounds = sMap.getBounds();
+  const ne = projection.fromLatLngToPoint(mapBounds.getNorthEast());
+  const sw = projection.fromLatLngToPoint(mapBounds.getSouthWest());
+  const scale = Math.pow(2, sMap.getZoom());
+
+  const x = (point.x - sw.x) * scale;
+  const y = (point.y - ne.y) * scale;
+
+  let left = x - 120;
+  let top = y - popup.offsetHeight - 50;
+
+  // Keep within bounds
+  left = Math.max(10, Math.min(left, mapRect.width - 260));
+  top = Math.max(10, top < 10 ? y + 20 : top);
+
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+
+function mapClosePopup(){
+  document.getElementById('map-marker-popup').classList.remove('open');
+  sMapActivePopupMarker = null;
+}
+
+// ── Delete marker ──
+async function mapDeleteMarker(id){
+  if(!confirm('Remove this marker from the map?')) return;
+  const { error } = await sb.from('map_markers').delete().eq('id', id);
+  if(error){ mapToast('Delete failed', 'err'); return; }
+  sMapDbMarkers = sMapDbMarkers.filter(m => m.id !== id);
+  mapRenderAllMarkers();
+  mapClosePopup();
+  mapToast('Marker removed');
+}
+
+// ── Add mode ──
+function mapToggleAddMode(){
+  sMapAddMode = !sMapAddMode;
+  const btn = document.getElementById('map-btn-add');
+  const instructions = document.getElementById('map-instructions');
+  if(sMapAddMode){
+    btn.classList.add('active');
+    btn.textContent = '✕ Cancel Placement';
+    instructions.classList.add('visible');
+    sMap.getDiv().style.cursor = 'crosshair';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '＋ Place Marker';
+    instructions.classList.remove('visible');
+    sMap.getDiv().style.cursor = '';
+    sMapPendingLatLng = null;
+  }
+}
+
+function mapShowAddMarkerModal(){
+  document.getElementById('map-marker-species').value = '';
+  document.getElementById('map-marker-label').value = '';
+  document.getElementById('map-marker-notes').value = '';
+  document.getElementById('modal-add-marker').classList.add('open');
+}
+
+function mapCancelMarker(){
+  document.getElementById('modal-add-marker').classList.remove('open');
+  sMapPendingLatLng = null;
+  toggleAddMode(); // turn off add mode
+}
+
+async function mapConfirmMarker(){
+  if(!sMapPendingLatLng){ mapToast('No location selected', 'err'); return; }
+  const spId = document.getElementById('map-marker-species').value;
+  const customLabel = document.getElementById('map-marker-label').value.trim();
+  const notes = document.getElementById('map-marker-notes').value.trim();
+
+  if(!spId && !customLabel){ mapToast('Choose a species or enter a label', 'err'); return; }
+
+  const row = {
+    id: Date.now(),
+    lat: sMapPendingLatLng.lat(),
+    lng: sMapPendingLatLng.lng(),
+    species_id: spId ? parseInt(spId) : null,
+    custom_label: customLabel || null,
+    notes: notes || null,
+  };
+
+  const { error } = await sb.from('map_markers').insert(row);
+  if(error){ mapToast('Save failed — run the SQL setup first', 'err'); console.error(error); return; }
+
+  dbMarkers.push(row);
+  const sp = species.find(s => s.id === row.species_id);
+  mapAddMarker(row.id, row.lat, row.lng, sp, row.custom_label, row.notes);
+
+  document.getElementById('modal-add-marker').classList.remove('open');
+  toggleAddMode();
+  mapToast(`Marker placed ✓`);
+}
+
+// ── Toggle zones / labels ──
+function mapToggleZones(){
+  sMapZonesVisible = !sMapZonesVisible;
+  sMapZonePolygons.forEach(p => p.setMap(sMapZonesVisible ? map : null));
+  const btn = document.getElementById('map-btn-zones');
+  btn.textContent = sMapZonesVisible ? 'Zones On' : 'Zones Off';
+  btn.classList.toggle('active', !sMapZonesVisible);
+}
+
+function mapToggleLabels(){
+  sMapLabelsVisible = !sMapLabelsVisible;
+  sMapZoneLabels.forEach(l => l.setMap(sMapLabelsVisible ? map : null));
+  const btn = document.getElementById('map-btn-labels');
+  btn.textContent = sMapLabelsVisible ? 'Labels On' : 'Labels Off';
+  btn.classList.toggle('active', !sMapLabelsVisible);
+}
+
+function mapResetView(){
+  sMap.setCenter(PROPERTY_CENTER);
+  sMap.setZoom(PROPERTY_ZOOM);
+  sMap.setMapTypeId('satellite');
+}
+
+function mapFocusZone(zoneId){
+  // Find the zone polygon and zoom to its bounds
+  const poly = zonePolygons.find(p => p.zoneId === zoneId);
+  if(!poly) return;
+  const bounds = new google.maps.LatLngBounds();
+  poly.getPath().forEach(c => bounds.extend(c));
+  sMap.fitBounds(bounds, 40);
+}
+
+// Close popup when clicking map
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('map-marker-popup');
+  if(popup.classList.contains('open') && !popup.contains(e.target)){
+    // only close if clicking the map itself
+    if(e.target.id === 'map' || e.target.closest('#map')){
+      mapClosePopup();
+    }
+  }
+});
+
+
+// Called when map tab is activated
+let sMapInitialized = false;
+function initMapTab(){
+  if(sMapInitialized) return;
+  sMapInitialized = true;
+  // Load Google Maps script dynamically
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&callback=initSunnysideMap&v=weekly`;
+  script.async = true;
+  script.defer = true;
+  window.initSunnysideMap = initSunnysideMap;
+  document.head.appendChild(script);
+}
+
 
 // ── Weed Guide ──
 const WEEDS = [
