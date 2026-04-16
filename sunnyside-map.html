@@ -301,14 +301,14 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── Zone config ──
 const ZONES = {
-  japanese:    { label:'Japanese Garden', color:'#2a5e58', fillOpacity:0.35 },
-  road:        { label:'Road',            color:'#68605a', fillOpacity:0.40 },
-  frontyard:   { label:'Front Yard',      color:'#3d6628', fillOpacity:0.38 },
-  daffodilhill:{ label:'Daffodil Hill',   color:'#9a7c10', fillOpacity:0.45 },
-  midyard:     { label:'Middle Yard',     color:'#6b8c5a', fillOpacity:0.38 },
-  backyard:    { label:'Back Yard',       color:'#4a6e3a', fillOpacity:0.38 },
-  greenhouse:  { label:'Greenhouse',      color:'#5e3050', fillOpacity:0.50 },
-  driveway:    { label:'Mariton',         color:'#44381e', fillOpacity:0.22 },
+  japanese:    { label:'Japanese Garden', color:'#00e5cc', fillOpacity:0.38 },
+  road:        { label:'Road',            color:'#a0a0b0', fillOpacity:0.45 },
+  frontyard:   { label:'Front Yard',      color:'#44dd44', fillOpacity:0.38 },
+  daffodilhill:{ label:'Daffodil Hill',   color:'#ffe033', fillOpacity:0.50 },
+  midyard:     { label:'Middle Yard',     color:'#88cc55', fillOpacity:0.38 },
+  backyard:    { label:'Back Yard',       color:'#33bb55', fillOpacity:0.38 },
+  greenhouse:  { label:'Greenhouse',      color:'#dd55ff', fillOpacity:0.52 },
+  driveway:    { label:'Mariton',         color:'#cc8833', fillOpacity:0.28 },
 };
 
 // ── State ──
@@ -413,73 +413,92 @@ function initMap(){
   loadData();
 }
 
-// ── Zone polygons — clean shared topology from KMZ ──
+// ── Zone polygons — clean topology from KMZ v2 ──
 function drawZones(){
   const zoneDefs = [
-    { id:'road', label_lat:40.60548, label_lng:-75.20605, coords:[
-      // Extended west to match Middle Yard boundary
-      {lat:40.6055154,lng:-75.2061471},
-      {lat:40.6054461,lng:-75.2060975},
-      {lat:40.6054200,lng:-75.20645},
-      {lat:40.6056500,lng:-75.20645},
-      {lat:40.6057567,lng:-75.2058226},
-      {lat:40.6057261,lng:-75.205899},
+    { id:'road', label_lat:40.60548, label_lng:-75.20590, coords:[
+      {lat:40.6054947,lng:-75.2062217},
+      {lat:40.6054278,lng:-75.2061944},
+      {lat:40.6055744,lng:-75.2056965},
+      {lat:40.6057693,lng:-75.2058449},
+      {lat:40.6057419,lng:-75.2059139},
       {lat:40.6055968,lng:-75.2058226},
     ]},
-    { id:'japanese', label_lat:40.60561, label_lng:-75.20618, coords:[
-      // Extended west to match Middle Yard; shared vertices with frontyard/greenhouse
-      {lat:40.6056655,lng:-75.2058684},
-      {lat:40.6056207,lng:-75.2060011},
-      {lat:40.60568995,lng:-75.2060357},
+    { id:'japanese', label_lat:40.60560, label_lng:-75.20610, coords:[
+      {lat:40.6056722,lng:-75.2058711},
+      {lat:40.6056253,lng:-75.2059951},
+      {lat:40.6056966,lng:-75.2060354},
+      // shared with barn/frontyard NE — averaged
       {lat:40.6057211,lng:-75.2061265},
-      {lat:40.6056783,lng:-75.2062848},
-      {lat:40.6055031,lng:-75.2061902},
-      {lat:40.6054200,lng:-75.20645},
+      // shared with greenhouse/midyard
+      {lat:40.6056911,lng:-75.2062513},
+      {lat:40.6056759,lng:-75.2063089},
+      {lat:40.605581,lng:-75.2062657},
+      {lat:40.6054947,lng:-75.2062217},
       {lat:40.6055968,lng:-75.2058226},
     ]},
-    { id:'frontyard', label_lat:40.60580, label_lng:-75.20601, coords:[
-      // Clean shared vertices with greenhouse, japanese, midyard
-      {lat:40.6058515,lng:-75.2062016},
+    { id:'greenhouse', label_lat:40.60578, label_lng:-75.20628, coords:[
+      {lat:40.6058266,lng:-75.2063277},
+      // shared with japanese/midyard
+      {lat:40.6056911,lng:-75.2062513},
+      // shared with frontyard bottom
       {lat:40.6057211,lng:-75.2061265},
-      {lat:40.60568995,lng:-75.2060357},
-      {lat:40.605691,lng:-75.2060327},
-      {lat:40.6057617,lng:-75.2058241},
+      // shared with frontyard/midyard top
+      {lat:40.6058585,lng:-75.2061999},
+    ]},
+    { id:'frontyard', label_lat:40.60582, label_lng:-75.20600, coords:[
+      // top-right shared with greenhouse
+      {lat:40.6058585,lng:-75.2061999},
+      // shared with japanese/barn
+      {lat:40.6057211,lng:-75.2061265},
+      {lat:40.6056966,lng:-75.2060354},
+      // shared with road
+      {lat:40.6057693,lng:-75.2058449},
+      // bottom (shared with road bottom edge)
       {lat:40.6059297,lng:-75.2059401},
+      // shared with midyard bottom
       {lat:40.6058925,lng:-75.2060782},
       {lat:40.6058645,lng:-75.2060795},
-      {lat:40.6058462,lng:-75.2060997},
-      {lat:40.6058426,lng:-75.20604},
+      // shared with midyard — fill the gap triangle by going straight here
+      {lat:40.6058492,lng:-75.206096},
+      // gap fill — skip the notch, go directly to daffodil hill bottom
       {lat:40.605809,lng:-75.2060433},
       {lat:40.6058197,lng:-75.2061111},
-      {lat:40.605853,lng:-75.2061158},
-      {lat:40.6058495,lng:-75.2061594},
-      {lat:40.6058564,lng:-75.2061966},
-      {lat:40.6058515,lng:-75.2062016},
+      // shared with daffodil hill top
+      {lat:40.6058503,lng:-75.2061117},
+      // shared with midyard left edge
+      {lat:40.6058505,lng:-75.2061614},
+      // shared with greenhouse bottom-left
+      {lat:40.6058585,lng:-75.2061999},
     ]},
-    { id:'daffodilhill', label_lat:40.60583, label_lng:-75.20608, coords:[
-      {lat:40.605853,lng:-75.2061158},
+    { id:'daffodilhill', label_lat:40.60583, label_lng:-75.20607, coords:[
+      {lat:40.6058503,lng:-75.2061117},
       {lat:40.6058197,lng:-75.2061111},
       {lat:40.605809,lng:-75.2060433},
-      {lat:40.6058447,lng:-75.2060346},
-      {lat:40.605853,lng:-75.2061158},
+      // gap fill — connect back through the filled triangle
+      {lat:40.6058492,lng:-75.206096},
+      {lat:40.6058505,lng:-75.2061614},
+      {lat:40.6058503,lng:-75.2061117},
     ]},
-    { id:'midyard', label_lat:40.60594, label_lng:-75.20618, coords:[
-      {lat:40.6056932,lng:-75.2062559},
+    { id:'midyard', label_lat:40.60596, label_lng:-75.20618, coords:[
+      // shared with japanese/greenhouse
+      {lat:40.6056911,lng:-75.2062513},
       {lat:40.6056759,lng:-75.2063089},
       {lat:40.6059034,lng:-75.206445},
       {lat:40.6059961,lng:-75.206154},
       {lat:40.6060618,lng:-75.2061768},
       {lat:40.6061116,lng:-75.2060675},
       {lat:40.6059304,lng:-75.2059441},
-      {lat:40.6058948,lng:-75.2060836},
-      {lat:40.6058703,lng:-75.2060843},
-      {lat:40.605853,lng:-75.2061158},
-      {lat:40.6058495,lng:-75.2061594},
-      {lat:40.6058564,lng:-75.2061966},
-      {lat:40.6058612,lng:-75.2061916},
-      {lat:40.6058108,lng:-75.2063317},
+      {lat:40.6058925,lng:-75.2060782},
+      // no wait — midyard bottom shared with frontyard
+      {lat:40.6058645,lng:-75.2060795},
+      {lat:40.6058492,lng:-75.206096},
+      {lat:40.6058505,lng:-75.2061614},
+      // shared with greenhouse
+      {lat:40.6058585,lng:-75.2061999},
+      {lat:40.6058266,lng:-75.2063277},
     ]},
-    { id:'backyard', label_lat:40.60620, label_lng:-75.20630, coords:[
+    { id:'backyard', label_lat:40.60620, label_lng:-75.20628, coords:[
       {lat:40.6064841,lng:-75.2063469},
       {lat:40.606311,lng:-75.2067318},
       {lat:40.6059034,lng:-75.206445},
@@ -487,13 +506,7 @@ function drawZones(){
       {lat:40.6060758,lng:-75.206182},
       {lat:40.6061116,lng:-75.2060675},
     ]},
-    { id:'greenhouse', label_lat:40.60577, label_lng:-75.20629, coords:[
-      {lat:40.6058092,lng:-75.2063237},
-      {lat:40.6056911,lng:-75.2062513},
-      {lat:40.6057211,lng:-75.2061265},
-      {lat:40.6058564,lng:-75.2061966},
-    ]},
-    { id:'driveway', label_lat:40.6085, label_lng:-75.2055, coords:[
+    { id:'driveway', label_lat:40.6090, label_lng:-75.2055, coords:[
       {lat:40.6064633,lng:-75.2044004},
       {lat:40.6078235,lng:-75.2021688},
       {lat:40.6081493,lng:-75.2024692},
@@ -519,13 +532,13 @@ function drawZones(){
   // Barn outline as landmark reference
   new google.maps.Polygon({
     paths:[
-      {lat:40.6057363,lng:-75.2059079},
-      {lat:40.605691,lng:-75.2060327},
-      {lat:40.6056217,lng:-75.2059964},
-      {lat:40.605662,lng:-75.2058711},
+      {lat:40.6057419,lng:-75.2059139},
+      {lat:40.6056966,lng:-75.2060354},
+      {lat:40.6056253,lng:-75.2059951},
+      {lat:40.6056722,lng:-75.2058711},
     ],
-    strokeColor:'#ffffff',strokeOpacity:0.85,strokeWeight:2,
-    fillColor:'#ffffff',fillOpacity:0.05,map,zIndex:4,
+    strokeColor:'#ffffff',strokeOpacity:0.9,strokeWeight:2,
+    fillColor:'#ffffff',fillOpacity:0.08,map,zIndex:4,
   });
 
     zoneDefs.forEach(z => {
