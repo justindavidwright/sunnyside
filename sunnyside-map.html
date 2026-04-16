@@ -295,7 +295,7 @@ const SUPA_URL = 'https://egaiclldgiqfmztzqdih.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnYWljbGxkZ2lxZm16dHpxZGloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDg5MzMsImV4cCI6MjA5MDMyNDkzM30.mmle8P2xYaRs8lsAUOwE27kB57Um7DqZ1soFOMkFt9Y';
 const MAPS_KEY = 'AIzaSyBPA2D2xD0VsgPYg8CHOXAoqNtojl4VL7M';
 const PROPERTY_CENTER = { lat: 40.60569024329201, lng: -75.20595206314749 }; // 180 Sunnyside Rd, Williams Twp PA
-const PROPERTY_ZOOM = 19;
+const PROPERTY_ZOOM = 20;
 
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
@@ -413,194 +413,112 @@ function initMap(){
   loadData();
 }
 
-// ── Zone polygons — coordinates derived from user screenshot markup ──
-// Screenshot pixel→lat/lng conversion at zoom 19, center=PROPERTY_CENTER
-// Red=Road, Yellow=Japanese Garden, Cyan=Front Yard, Pink=Middle Yard,
-// Orange=Back Yard, White circle=Greenhouse
+// ── Zone polygons — exact coordinates from user KMZ export ──
 function drawZones(){
   const zoneDefs = [
-    {
-      id: 'road',
-      // Red outline — follows Sunnyside Dr diagonal at bottom of property
-      coords: [
-        {lat:40.60468, lng:-75.20658},
-        {lat:40.60472, lng:-75.20638},
-        {lat:40.60476, lng:-75.20612},
-        {lat:40.60483, lng:-75.20584},
-        {lat:40.60490, lng:-75.20558},
-        {lat:40.60496, lng:-75.20534},
-        {lat:40.60500, lng:-75.20522},
-        {lat:40.60494, lng:-75.20515},
-        {lat:40.60483, lng:-75.20530},
-        {lat:40.60475, lng:-75.20555},
-        {lat:40.60468, lng:-75.20582},
-        {lat:40.60462, lng:-75.20610},
-        {lat:40.60458, lng:-75.20638},
-        {lat:40.60455, lng:-75.20660},
-      ]
-    },
-    {
-      id: 'japanese',
-      // Yellow outline — south-facing area around/below the barn
-      coords: [
-        {lat:40.60498, lng:-75.20582},
-        {lat:40.60504, lng:-75.20562},
-        {lat:40.60508, lng:-75.20545},
-        {lat:40.60507, lng:-75.20530},
-        {lat:40.60500, lng:-75.20522},
-        {lat:40.60490, lng:-75.20524},
-        {lat:40.60482, lng:-75.20530},
-        {lat:40.60476, lng:-75.20543},
-        {lat:40.60474, lng:-75.20560},
-        {lat:40.60476, lng:-75.20577},
-        {lat:40.60484, lng:-75.20585},
-        {lat:40.60492, lng:-75.20586},
-      ]
-    },
-    {
-      id: 'frontyard',
-      // Cyan/light blue — immediate area around barn structures
-      coords: [
-        {lat:40.60515, lng:-75.20576},
-        {lat:40.60519, lng:-75.20560},
-        {lat:40.60519, lng:-75.20543},
-        {lat:40.60513, lng:-75.20530},
-        {lat:40.60504, lng:-75.20526},
-        {lat:40.60495, lng:-75.20528},
-        {lat:40.60492, lng:-75.20541},
-        {lat:40.60492, lng:-75.20558},
-        {lat:40.60496, lng:-75.20572},
-        {lat:40.60505, lng:-75.20578},
-      ]
-    },
-    {
-      id: 'daffodilhill',
-      // Between front yard and middle yard — transitional south-facing slope
-      coords: [
-        {lat:40.60498, lng:-75.20586},
-        {lat:40.60505, lng:-75.20578},
-        {lat:40.60515, lng:-75.20576},
-        {lat:40.60520, lng:-75.20580},
-        {lat:40.60518, lng:-75.20592},
-        {lat:40.60510, lng:-75.20598},
-        {lat:40.60500, lng:-75.20596},
-        {lat:40.60493, lng:-75.20590},
-      ]
-    },
-    {
-      id: 'midyard',
-      // Pink outline — irregular terraced area above/NW of barn
-      coords: [
-        {lat:40.60520, lng:-75.20592},
-        {lat:40.60526, lng:-75.20580},
-        {lat:40.60530, lng:-75.20564},
-        {lat:40.60531, lng:-75.20548},
-        {lat:40.60527, lng:-75.20535},
-        {lat:40.60519, lng:-75.20530},
-        {lat:40.60510, lng:-75.20531},
-        {lat:40.60503, lng:-75.20538},
-        {lat:40.60501, lng:-75.20552},
-        {lat:40.60504, lng:-75.20566},
-        {lat:40.60510, lng:-75.20576},
-        {lat:40.60517, lng:-75.20580},
-      ]
-    },
-    {
-      id: 'backyard',
-      // Orange teardrop — large bamboo forest area upper/northwest
-      coords: [
-        {lat:40.60601, lng:-75.20624},
-        {lat:40.60608, lng:-75.20604},
-        {lat:40.60604, lng:-75.20584},
-        {lat:40.60590, lng:-75.20574},
-        {lat:40.60574, lng:-75.20576},
-        {lat:40.60558, lng:-75.20585},
-        {lat:40.60543, lng:-75.20594},
-        {lat:40.60534, lng:-75.20606},
-        {lat:40.60536, lng:-75.20620},
-        {lat:40.60548, lng:-75.20632},
-        {lat:40.60563, lng:-75.20638},
-        {lat:40.60578, lng:-75.20638},
-        {lat:40.60592, lng:-75.20632},
-      ]
-    },
-    {
-      id: 'greenhouse',
-      // White circle — small rectangle structure left of barn
-      coords: [
-        {lat:40.60521, lng:-75.20580},
-        {lat:40.60521, lng:-75.20568},
-        {lat:40.60514, lng:-75.20565},
-        {lat:40.60511, lng:-75.20575},
-        {lat:40.60514, lng:-75.20582},
-      ]
-    },
-    {
-      id: 'driveway',
-      // Mariton — the Mariton Nature Sanctuary to the north/west (not maintained)
-      coords: [
-        {lat:40.60610, lng:-75.20660},
-        {lat:40.60610, lng:-75.20560},
-        {lat:40.60650, lng:-75.20540},
-        {lat:40.60680, lng:-75.20560},
-        {lat:40.60680, lng:-75.20680},
-        {lat:40.60650, lng:-75.20700},
-      ]
-    },
+    { id:'road', coords:[
+      {lat:40.6055154,lng:-75.2061471},
+      {lat:40.6054461,lng:-75.2060975},
+      {lat:40.6055744,lng:-75.2056965},
+      {lat:40.6057567,lng:-75.2058226},
+      {lat:40.6057261,lng:-75.205899},
+      {lat:40.6055968,lng:-75.2058226},
+    ]},
+    { id:'japanese', coords:[
+      {lat:40.6056655,lng:-75.2058684},
+      {lat:40.6056207,lng:-75.2060011},
+      {lat:40.6056889,lng:-75.2060387},
+      {lat:40.6057205,lng:-75.2061245},
+      {lat:40.6056783,lng:-75.2062848},
+      {lat:40.6055031,lng:-75.2061902},
+      {lat:40.6055968,lng:-75.2058281},
+    ]},
+    { id:'frontyard', coords:[
+      {lat:40.6058515,lng:-75.2062016},
+      {lat:40.6057217,lng:-75.2061285},
+      {lat:40.605691,lng:-75.2060327},
+      {lat:40.6057617,lng:-75.2058241},
+      {lat:40.6059297,lng:-75.2059401},
+      {lat:40.6058925,lng:-75.2060782},
+      {lat:40.6058645,lng:-75.2060795},
+      {lat:40.6058462,lng:-75.2060997},
+      {lat:40.6058426,lng:-75.20604},
+      {lat:40.605809,lng:-75.2060433},
+      {lat:40.6058197,lng:-75.2061111},
+      {lat:40.6058503,lng:-75.2061117},
+    ]},
+    { id:'daffodilhill', coords:[
+      {lat:40.6058503,lng:-75.2061117},
+      {lat:40.605853,lng:-75.2061158},
+      {lat:40.6058197,lng:-75.2061111},
+      {lat:40.605809,lng:-75.2060433},
+      {lat:40.6058447,lng:-75.2060346},
+    ]},
+    { id:'midyard', coords:[
+      {lat:40.6056932,lng:-75.2062559},
+      {lat:40.6058108,lng:-75.2063317},
+      {lat:40.6058612,lng:-75.2061916},
+      {lat:40.6058495,lng:-75.2061594},
+      {lat:40.605853,lng:-75.2061158},
+      {lat:40.6058703,lng:-75.2060843},
+      {lat:40.6058948,lng:-75.2060836},
+      {lat:40.6059304,lng:-75.2059441},
+      {lat:40.6061116,lng:-75.2060675},
+      {lat:40.6060618,lng:-75.2061768},
+      {lat:40.6059961,lng:-75.206154},
+      {lat:40.6059034,lng:-75.206445},
+      {lat:40.6056759,lng:-75.2063089},
+    ]},
+    { id:'backyard', coords:[
+      {lat:40.6064841,lng:-75.2063469},
+      {lat:40.606311,lng:-75.2067318},
+      {lat:40.6059034,lng:-75.206445},
+      {lat:40.6059961,lng:-75.206154},
+      {lat:40.6060758,lng:-75.206182},
+      {lat:40.6061116,lng:-75.2060675},
+    ]},
+    { id:'greenhouse', coords:[
+      {lat:40.6058092,lng:-75.2063237},
+      {lat:40.6056911,lng:-75.2062513},
+      {lat:40.6057217,lng:-75.2061285},
+      {lat:40.6058515,lng:-75.2062016},
+    ]},
+    { id:'driveway', coords:[
+      {lat:40.6064633,lng:-75.2044004},
+      {lat:40.6078235,lng:-75.2021688},
+      {lat:40.6081493,lng:-75.2024692},
+      {lat:40.6086055,lng:-75.2014607},
+      {lat:40.6082715,lng:-75.2011066},
+      {lat:40.608915,lng:-75.1995295},
+      {lat:40.6095258,lng:-75.1994544},
+      {lat:40.6108127,lng:-75.1997655},
+      {lat:40.6126697,lng:-75.2015358},
+      {lat:40.6165301,lng:-75.2034455},
+      {lat:40.6159682,lng:-75.2079516},
+      {lat:40.6153655,lng:-75.208928},
+      {lat:40.6126371,lng:-75.2115887},
+      {lat:40.6110489,lng:-75.2100438},
+      {lat:40.6112281,lng:-75.2096575},
+      {lat:40.6107394,lng:-75.2094215},
+      {lat:40.6102019,lng:-75.2106768},
+      {lat:40.6059257,lng:-75.2077049},
+      {lat:40.6073511,lng:-75.2050656},
+    ]},
   ];
 
-  // Property boundary outline (dashed white line)
-  const propertyBoundary = new google.maps.Polygon({
-    paths: [
-      {lat:40.60455, lng:-75.20660},
-      {lat:40.60500, lng:-75.20515},
-      {lat:40.60534, lng:-75.20510},
-      {lat:40.60608, lng:-75.20560},
-      {lat:40.60610, lng:-75.20660},
-      {lat:40.60530, lng:-75.20710},
+  // Barn outline as a reference polygon (white, no fill)
+  new google.maps.Polygon({
+    paths:[
+      {lat:40.6057363,lng:-75.2059079},
+      {lat:40.605691,lng:-75.2060327},
+      {lat:40.6056217,lng:-75.2059964},
+      {lat:40.605662,lng:-75.2058711},
     ],
-    strokeColor: '#ffffff',
-    strokeOpacity: 0.9,
-    strokeWeight: 2.5,
-    strokeDasharray: '8 4',
-    fillColor: '#ffffff',
-    fillOpacity: 0,
-    map: map,
-    zIndex: 3,
-    icons: [{
-      icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
-      offset: '0', repeat: '12px'
-    }]
-  });
-  // Use Polyline for dashed effect (Polygon doesn't support dashes natively)
-  const boundaryLine = new google.maps.Polyline({
-    path: [
-      {lat:40.60455, lng:-75.20660},
-      {lat:40.60500, lng:-75.20515},
-      {lat:40.60534, lng:-75.20510},
-      {lat:40.60608, lng:-75.20560},
-      {lat:40.60610, lng:-75.20660},
-      {lat:40.60530, lng:-75.20710},
-      {lat:40.60455, lng:-75.20660},
-    ],
-    strokeColor: '#ffffff',
-    strokeOpacity: 0,
-    strokeWeight: 2,
-    icons: [{
-      icon: {
-        path: 'M 0,-1 0,1',
-        strokeOpacity: 1,
-        strokeColor: '#ffffff',
-        scale: 3,
-      },
-      offset: '0',
-      repeat: '14px'
-    }],
-    map: map,
-    zIndex: 3,
+    strokeColor:'#ffffff',strokeOpacity:0.9,strokeWeight:2,
+    fillColor:'#ffffff',fillOpacity:0,map,zIndex:4,
   });
 
-  zoneDefs.forEach(z => {
+    zoneDefs.forEach(z => {
     const zone = ZONES[z.id];
     const poly = new google.maps.Polygon({
       paths: z.coords,
