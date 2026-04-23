@@ -494,6 +494,7 @@
       </select>
       <select id="entry-zone-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
         <option value="">All zones</option>
+        <option value="sunnyside">⌂ Sunnyside</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
         <option value="daffodilhill">Daffodil Hill</option>
@@ -525,6 +526,7 @@
     </div>
     <div class="inv-filters">
       <button class="filter-btn active" onclick="filterSpecies('all',this)">All</button>
+      <button class="filter-btn" onclick="filterSpecies('sunnyside',this)">⌂ Sunnyside</button>
       <button class="filter-btn" onclick="filterSpecies('japanese',this)">Japanese Garden</button>
       <button class="filter-btn" onclick="filterSpecies('road',this)">Road</button>
       <button class="filter-btn" onclick="filterSpecies('driveway',this)">Mariton</button>
@@ -597,6 +599,7 @@
       <input type="text" id="maint-search" placeholder="Search actions…" oninput="renderMaintenance()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
       <select id="maint-zone-filter" onchange="renderMaintenance()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
         <option value="">All zones</option>
+        <option value="sunnyside">⌂ Sunnyside</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
         <option value="daffodilhill">Daffodil Hill</option>
@@ -669,6 +672,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="sbs-zone" onchange="renderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
+              <option value="sunnyside">⌂ Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -883,6 +887,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="ee-sbs-zone" onchange="renderEeSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
+              <option value="sunnyside">⌂ Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -1028,6 +1033,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="map-sbs-zone" onchange="mapRenderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
+              <option value="sunnyside">⌂ Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -1078,6 +1084,7 @@
 <script>
 // ── Supabase init ──
 const MAPS_KEY = 'AIzaSyBPA2D2xD0VsgPYg8CHOXAoqNtojl4VL7M';
+const SUNNYSIDE_ZONES = ['japanese','road','frontyard','daffodilhill','midyard','backyard','greenhouse'];
 const PROPERTY_CENTER = { lat: 40.60569024329201, lng: -75.20595206314749 };
 const PROPERTY_ZOOM = 20;
 // Map-specific zone config (dict keyed by id, separate from journal ZONES array)
@@ -3254,7 +3261,8 @@ function renderEntries(){
   const sf=document.getElementById('entry-species-filter')?.value||'';
 
   let filtered=entries;
-  if(zf) filtered=filtered.filter(e=>e.zones&&e.zones.includes(zf));
+  if(zf==='sunnyside') filtered=filtered.filter(e=>e.zones&&e.zones.some(z=>SUNNYSIDE_ZONES.includes(z)));
+  else if(zf) filtered=filtered.filter(e=>e.zones&&e.zones.includes(zf));
   if(mf) filtered=filtered.filter(e=>e.date&&e.date.startsWith(mf));
   if(sf) filtered=filtered.filter(e=>e.bloomSpeciesIds&&e.bloomSpeciesIds.map(String).includes(sf));
   if(q)  filtered=filtered.filter(e=>[e.observed,e.actions,e.questions,e.bloomText,e.conditions,e.temp]
@@ -3323,6 +3331,7 @@ function renderSpecies(){
   const searchEl=document.getElementById('species-search');
   const q=searchEl?(searchEl.value||'').toLowerCase().trim():'';
   let list=activeFilter==='all'?species:
+    activeFilter==='sunnyside'?species.filter(s=>s.zones&&s.zones.some(z=>SUNNYSIDE_ZONES.includes(z))||SUNNYSIDE_ZONES.includes(s.zone)):
     activeFilter==='mystery'?species.filter(s=>s.status==='unknown'||(s.zones&&s.zones.includes('mystery'))||s.zone==='mystery'):
     species.filter(s=>(s.zones&&s.zones.includes(activeFilter))||s.zone===activeFilter);
   if(q) list=list.filter(s=>
@@ -3430,7 +3439,9 @@ function renderBloom(){
   }
 
   // Zone filter
-  if(bloomFilterZone){
+  if(bloomFilterZone==='sunnyside'){
+    bloomSp=bloomSp.filter(s=>s.zones&&s.zones.some(z=>__SUNNYSIDE_ZONES.includes(z))||___SUNNYSIDE.includes(s.zone));
+  } else if(bloomFilterZone){
     bloomSp=bloomSp.filter(s=>(s.zones&&s.zones.includes(bloomFilterZone))||s.zone===bloomFilterZone);
   }
 
@@ -3457,7 +3468,8 @@ function renderBloom(){
 
   // Month nav buttons
   const BLOOM_ZONES=[
-    {id:null,      label:'All',            color:'var(--forest)'},
+    {id:null,         label:'All',            color:'var(--forest)'},
+    {id:'sunnyside',  label:'⌂ Sunnyside',    color:'#2d4a1e'},
     {id:'japanese',label:'Japanese Garden',color:'#2a5e58'},
     {id:'frontyard',   label:'Front Yard',    color:'#3d6628'},
     {id:'daffodilhill',label:'Daffodil Hill', color:'#9a7c10'},
@@ -3516,7 +3528,8 @@ function renderMaintenance(){
 
   let withActions=entries.filter(e=>e.actions&&e.actions.trim());
   if(q)  withActions=withActions.filter(e=>e.actions.toLowerCase().includes(q));
-  if(zf) withActions=withActions.filter(e=>e.zones&&e.zones.includes(zf));
+  if(zf==='sunnyside') withActions=withActions.filter(e=>e.zones&&e.zones.some(z=>_SUNNYSIDE_ZONES.includes(z)));
+  else if(zf) withActions=withActions.filter(e=>e.zones&&e.zones.includes(zf));
 
   if(!withActions.length){
     wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">✓</div><h3>${entries.filter(e=>e.actions).length?'No matches':'No maintenance logged yet'}</h3><p>${entries.filter(e=>e.actions).length?'Try adjusting your search.':'When you log field entries with actions, they appear here organized by zone.'}</p></div>`;
