@@ -494,7 +494,7 @@
       </select>
       <select id="entry-zone-filter" onchange="renderEntries()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
         <option value="">All zones</option>
-        <option value="sunnyside">⌂ Sunnyside</option>
+        <option value="sunnyside">Sunnyside</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
         <option value="daffodilhill">Daffodil Hill</option>
@@ -526,14 +526,15 @@
     </div>
     <div class="inv-filters">
       <button class="filter-btn active" onclick="filterSpecies('all',this)">All</button>
-      <button class="filter-btn" onclick="filterSpecies('sunnyside',this)">⌂ Sunnyside</button>
+      <button class="filter-btn" onclick="filterSpecies('sunnyside',this)">Sunnyside</button>
       <button class="filter-btn" onclick="filterSpecies('japanese',this)">Japanese Garden</button>
-      <button class="filter-btn" onclick="filterSpecies('road',this)">Road</button>
-      <button class="filter-btn" onclick="filterSpecies('driveway',this)">Mariton</button>
       <button class="filter-btn" onclick="filterSpecies('frontyard',this)">Front Yard</button>
+      <button class="filter-btn" onclick="filterSpecies('daffodilhill',this)">Daffodil Hill</button>
       <button class="filter-btn" onclick="filterSpecies('midyard',this)">Middle Yard</button>
       <button class="filter-btn" onclick="filterSpecies('backyard',this)">Back Yard</button>
       <button class="filter-btn" onclick="filterSpecies('greenhouse',this)">Greenhouse</button>
+      <button class="filter-btn" onclick="filterSpecies('road',this)">Road</button>
+      <button class="filter-btn" onclick="filterSpecies('driveway',this)">Mariton</button>
       <button class="filter-btn" onclick="filterSpecies('mystery',this)">Mysteries</button>
     </div>
     <div class="sp-grid" id="sp-grid"></div>
@@ -599,7 +600,7 @@
       <input type="text" id="maint-search" placeholder="Search actions…" oninput="renderMaintenance()" style="padding:9px 14px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--bark);background:#fff;">
       <select id="maint-zone-filter" onchange="renderMaintenance()" style="padding:9px 11px;border:1.5px solid var(--parch-dk);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--stone);background:#fff;-webkit-appearance:none;appearance:none;cursor:pointer">
         <option value="">All zones</option>
-        <option value="sunnyside">⌂ Sunnyside</option>
+        <option value="sunnyside">Sunnyside</option>
         <option value="japanese">Japanese Garden</option>
         <option value="frontyard">Front Yard</option>
         <option value="daffodilhill">Daffodil Hill</option>
@@ -664,7 +665,13 @@
         <div class="fg"><label class="fl">Temperature</label><input type="text" id="e-temp" placeholder="e.g. 54°F / 38°F overnight"></div>
       </div>
       <div class="fg"><label class="fl">Conditions</label><input type="text" id="e-conditions" placeholder="e.g. Partly cloudy, dry past week"></div>
-      <div class="fg"><label class="fl">Zones observed</label><div class="zone-pills" id="zone-pill-group"></div></div>
+      <div class="fg">
+        <label class="fl">Zones observed
+          <button type="button" onclick="selectSunnysideZones()" style="margin-left:8px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius);border:1.5px solid var(--parch-dk);background:#fff;cursor:pointer;color:var(--stone)">Select Sunnyside</button>
+          <button type="button" onclick="clearZonePills()" style="margin-left:4px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius);border:1.5px solid var(--parch-dk);background:#fff;cursor:pointer;color:var(--stone)">Clear</button>
+        </label>
+        <div class="zone-pills" id="zone-pill-group"></div>
+      </div>
       <div class="fg"><label class="fl">What I observed</label><textarea id="e-observed" placeholder="New shoots, blooms, colors, unusual behavior, anything notable..."></textarea></div>
       <div class="fg">
         <label class="fl">Species blooming / notable today</label>
@@ -672,7 +679,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="sbs-zone" onchange="renderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
-              <option value="sunnyside">⌂ Sunnyside</option>
+              <option value="sunnyside">Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -877,7 +884,10 @@
       </div>
       <div class="fg"><label class="fl">Conditions</label><input type="text" id="ee-conditions"></div>
       <div class="fg">
-        <label class="fl">Zones / locations</label>
+        <label class="fl">Zones / locations
+          <button type="button" onclick="selectSunnysideZonesEdit()" style="margin-left:8px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius);border:1.5px solid var(--parch-dk);background:#fff;cursor:pointer;color:var(--stone)">Select Sunnyside</button>
+          <button type="button" onclick="clearZonePillsEdit()" style="margin-left:4px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--radius);border:1.5px solid var(--parch-dk);background:#fff;cursor:pointer;color:var(--stone)">Clear</button>
+        </label>
         <div class="zone-pills" id="ee-zone-pills"></div>
       </div>
       <div class="fg"><label class="fl">What I observed</label><textarea id="ee-observed"></textarea></div>
@@ -887,7 +897,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="ee-sbs-zone" onchange="renderEeSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
-              <option value="sunnyside">⌂ Sunnyside</option>
+              <option value="sunnyside">Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -1033,7 +1043,7 @@
           <div style="display:flex;align-items:center;gap:0;border-bottom:1.5px solid var(--parch-dk)">
             <select id="map-sbs-zone" onchange="mapRenderSbsList()" style="border:none;border-right:1.5px solid var(--parch-dk);border-radius:0;font-size:12px;padding:9px 8px;color:var(--stone);background:#fff;cursor:pointer;flex-shrink:0;width:152px">
               <option value="">All zones</option>
-              <option value="sunnyside">⌂ Sunnyside</option>
+              <option value="sunnyside">Sunnyside</option>
               <option value="japanese">Japanese Garden</option>
               <option value="frontyard">Front Yard</option>
               <option value="daffodilhill">Daffodil Hill</option>
@@ -2013,6 +2023,36 @@ function buildZonePillsIn(containerId, selectedZones){
   });
 }
 
+function selectSunnysideZones(){
+  document.querySelectorAll('#zone-pill-group input').forEach(inp=>{
+    const checked = SUNNYSIDE_ZONES.includes(inp.value);
+    inp.checked = checked;
+    const lbl = inp.closest('label');
+    if(lbl) lbl.className = checked ? `zone-pill zp-${inp.value}` : 'zone-pill';
+  });
+}
+function clearZonePills(){
+  document.querySelectorAll('#zone-pill-group input').forEach(inp=>{
+    inp.checked = false;
+    const lbl = inp.closest('label');
+    if(lbl) lbl.className = 'zone-pill';
+  });
+}
+function selectSunnysideZonesEdit(){
+  document.querySelectorAll('#ee-zone-pills input').forEach(inp=>{
+    const checked = SUNNYSIDE_ZONES.includes(inp.value);
+    inp.checked = checked;
+    const lbl = inp.closest('label');
+    if(lbl) lbl.className = checked ? `zone-pill zp-${inp.value}` : 'zone-pill';
+  });
+}
+function clearZonePillsEdit(){
+  document.querySelectorAll('#ee-zone-pills input').forEach(inp=>{
+    inp.checked = false;
+    const lbl = inp.closest('label');
+    if(lbl) lbl.className = 'zone-pill';
+  });
+}
 function buildZonePills(){
   const wrap=document.getElementById('zone-pill-group'); wrap.innerHTML='';
   ZONES.forEach(z=>{
@@ -3469,7 +3509,7 @@ function renderBloom(){
   // Month nav buttons
   const BLOOM_ZONES=[
     {id:null,         label:'All',            color:'var(--forest)'},
-    {id:'sunnyside',  label:'⌂ Sunnyside',    color:'#2d4a1e'},
+    {id:'sunnyside',  label:'Sunnyside',    color:'#2d4a1e'},
     {id:'japanese',label:'Japanese Garden',color:'#2a5e58'},
     {id:'frontyard',   label:'Front Yard',    color:'#3d6628'},
     {id:'daffodilhill',label:'Daffodil Hill', color:'#9a7c10'},
