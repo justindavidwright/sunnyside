@@ -1114,14 +1114,14 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ── Constants ──
 const ZONES = [
-  { id:'japanese',   label:'Japanese Garden', color:'#2a5e58' },
-  { id:'road',       label:'Road',            color:'#68605a' },
-  { id:'driveway',   label:'Mariton',        color:'#44381e' },
+  { id:'japanese',     label:'Japanese Garden', color:'#2a5e58' },
   { id:'frontyard',    label:'Front Yard',      color:'#3d6628' },
   { id:'daffodilhill', label:'Daffodil Hill',   color:'#9a7c10' },
   { id:'midyard',      label:'Middle Yard',     color:'#6b8c5a' },
-  { id:'backyard',   label:'Back Yard',       color:'#4a6e3a' },
-  { id:'greenhouse', label:'Greenhouse',      color:'#5e3050' },
+  { id:'backyard',     label:'Back Yard',       color:'#4a6e3a' },
+  { id:'greenhouse',   label:'Greenhouse',      color:'#5e3050' },
+  { id:'road',         label:'Road',            color:'#68605a' },
+  { id:'driveway',     label:'Mariton',         color:'#44381e' },
 ];
 const MO  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MOF = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1986,7 +1986,11 @@ function buildSpZonePills(containerId, selectedZones){
   const wrap=document.getElementById(containerId);
   if(!wrap)return;
   wrap.innerHTML='';
-  const ALL_SP_ZONES=[...ZONES,{id:'mystery',label:'Unknown / Mystery',color:'#68605a'}];
+  const ALL_SP_ZONES=[
+    ...ZONES.filter(z=>z.id!=='driveway'),
+    ZONES.find(z=>z.id==='driveway'),
+    {id:'mystery',label:'Unknown / Mystery',color:'#68605a'}
+  ];
   ALL_SP_ZONES.forEach(z=>{
     const isSelected=selectedZones.includes(z.id);
     const lbl=document.createElement('label');
