@@ -594,7 +594,50 @@ const BIRDS = [
 ];
 
 // Photos hardcoded — Wikimedia Commons direct URLs
-const PHOTOS = {"Northern Cardinal": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cardinalis_cardinalis_-_male_-_8.jpg/400px-Cardinalis_cardinalis_-_male_-_8.jpg", "Blue Jay": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Blue_jay_in_PP_%2830960%29.jpg/400px-Blue_jay_in_PP_%2830960%29.jpg", "American Robin": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Turdus-migratorius-002.jpg/400px-Turdus-migratorius-002.jpg", "House Finch": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Haemorhous_mexicanus_-_04.jpg/400px-Haemorhous_mexicanus_-_04.jpg", "Tufted Titmouse": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Baeolophus_bicolor_CT.jpg/400px-Baeolophus_bicolor_CT.jpg", "White-breasted Nuthatch": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Sitta-carolinensis-001.jpg/400px-Sitta-carolinensis-001.jpg", "Red-bellied Woodpecker": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Red-bellied_Woodpecker_%28Melanerpes_carolinus%29%2C_Corkscrew_Swamp.jpg/400px-Red-bellied_Woodpecker_%28Melanerpes_carolinus%29%2C_Corkscrew_Swamp.jpg", "Downy Woodpecker": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Picoides_pubescens_-_whole_body_02.jpg/400px-Picoides_pubescens_-_whole_body_02.jpg", "Mourning Dove": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Mourning_Dove%2C_Alachua_Co%2C_Fl%2C_04-16-2006.jpg/400px-Mourning_Dove%2C_Alachua_Co%2C_Fl%2C_04-16-2006.jpg", "Song Sparrow": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Melospiza-melodia-007.jpg/400px-Melospiza-melodia-007.jpg", "Carolina Wren": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Carolinawren08.jpg/400px-Carolinawren08.jpg", "American Goldfinch": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Spinus_tristis_-_American_Goldfinch%2C_Belfair%2C_Washington.jpg/400px-Spinus_tristis_-_American_Goldfinch%2C_Belfair%2C_Washington.jpg", "European Starling": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Common_starling_%28Sturnus_vulgaris%29_2.jpg/400px-Common_starling_%28Sturnus_vulgaris%29_2.jpg", "Brown-headed Cowbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Brown-headed_Cowbird_%28Molothrus_ater%29%2C_Male.jpg/400px-Brown-headed_Cowbird_%28Molothrus_ater%29%2C_Male.jpg", "Baltimore Oriole": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icterus_galbula_-_01.jpg/400px-Icterus_galbula_-_01.jpg", "Rose-breasted Grosbeak": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Rose-breasted_Grosbeak-27527.jpg/400px-Rose-breasted_Grosbeak-27527.jpg", "Gray Catbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dumetella_carolinensis_CT4.jpg/400px-Dumetella_carolinensis_CT4.jpg", "Red-winged Blackbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Red-winged-Blackbird-27527-2.jpg/400px-Red-winged-Blackbird-27527-2.jpg", "Eastern Towhee": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Pipilo_erythrophthalmus_CT4.jpg/400px-Pipilo_erythrophthalmus_CT4.jpg", "Chipping Sparrow": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Chipping_sparrow_in_CP_%2838827%29.jpg/400px-Chipping_sparrow_in_CP_%2838827%29.jpg", "Northern House Wren": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Troglodytes_aedon_CT3.jpg/400px-Troglodytes_aedon_CT3.jpg", "Common Yellowthroat": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Common_Yellowthroat_%28Geothlypis_trichas%29%2C_male.jpg/400px-Common_Yellowthroat_%28Geothlypis_trichas%29%2C_male.jpg", "Red-eyed Vireo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Red-eyed_Vireo_%28Vireo_olivaceus%29%2C_Quabbin_Reservoir.jpg/400px-Red-eyed_Vireo_%28Vireo_olivaceus%29%2C_Quabbin_Reservoir.jpg", "Wood Thrush": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Hylocichla_mustelina_Flickr.jpg/400px-Hylocichla_mustelina_Flickr.jpg", "Veery": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Catharus_fuscescens_CT2.jpg/400px-Catharus_fuscescens_CT2.jpg", "Worm-eating Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Helmitheros_vermivorum.jpg/400px-Helmitheros_vermivorum.jpg", "Ovenbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Ovenbird27527.jpg/400px-Ovenbird27527.jpg", "Yellow-rumped Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Setophaga_coronata_coronata_-_Yellow-rumped_Warbler.jpg/400px-Setophaga_coronata_coronata_-_Yellow-rumped_Warbler.jpg", "Pine Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Pine_Warbler_%28Setophaga_pinus%29%2C_male.jpg/400px-Pine_Warbler_%28Setophaga_pinus%29%2C_male.jpg", "Red-tailed Hawk": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Red-tailed_hawk_buteo_jamaicensis.jpg/400px-Red-tailed_hawk_buteo_jamaicensis.jpg", "Cooper"s Hawk": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Accipiter_cooperii_10.jpg/400px-Accipiter_cooperii_10.jpg", "Northern Flicker": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Northern_Flicker_%28Red-shafted%29.jpg/400px-Northern_Flicker_%28Red-shafted%29.jpg", "Golden-crowned Kinglet": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Golden-crowned_Kinglet_%28Regulus_satrapa%29.jpg/400px-Golden-crowned_Kinglet_%28Regulus_satrapa%29.jpg", "American Coot": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/American_Coot_%28Fulica_americana%29.jpg/400px-American_Coot_%28Fulica_americana%29.jpg"};
+const PHOTOS = {
+  "Northern Cardinal": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cardinalis_cardinalis_-_male_-_8.jpg/400px-Cardinalis_cardinalis_-_male_-_8.jpg",
+  "Blue Jay": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Blue_jay_in_PP_%2830960%29.jpg/400px-Blue_jay_in_PP_%2830960%29.jpg",
+  "American Robin": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Turdus-migratorius-002.jpg/400px-Turdus-migratorius-002.jpg",
+  "House Finch": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Haemorhous_mexicanus_-_04.jpg/400px-Haemorhous_mexicanus_-_04.jpg",
+  "Tufted Titmouse": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Baeolophus_bicolor_CT.jpg/400px-Baeolophus_bicolor_CT.jpg",
+  "White-breasted Nuthatch": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Sitta-carolinensis-001.jpg/400px-Sitta-carolinensis-001.jpg",
+  "Red-bellied Woodpecker": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Red-bellied_Woodpecker_%28Melanerpes_carolinus%29%2C_Corkscrew_Swamp.jpg/400px-Red-bellied_Woodpecker_%28Melanerpes_carolinus%29%2C_Corkscrew_Swamp.jpg",
+  "Downy Woodpecker": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Picoides_pubescens_-_whole_body_02.jpg/400px-Picoides_pubescens_-_whole_body_02.jpg",
+  "Mourning Dove": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Mourning_Dove%2C_Alachua_Co%2C_Fl%2C_04-16-2006.jpg/400px-Mourning_Dove%2C_Alachua_Co%2C_Fl%2C_04-16-2006.jpg",
+  "Song Sparrow": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Melospiza-melodia-007.jpg/400px-Melospiza-melodia-007.jpg",
+  "Carolina Wren": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Carolinawren08.jpg/400px-Carolinawren08.jpg",
+  "American Goldfinch": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Spinus_tristis_-_American_Goldfinch%2C_Belfair%2C_Washington.jpg/400px-Spinus_tristis_-_American_Goldfinch%2C_Belfair%2C_Washington.jpg",
+  "European Starling": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Common_starling_%28Sturnus_vulgaris%29_2.jpg/400px-Common_starling_%28Sturnus_vulgaris%29_2.jpg",
+  "Brown-headed Cowbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Brown-headed_Cowbird_%28Molothrus_ater%29%2C_Male.jpg/400px-Brown-headed_Cowbird_%28Molothrus_ater%29%2C_Male.jpg",
+  "Baltimore Oriole": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Icterus_galbula_-_01.jpg/400px-Icterus_galbula_-_01.jpg",
+  "Rose-breasted Grosbeak": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Rose-breasted_Grosbeak-27527.jpg/400px-Rose-breasted_Grosbeak-27527.jpg",
+  "Gray Catbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dumetella_carolinensis_CT4.jpg/400px-Dumetella_carolinensis_CT4.jpg",
+  "Red-winged Blackbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Red-winged-Blackbird-27527-2.jpg/400px-Red-winged-Blackbird-27527-2.jpg",
+  "Eastern Towhee": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Pipilo_erythrophthalmus_CT4.jpg/400px-Pipilo_erythrophthalmus_CT4.jpg",
+  "Chipping Sparrow": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Chipping_sparrow_in_CP_%2838827%29.jpg/400px-Chipping_sparrow_in_CP_%2838827%29.jpg",
+  "Northern House Wren": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Troglodytes_aedon_CT3.jpg/400px-Troglodytes_aedon_CT3.jpg",
+  "Common Yellowthroat": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Common_Yellowthroat_%28Geothlypis_trichas%29%2C_male.jpg/400px-Common_Yellowthroat_%28Geothlypis_trichas%29%2C_male.jpg",
+  "Red-eyed Vireo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Red-eyed_Vireo_%28Vireo_olivaceus%29%2C_Quabbin_Reservoir.jpg/400px-Red-eyed_Vireo_%28Vireo_olivaceus%29%2C_Quabbin_Reservoir.jpg",
+  "Wood Thrush": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Hylocichla_mustelina_Flickr.jpg/400px-Hylocichla_mustelina_Flickr.jpg",
+  "Veery": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Catharus_fuscescens_CT2.jpg/400px-Catharus_fuscescens_CT2.jpg",
+  "Worm-eating Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Helmitheros_vermivorum.jpg/400px-Helmitheros_vermivorum.jpg",
+  "Ovenbird": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Ovenbird27527.jpg/400px-Ovenbird27527.jpg",
+  "Yellow-rumped Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Setophaga_coronata_coronata_-_Yellow-rumped_Warbler.jpg/400px-Setophaga_coronata_coronata_-_Yellow-rumped_Warbler.jpg",
+  "Pine Warbler": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Pine_Warbler_%28Setophaga_pinus%29%2C_male.jpg/400px-Pine_Warbler_%28Setophaga_pinus%29%2C_male.jpg",
+  "Red-tailed Hawk": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Red-tailed_hawk_buteo_jamaicensis.jpg/400px-Red-tailed_hawk_buteo_jamaicensis.jpg",
+  "Cooper's Hawk": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Accipiter_cooperii_10.jpg/400px-Accipiter_cooperii_10.jpg",
+  "Northern Flicker": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Northern_Flicker_%28Red-shafted%29.jpg/400px-Northern_Flicker_%28Red-shafted%29.jpg",
+  "Golden-crowned Kinglet": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Golden-crowned_Kinglet_%28Regulus_satrapa%29.jpg/400px-Golden-crowned_Kinglet_%28Regulus_satrapa%29.jpg",
+  "American Coot": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/American_Coot_%28Fulica_americana%29.jpg/400px-American_Coot_%28Fulica_americana%29.jpg"
+};
+
+function photoHtml(name) {
+  var url = PHOTOS[name];
+  if (url) {
+    return '<img class="card-photo" src="' + url + '" alt="' + name + '" loading="lazy">';
+  }
+  return '<div class="card-photo-placeholder">🐦</div>';
+}
 
 // ── RENDER ──
 let activeFilter = 'all';
@@ -643,7 +686,7 @@ function renderGrid() {
                       bird.category.includes('migrant') ? 'Migrant' : 'Resident';
 
     card.innerHTML = `
-      ${PHOTOS[bird.name] ? `<img class="card-photo" src="${PHOTOS[bird.name]}" alt="${bird.name}" loading="lazy" onerror="this.parentElement.querySelector('.card-photo-placeholder') && (this.style.display='none')">` : '<div class="card-photo-placeholder">🐦</div>'}
+      ${photoHtml(bird.name)}
       <div class="card-body">
         <div class="card-top">
           <div>
