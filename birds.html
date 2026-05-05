@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunnyside — Birds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#0D1412; --deep:#111916; --surface:#18201D; --panel:#1F2A26;
+  --border:rgba(90,155,140,0.13); --border-hi:rgba(90,155,140,0.3);
+  --cream:#E2D8BE; --cream-dim:rgba(226,216,190,0.07);
+  --teal:#3D6E65; --teal-lt:#5A9A8E; --teal-dim:rgba(61,110,101,0.2);
+  --red:#B83230; --red-lt:#D04846; --red-dim:rgba(184,50,48,0.14);
+  --olive:#7A8430; --olive-lt:#9EAA42; --olive-dim:rgba(122,132,48,0.14);
+  --amber:#C08830; --amber-lt:#D4A050; --amber-dim:rgba(192,136,48,0.14);
+  --stone:#78706A; --ash:#98908A; --bone:#DDD4C0; --white:#EDE6D8;
+  --radius:2px; --shadow:0 2px 16px rgba(0,0,0,0.6); --shadow-lg:0 8px 48px rgba(0,0,0,0.78);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--void);color:var(--bone);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* HEADER */
+header{background:var(--deep);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tile-row{display:flex;align-items:center;gap:3px}
+.tile{width:24px;height:40px;background:#0C1410;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--cream);position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(90,155,140,0.1),0 1px 4px rgba(0,0,0,0.5)}
+.tile::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(52deg,transparent 0px,transparent 4px,rgba(13,20,18,0.07) 4px,rgba(13,20,18,0.07) 5px);pointer-events:none}
+.tile.t-red{border-bottom:2px solid var(--red)}.tile.t-olive{border-bottom:2px solid var(--olive)}
+.brand-sep{width:1px;height:22px;background:var(--border-hi);margin:0 1rem}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--white);letter-spacing:0.04em}
+.brand-sub{font-family:'DM Mono',monospace;font-size:0.57rem;color:var(--stone);letter-spacing:0.14em;text-transform:uppercase;margin-left:0.75rem}
+.hdr-r{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--ash);letter-spacing:0.1em;text-transform:uppercase}
+
+/* HERO */
+.hero{padding:3.5rem 2rem 2.5rem;max-width:1120px;margin:0 auto;border-bottom:1px solid var(--border)}
+.hero-eyebrow{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--teal-lt);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.75rem}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:500;color:var(--white);letter-spacing:0.02em;line-height:1;margin-bottom:0.75rem}
+.hero-sub{font-size:0.88rem;color:var(--ash);max-width:560px;line-height:1.7;margin-bottom:2rem}
+.hero-stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.stat{font-family:'DM Mono',monospace}
+.stat-n{font-size:1.6rem;color:var(--cream);display:block;line-height:1}
+.stat-l{font-size:0.55rem;color:var(--stone);letter-spacing:0.14em;text-transform:uppercase;margin-top:0.2rem}
+
+/* CONTROLS */
+.controls{max-width:1120px;margin:0 auto;padding:1.5rem 2rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.filter-btn{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.32rem 0.75rem;border:1px solid var(--border-hi);border-radius:20px;background:transparent;color:var(--stone);cursor:pointer;transition:all .13s;white-space:nowrap}
+.filter-btn:hover{border-color:var(--teal-lt);color:var(--bone)}
+.filter-btn.active{background:var(--teal-dim);color:var(--teal-lt);border-color:var(--teal-lt)}
+.filter-btn.notable.active{background:var(--amber-dim);color:var(--amber-lt);border-color:var(--amber-lt)}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 0.25rem}
+.count-label{font-family:'DM Mono',monospace;font-size:0.57rem;color:var(--stone);letter-spacing:0.1em;text-transform:uppercase;margin-left:auto}
+
+/* GRID */
+.grid{max-width:1120px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:var(--border)}
+
+/* CARD */
+.card{background:var(--surface);display:flex;flex-direction:column;transition:background .13s;position:relative}
+.card:hover{background:var(--panel)}
+.card-photo{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;filter:saturate(0.88) contrast(1.05);transition:filter .3s}
+.card:hover .card-photo{filter:saturate(1.05) contrast(1.05)}
+.card-photo-placeholder{width:100%;aspect-ratio:4/3;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--border-hi)}
+.card-body{padding:1.1rem 1.25rem 1.25rem;flex:1;display:flex;flex-direction:column}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.5rem}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:500;color:var(--white);line-height:1.2}
+.card-latin{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--stone);letter-spacing:0.06em;font-style:italic;margin-top:0.15rem}
+.notable-star{color:var(--amber-lt);font-size:0.75rem;flex-shrink:0;margin-top:2px}
+.card-tags{display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.75rem}
+.tag{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.12rem 0.4rem;border-radius:1px}
+.tag-season{background:var(--teal-dim);color:var(--teal-lt);border:1px solid rgba(61,110,101,.25)}
+.tag-resident{background:rgba(120,112,106,.14);color:var(--ash);border:1px solid rgba(120,112,106,.2)}
+.tag-migrant{background:var(--amber-dim);color:var(--amber-lt);border:1px solid rgba(192,136,48,.2)}
+.tag-warbler{background:var(--olive-dim);color:var(--olive-lt);border:1px solid rgba(122,132,48,.2)}
+.tag-raptor{background:var(--red-dim);color:var(--red-lt);border:1px solid rgba(184,50,48,.2)}
+.card-desc{font-size:0.78rem;color:var(--ash);line-height:1.6;margin-bottom:0.75rem;flex:1}
+.card-marks{margin-top:auto}
+.marks-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--stone);margin-bottom:0.3rem}
+.mark-item{font-size:0.74rem;color:var(--bone);display:flex;gap:0.4rem;align-items:baseline;line-height:1.45}
+.mark-item::before{content:'—';color:var(--teal);flex-shrink:0;font-size:0.65rem}
+.card-footer{padding:0.6rem 1.25rem;border-top:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--stone);letter-spacing:0.06em;display:flex;justify-content:space-between;align-items:center}
+.seen-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--teal);margin-right:4px;vertical-align:middle}
+
+/* SECTION DIVIDER */
+.section-divider{max-width:1120px;margin:0 auto;padding:1.75rem 2rem 0.5rem;display:flex;align-items:center;gap:0.75rem;background:var(--void)}
+.section-label{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal-lt);white-space:nowrap}
+.section-rule{flex:1;height:1px;background:var(--border)}
+
+/* NOTABLE BANNER */
+.notable-banner{max-width:1120px;margin:0 auto;padding:0 2rem;margin-bottom:0}
+.notable-inner{background:var(--amber-dim);border:1px solid rgba(192,136,48,.2);border-radius:var(--radius);padding:0.85rem 1.1rem;font-size:0.78rem;color:var(--amber-lt);line-height:1.6;margin-bottom:0}
+.notable-inner strong{color:var(--amber-lt);font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:0.3rem}
+
+/* FOOTER */
+footer{max-width:1120px;margin:4rem auto 0;padding:2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-text{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--stone);letter-spacing:0.1em;text-transform:uppercase;line-height:1.8}
+.footer-text a{color:var(--teal-lt);text-decoration:none}
+.footer-text a:hover{color:var(--bone)}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--stone);grid-column:1/-1}
+.empty-icon{font-size:2rem;margin-bottom:0.75rem;opacity:0.4}
+
+@media(max-width:600px){
+  .hero{padding:2rem 1rem 1.5rem}
+  .hero-title{font-size:2rem}
+  .controls{padding:1rem}
+  .grid{padding:1rem;grid-template-columns:1fr}
+  header{padding:0 1rem}
+  .brand-sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center">
+    <div class="tile-row">
+      <div class="tile t-red">1</div>
+      <div class="tile">8</div>
+      <div class="tile">0</div>
+      <div class="tile t-olive">3</div>
+    </div>
+    <div class="brand-sep"></div>
+    <span class="brand-name">Sunnyside</span>
+    <span class="brand-sub">Riegelsville, PA</span>
+  </div>
+  <div class="hdr-r">Birds of the Property</div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Field Guide · Merlin Audio ID · 2024–2025</div>
+  <h1 class="hero-title">Birds of Sunnyside</h1>
+  <p class="hero-sub">Species identified by Merlin Sound ID at the property over the past year. The Delaware River corridor makes Riegelsville a productive spot during spring migration — many of these birds pass through only briefly in May before continuing north.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-n" id="totalCount">28</span><span class="stat-l">Species recorded</span></div>
+    <div class="stat"><span class="stat-n">9</span><span class="stat-l">Notable finds</span></div>
+    <div class="stat"><span class="stat-n">May 5</span><span class="stat-l">Peak migration day</span></div>
+    <div class="stat"><span class="stat-n">2024–25</span><span class="stat-l">Observation period</span></div>
+  </div>
+</div>
+
+<div class="notable-banner" style="padding-top:1.5rem">
+  <div class="notable-inner">
+    <strong>★ Notable finds</strong>
+    Several species here are genuinely exciting for the area. The Wood Thrush, Veery, Worm-eating Warbler, and Ovenbird are all declining neotropical migrants that prefer mature forest interior — their presence suggests the property sits within quality habitat. The May 5th recording session was exceptional, likely coinciding with a peak migration pulse through the river valley.
+  </div>
+</div>
+
+<div class="controls">
+  <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All species</button>
+  <button class="filter-btn" data-filter="resident" onclick="setFilter('resident',this)">Year-round</button>
+  <button class="filter-btn" data-filter="migrant" onclick="setFilter('migrant',this)">Spring migrants</button>
+  <button class="filter-btn" data-filter="warbler" onclick="setFilter('warbler',this)">Warblers &amp; thrushes</button>
+  <button class="filter-btn" data-filter="raptor" onclick="setFilter('raptor',this)">Raptors</button>
+  <div class="filter-sep"></div>
+  <button class="filter-btn notable" data-filter="notable" onclick="setFilter('notable',this)">★ Notable only</button>
+  <span class="count-label" id="countLabel">28 species</span>
+</div>
+
+<div class="grid" id="birdGrid"></div>
+
+<footer>
+  <div class="footer-text">
+    Sunnyside · Riegelsville, PA · Est. 1803<br>
+    Identifications via <a href="https://merlin.allaboutbirds.org" target="_blank">Merlin Bird ID</a> by Cornell Lab · <a href="https://www.allaboutbirds.org" target="_blank">All About Birds</a>
+  </div>
+  <div class="footer-text" style="text-align:right">
+    Photos via Wikimedia Commons<br>
+    Range data: Cornell Lab of Ornithology
+  </div>
+</footer>
+
+<script>
+const BIRDS = [
+  // ── YEAR-ROUND RESIDENTS ──
+  {
+    name: "Northern Cardinal",
+    latin: "Cardinalis cardinalis",
+    wiki: "Northern_cardinal",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "One of the most recognizable backyard birds. Males are brilliant red; females a warm tawny-brown with red tinges. Common at feeders year-round and one of the first singers in the predawn hours.",
+    marks: ["Male: all-red with prominent crest and black mask", "Female: buff-brown with red crest and bill", "Thick orange bill for cracking seeds", "Song: loud whistled 'cheer-cheer-cheer'"]
+  },
+  {
+    name: "Blue Jay",
+    latin: "Cyanocitta cristata",
+    wiki: "Blue_jay",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "Bold, intelligent, and loud. Blue Jays are a constant presence at Sunnyside across all seasons. They cache acorns and are important seed dispersers for oaks. Their hawk-mimicking calls can send other birds scattering.",
+    marks: ["Blue upperparts, white underparts, black necklace", "Prominent blue crest", "Bold white wing bars and tail tips", "Raucous 'jay-jay' call; also mimics Red-tailed Hawk"]
+  },
+  {
+    name: "American Robin",
+    latin: "Turdus migratorius",
+    wiki: "American_robin",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round, common in migration",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 19, 2024",
+    desc: "The quintessential American thrush, seen pulling earthworms from lawns. While some stay year-round, large flocks pass through in fall and spring. The rich caroling song at dawn is often the first bird sound of the day.",
+    marks: ["Orange-red breast, dark gray back", "Yellow bill", "White eye crescents", "Song: rich caroling phrases at dawn and dusk"]
+  },
+  {
+    name: "House Finch",
+    latin: "Haemorhous mexicanus",
+    wiki: "House_finch",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Mar 30, 2024",
+    desc: "Males display a raspberry-red wash on head and breast that varies in intensity with diet. Originally from the western US, House Finches were introduced to the East in the 1940s and are now ubiquitous. They nest in dense shrubs and vines.",
+    marks: ["Male: streaked brown with red head and breast", "Female: plain streaked brown, no red", "Small finch bill, slightly curved upper mandible", "Song: long, rambling warble"]
+  },
+  {
+    name: "Tufted Titmouse",
+    latin: "Baeolophus bicolor",
+    wiki: "Tufted_titmouse",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "A bold, curious little bird with a distinctive gray crest. Titmice are among the first to find new feeders and will cache seeds for winter. They often join mixed-species flocks with chickadees and nuthatches.",
+    marks: ["Gray crest, gray back, white underparts", "Rusty flanks", "Large black eyes", "Loud repeated 'peter-peter-peter' whistle"]
+  },
+  {
+    name: "White-breasted Nuthatch",
+    latin: "Sitta carolinensis",
+    wiki: "White-breasted_nuthatch",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "The nuthatch's party trick is creeping headfirst down tree trunks — an approach angle no other bird uses, giving them access to insects tucked under bark that woodpeckers and creepers miss. Their nasal 'yank-yank' is distinctive.",
+    marks: ["Blue-gray back, white face and underparts", "Black cap (male) or gray cap (female)", "Long, slightly upturned bill", "Creeps headfirst down bark; nasal 'yank' call"]
+  },
+  {
+    name: "Red-bellied Woodpecker",
+    latin: "Melanerpes carolinus",
+    wiki: "Red-bellied_woodpecker",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Mar 30, 2024",
+    desc: "Despite its name, the red belly is rarely visible. The zebra-barred back and loud 'churr' call are the best field marks. A large woodpecker that excavates nest cavities later used by other species. The bamboo grove may attract them for foraging.",
+    marks: ["Bold black-and-white zebra back", "Red cap extending from bill to nape (male) or just nape (female)", "Pale buff underparts; faint red belly wash", "Loud rolling 'churr' call"]
+  },
+  {
+    name: "Downy Woodpecker",
+    latin: "Dryobates pubescens",
+    wiki: "Downy_woodpecker",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "The smallest woodpecker in North America, easily confused with the larger Hairy Woodpecker. The short, stubby bill is the key distinction. Downies are acrobatic foragers, often clinging to weed stems to reach seeds.",
+    marks: ["Black-and-white pattern; small red nape patch (male)", "Short bill — about half the length of head depth", "White outer tail feathers with black spots", "High 'pik' call; descending whinny"]
+  },
+  {
+    name: "Mourning Dove",
+    latin: "Zenaida macroura",
+    wiki: "Mourning_dove",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "May 5, 2024",
+    desc: "One of the most abundant birds in North America. The soft, mournful cooing is a constant background sound of warm days. Ground feeders that walk with a bobbing head. Their wings make a distinctive whistling sound when they take flight.",
+    marks: ["Soft gray-brown, pinkish breast", "Long pointed tail with white tips", "Small black spots on wings", "Mournful 'ooh-woo-woo-woo' call"]
+  },
+  {
+    name: "Song Sparrow",
+    latin: "Melospiza melodia",
+    wiki: "Song_sparrow",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round, common",
+    seasonTag: "tag-resident",
+    firstSeen: "Mar 30, 2024",
+    desc: "One of the most widespread and variable birds in North America. Song Sparrows are vigorous singers — males may have dozens of song variations. They favor brushy edges and stream margins, both of which exist on the property.",
+    marks: ["Heavily streaked brown with thick central breast spot", "Long rounded tail, often pumped in flight", "Gray face with brown stripes", "Song begins with 3 clear notes: 'sweet sweet sweet...'"]
+  },
+  {
+    name: "Carolina Wren",
+    latin: "Thryothorus ludovicianus",
+    wiki: "Carolina_wren",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "May 5, 2024",
+    desc: "Tiny but enormously loud. The Carolina Wren's 'teakettle-teakettle-teakettle' song belies its small size. They are cavity nesters that will use almost any sheltered nook — flowerpots, old boots, mailboxes. The stone barn may host breeding pairs.",
+    marks: ["Rich rufous-brown above, warm buff below", "Bold white eyebrow stripe", "Cocked tail held upright", "Ear-splitting 'teakettle' song repeated insistently"]
+  },
+  {
+    name: "American Goldfinch",
+    latin: "Spinus tristis",
+    wiki: "American_goldfinch",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round; bright in summer",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 19, 2024",
+    desc: "Males in breeding plumage are electric yellow — one of the most striking birds at any feeder. In winter both sexes are drab olive-yellow. They delay nesting until midsummer when thistle seeds ripen, which they feed exclusively to nestlings.",
+    marks: ["Breeding male: brilliant yellow, black wings and cap", "Winter: dull yellowish-olive, black wings with white bars", "Undulating 'roller-coaster' flight", "Call: 'po-ta-to-chip' in flight"]
+  },
+  {
+    name: "European Starling",
+    latin: "Sturnus vulgaris",
+    wiki: "Common_starling",
+    category: ["resident"],
+    notable: false,
+    season: "Year-round resident",
+    seasonTag: "tag-resident",
+    firstSeen: "May 5, 2024",
+    desc: "Introduced from Europe in 1890, starlings are now ubiquitous. They are accomplished mimics — capable of imitating dozens of other species — and form spectacular murmurations in winter. They compete with native cavity nesters for nest sites.",
+    marks: ["Iridescent green-purple in summer; speckled white in winter", "Short tail, long pointed bill", "Triangular wing shape in flight", "Rambling, chattery song with mimicry"]
+  },
+  {
+    name: "Brown-headed Cowbird",
+    latin: "Molothrus ater",
+    wiki: "Brown-headed_cowbird",
+    category: ["resident"],
+    notable: false,
+    season: "Spring–fall; some winter",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "A brood parasite — cowbirds lay their eggs in other birds' nests, leaving the foster parents to raise their young. Originally followed bison herds across the plains; now widespread as forests fragmented. Their presence can impact neotropical migrants.",
+    marks: ["Male: glossy black with brown hood", "Female: plain gray-brown, no markings", "Finch-like bill", "Song: liquid bubbling gurgle; flight call a harsh 'rattle'"]
+  },
+
+  // ── SPRING MIGRANTS / SUMMER BREEDERS ──
+  {
+    name: "Baltimore Oriole",
+    latin: "Icterus galbula",
+    wiki: "Baltimore_oriole",
+    category: ["migrant"],
+    notable: true,
+    season: "Spring–fall migrant; summer breeder",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "A flash of flame-orange in the canopy — one of the most breathtaking birds to appear in spring. Baltimore Orioles weave remarkable hanging nests suspended from drooping branch tips. They're attracted to orange halves and grape jelly at feeders.",
+    marks: ["Male: brilliant orange and black", "Female: yellowish-olive with two white wing bars", "Nests: woven pendulous sack, 3–4\" deep", "Rich whistled song; also a harsh chatter"]
+  },
+  {
+    name: "Rose-breasted Grosbeak",
+    latin: "Pheucticus ludovicianus",
+    wiki: "Rose-breasted_grosbeak",
+    category: ["migrant"],
+    notable: true,
+    season: "Spring–fall migrant; nests in region",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "The male's rose-red inverted triangle on a white breast makes it unmistakable. A thick-billed finch that can crack large seeds that smaller birds cannot access. Often detected at feeders in May on migration days.",
+    marks: ["Male: black head and back, white below, rose-red breast triangle", "Female: streaked brown, like a large sparrow with bold eyebrow", "Very large pale bill", "Song: rich robin-like caroling, sweeter and more fluid"]
+  },
+  {
+    name: "Gray Catbird",
+    latin: "Dumetella carolinensis",
+    wiki: "Gray_catbird",
+    category: ["migrant"],
+    notable: false,
+    season: "May–October; nests in region",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "Named for its cat-like mewing call. Catbirds are talented mimics in the same family as mockingbirds, but unlike them, each phrase is typically sung only once. They favor dense thickets and shrubby edges — the kind of habitat the property has in abundance.",
+    marks: ["Solid gray, black cap, rusty undertail", "Long tail, often cocked up", "Mewing 'mew' call distinctive", "Long rambling song, each phrase different"]
+  },
+  {
+    name: "Red-winged Blackbird",
+    latin: "Agelaius phoeniceus",
+    wiki: "Red-winged_blackbird",
+    category: ["migrant"],
+    notable: false,
+    season: "March–October; abundant",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 14, 2024",
+    desc: "Males defend territory aggressively with spread wings displaying the red shoulder patches. One of the most abundant birds in North America. They congregate in enormous flocks in fall and winter with other blackbirds and starlings.",
+    marks: ["Male: all black with red-and-yellow shoulder patches", "Female: heavily streaked brown, like a large sparrow", "Red patches concealed when perched quietly", "Liquid 'konk-a-ree' song; sharp 'check' call"]
+  },
+  {
+    name: "Eastern Towhee",
+    latin: "Pipilo erythrophthalmus",
+    wiki: "Eastern_towhee",
+    category: ["migrant"],
+    notable: false,
+    season: "April–October; some winter",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "A large, dramatic sparrow of brushy edges and forest undergrowth. Towhees scratch loudly through leaf litter, often making more noise than birds twice their size. Their call — a rising 'towhee' — gave them their name. The bamboo understory is ideal habitat.",
+    marks: ["Male: black hood, white belly, rufous flanks", "Female: brown where male is black", "Long tail with white corners", "Song: 'drink-your-teeeea'; call 'chewink'"]
+  },
+  {
+    name: "Chipping Sparrow",
+    latin: "Spizella passerina",
+    wiki: "Chipping_sparrow",
+    category: ["migrant"],
+    notable: false,
+    season: "April–October; nests in region",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "A small, neat sparrow with a bright rufous cap and clean gray breast. One of the most common breeding sparrows in suburban and rural settings. Their song is a long, dry trill that's easy to confuse with an insect.",
+    marks: ["Rufous cap, white eyebrow, black eyeline", "Plain gray breast, streaked brown back", "Breeding birds very clean and bright", "Song: long mechanical trill on one pitch"]
+  },
+  {
+    name: "Northern House Wren",
+    latin: "Troglodytes aedon",
+    wiki: "House_wren",
+    category: ["migrant"],
+    notable: false,
+    season: "April–October; nests in cavities",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "Small and plainly marked but with an outsized personality. House Wrens will fill a nest box with sticks and defend it furiously against birds much larger than themselves. Their bubbling, cascading song is one of the most energetic of any North American bird.",
+    marks: ["Plain brown, finely barred wings and tail", "Faint eyebrow stripe", "Cocked tail, often held straight up", "Long, gurgling, bubbling song; harsh scolding 'churr'"]
+  },
+  {
+    name: "Common Yellowthroat",
+    latin: "Geothlypis trichas",
+    wiki: "Common_yellowthroat",
+    category: ["migrant","warbler"],
+    notable: false,
+    season: "May–September; nests in region",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "A small warbler of marshes, wet meadows, and dense shrubby areas. Males are unmistakable with the black bandit mask. Often heard more than seen, singing persistently from dense cover along the edge of the stream or wet areas.",
+    marks: ["Male: bright yellow throat and breast, bold black mask", "Female: plain yellow-olive, no mask", "Skulks in low dense vegetation", "Song: rolling 'witchety-witchety-witchety'"]
+  },
+  {
+    name: "Red-eyed Vireo",
+    latin: "Vireo olivaceus",
+    wiki: "Red-eyed_vireo",
+    category: ["migrant"],
+    notable: true,
+    season: "May–September; nests in forest",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "Possibly the most persistently singing bird in eastern North America — males have been recorded singing over 20,000 times in a single day. Often heard overhead in the forest canopy but rarely seen. The red eye requires close inspection.",
+    marks: ["Olive-green back, white underparts", "Bold white eyebrow framed by black", "Red iris (hard to see in field)", "Endless deliberate two- or three-note phrases all day long"]
+  },
+
+  // ── WARBLERS, THRUSHES, NOTABLE MIGRANTS ──
+  {
+    name: "Wood Thrush",
+    latin: "Hylocichla mustelina",
+    wiki: "Wood_thrush",
+    category: ["warbler","migrant"],
+    notable: true,
+    season: "May–September; declining breeder",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "Many consider the Wood Thrush's flute-like song the most beautiful sound in the eastern forest. Its population has declined significantly due to habitat loss. Its presence at Sunnyside suggests the mature wooded areas provide quality habitat.",
+    marks: ["Rich cinnamon-brown above, white below with bold round spots", "Eye-ring and spotted face", "Robin-sized; stocky build", "Song: ethereal flute-like 'ee-oh-lay'; call 'pit-pit-pit'"]
+  },
+  {
+    name: "Veery",
+    latin: "Catharus fuscescens",
+    wiki: "Veery",
+    category: ["warbler","migrant"],
+    notable: true,
+    season: "May–August; forest migrant",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "The Veery's spiraling, ethereal song — a descending 'veer-veer-veer' that seems to echo — is haunting at dusk in moist forest. A shy thrush of the forest floor, it migrates through in May and some nest in suitable forest habitat nearby.",
+    marks: ["Warm tawny-brown above; lightly spotted breast", "Less spotted than other Catharus thrushes", "Slightly paler below than Hermit or Swainson's", "Descending spiral song: 'vee-ur, veer, veer, veer'"]
+  },
+  {
+    name: "Worm-eating Warbler",
+    latin: "Helmitheros vermivorum",
+    wiki: "Worm-eating_warbler",
+    category: ["warbler"],
+    notable: true,
+    season: "May migrant; nests on hillsides",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "Despite its name, it eats insects, not worms — it probes curled dead leaves hanging in shrubs, which resemble silk-wrapped caterpillars. A specialist of steep, wooded hillsides with dense leaf litter. A great find for the property.",
+    marks: ["Buffy-orange head with four bold black stripes", "Plain olive-green back and wings", "Heavy bill for probing", "Song: flat dry insect-like trill, like a Chipping Sparrow but buzzier"]
+  },
+  {
+    name: "Ovenbird",
+    latin: "Seiurus aurocapilla",
+    wiki: "Ovenbird",
+    category: ["warbler"],
+    notable: true,
+    season: "May–August; forest floor nester",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "The Ovenbird walks — not hops — along the forest floor like a tiny thrush, bobbing its head as it goes. Its explosive 'teacher-teacher-TEACHER' crescendo is one of the loudest songs in the forest for its size. Nests in a domed structure on the ground.",
+    marks: ["Olive-brown above, white below with black streaking", "Orange crown stripe bordered by black", "Bold white eye-ring", "Loud escalating 'teacher-TEACHER-TEACHER'"]
+  },
+  {
+    name: "Yellow-rumped Warbler",
+    latin: "Setophaga coronata",
+    wiki: "Yellow-rumped_warbler",
+    category: ["warbler"],
+    notable: false,
+    season: "Migration; some winter",
+    seasonTag: "tag-warbler",
+    firstSeen: "May 5, 2024",
+    desc: "The most abundant warbler in North America and often the first warbler of spring. Named for the distinctive yellow patch on the rump, visible in flight. Able to digest waxy bayberries, allowing them to winter further north than most warblers.",
+    marks: ["Yellow patches: rump, crown, sides of breast", "White throat (Myrtle form); gray and black back", "Distinctive yellow rump flash in flight", "Soft 'check' call note; song a loose trill"]
+  },
+  {
+    name: "Pine Warbler",
+    latin: "Setophaga pinus",
+    wiki: "Pine_warbler",
+    category: ["warbler"],
+    notable: true,
+    season: "Early spring migrant; April",
+    seasonTag: "tag-warbler",
+    firstSeen: "Apr 4, 2024",
+    desc: "One of the earliest warblers to arrive in spring, passing through in early April while most others are still in the tropics. As the name suggests, they favor pines, and tend to stay high in the canopy. The April date here is early and notable.",
+    marks: ["Male: bright yellow throat and breast, olive-green back", "Female: much duller, grayish-olive", "Two white wing bars; unstreaked back", "Song: soft musical trill, like a Chipping Sparrow but slower"]
+  },
+
+  // ── RAPTORS ──
+  {
+    name: "Red-tailed Hawk",
+    latin: "Buteo jamaicensis",
+    wiki: "Red-tailed_hawk",
+    category: ["raptor"],
+    notable: false,
+    season: "Year-round; common",
+    seasonTag: "tag-raptor",
+    firstSeen: "Mar 30, 2024",
+    desc: "The most familiar hawk in North America — the screaming raptor call in every movie and TV show, even when they show an eagle. Red-tails soar over open fields hunting rodents, and the property's mix of field and forest edge is ideal territory.",
+    marks: ["Brick-red tail (adults; visible from above in flight)", "Dark belly band on pale underparts", "Broad wings, short rounded tail in silhouette", "Iconic descending scream: 'keeeeear'"]
+  },
+  {
+    name: "Cooper's Hawk",
+    latin: "Accipiter cooperii",
+    wiki: "Cooper%27s_hawk",
+    category: ["raptor"],
+    notable: true,
+    season: "Year-round; migrant influx spring/fall",
+    seasonTag: "tag-raptor",
+    firstSeen: "May 5, 2024",
+    desc: "The specialist predator of songbirds and a frequent reason your feeders go suddenly quiet. Cooper's Hawks are built for speed and agility in wooded settings — short wings and a long tail allow tight maneuvering through trees. Merlin correctly flags this as a notable encounter.",
+    marks: ["Blue-gray back, rusty-barred breast", "Rounded tail (vs. Sharp-shinned's square)", "Flat-topped head with darker cap", "Fast wingbeats between glides; 'cak-cak-cak' alarm call"]
+  },
+  {
+    name: "Northern Flicker",
+    latin: "Colaptes auratus",
+    wiki: "Northern_flicker",
+    category: ["raptor","resident"],
+    notable: false,
+    season: "Year-round; more common in migration",
+    seasonTag: "tag-resident",
+    firstSeen: "Apr 4, 2024",
+    desc: "An unusual woodpecker that forages mostly on the ground, eating ants and beetles. The yellow underwings flash dramatically in flight. Flickers excavate nest cavities later used by other cavity-nesters like Wood Ducks and owls.",
+    marks: ["Brown barred back, spotted breast with black bib", "Red nape crescent (Yellow-shafted form)", "Brilliant yellow underwings and undertail in flight", "Loud 'wick-wick-wick' call; also long 'klee-yer'"]
+  },
+
+  // ── WINTER / FALL ──
+  {
+    name: "Golden-crowned Kinglet",
+    latin: "Regulus satrapa",
+    wiki: "Golden-crowned_kinglet",
+    category: ["resident"],
+    notable: true,
+    season: "Fall–spring; winter visitor",
+    seasonTag: "tag-resident",
+    firstSeen: "Nov 6, 2024",
+    desc: "Barely larger than a hummingbird and remarkably cold-hardy — Golden-crowned Kinglets winter in the northeastern US despite weighing less than a nickel. They forage constantly, hovering at branch tips. The November sighting was flagged notable by Merlin.",
+    marks: ["Tiny; olive-green with bold white wing bars", "White eyebrow; male has orange crown, female yellow", "Black border around crown stripe", "Very high-pitched 'tsee-tsee-tsee' call"]
+  },
+  {
+    name: "American Coot",
+    latin: "Fulica americana",
+    wiki: "American_coot",
+    category: ["migrant"],
+    notable: true,
+    season: "Migrant; unusual away from water",
+    seasonTag: "tag-migrant",
+    firstSeen: "May 5, 2024",
+    desc: "A waterbird more closely related to rails than to ducks. Coots need lakes, ponds, or large marshes — their presence at Sunnyside on May 5 was flagged notable by Merlin (red dot). It was almost certainly a flyover, possibly heading toward the Delaware River.",
+    marks: ["Slate-black body, white chicken-like bill", "White undertail patches", "Lobed (not webbed) feet — visible on land", "Loud variety of clucks, grunts, and cackles"]
+  }
+];
+
+// ── PHOTO LOADING ──
+async function loadPhoto(card, wikiTitle) {
+  try {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTitle)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.thumbnail && data.thumbnail.source) {
+      const img = card.querySelector('.card-photo-placeholder');
+      if (img) {
+        const photoEl = document.createElement('img');
+        photoEl.className = 'card-photo';
+        // Request larger size
+        const src = data.thumbnail.source.replace(/\/\d+px-/, '/400px-');
+        photoEl.src = src;
+        photoEl.alt = data.title || '';
+        photoEl.loading = 'lazy';
+        img.replaceWith(photoEl);
+      }
+    }
+  } catch(e) { /* placeholder stays */ }
+}
+
+// ── RENDER ──
+let activeFilter = 'all';
+
+function seasonMonths(bird) {
+  // Return abbreviated months present string
+  const s = bird.season.toLowerCase();
+  if (s.includes('year-round')) return 'Jan–Dec';
+  if (s.includes('may–oct')) return 'May–Oct';
+  if (s.includes('may–sept') || s.includes('may–aug') || s.includes('may–sep')) return 'May–Sep';
+  if (s.includes('april–oct')) return 'Apr–Oct';
+  if (s.includes('march–oct')) return 'Mar–Oct';
+  if (s.includes('fall–spring') || s.includes('fall–apr')) return 'Oct–Apr';
+  return bird.season.split(';')[0];
+}
+
+function renderGrid() {
+  const grid = document.getElementById('birdGrid');
+  const filtered = BIRDS.filter(b => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'notable') return b.notable;
+    return b.category.includes(activeFilter);
+  });
+
+  document.getElementById('countLabel').textContent = `${filtered.length} species`;
+  document.getElementById('totalCount').textContent = filtered.length;
+
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🐦</div><p>No species match this filter.</p></div>';
+    return;
+  }
+
+  filtered.forEach(bird => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.categories = bird.category.join(',');
+
+    const tagType = bird.category.includes('warbler') ? 'tag-warbler' :
+                    bird.category.includes('raptor') ? 'tag-raptor' :
+                    bird.category.includes('migrant') ? 'tag-migrant' : 'tag-resident';
+
+    const typeLabel = bird.category.includes('warbler') ? 'Warbler / Thrush' :
+                      bird.category.includes('raptor') ? 'Raptor' :
+                      bird.category.includes('migrant') ? 'Migrant' : 'Resident';
+
+    card.innerHTML = `
+      <div class="card-photo-placeholder">🐦</div>
+      <div class="card-body">
+        <div class="card-top">
+          <div>
+            <div class="card-name">${bird.name}</div>
+            <div class="card-latin">${bird.latin}</div>
+          </div>
+          ${bird.notable ? '<div class="notable-star">★</div>' : ''}
+        </div>
+        <div class="card-tags">
+          <span class="tag ${tagType}">${typeLabel}</span>
+          <span class="tag tag-season">${seasonMonths(bird)}</span>
+        </div>
+        <div class="card-desc">${bird.desc}</div>
+        <div class="card-marks">
+          <div class="marks-label">Field marks</div>
+          ${bird.marks.map(m => `<div class="mark-item">${m}</div>`).join('')}
+        </div>
+      </div>
+      <div class="card-footer">
+        <span><span class="seen-dot"></span>First recorded ${bird.firstSeen}</span>
+        <span>${bird.season.split(';')[0]}</span>
+      </div>
+    `;
+
+    grid.appendChild(card);
+    loadPhoto(card, bird.wiki);
+  });
+}
+
+function setFilter(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+// Initial render
+renderGrid();
+</script>
+</body>
+</html>
+EOF
