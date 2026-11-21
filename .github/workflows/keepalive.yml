@@ -1,0 +1,15 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "17 9 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Supabase
+        run: |
+          curl -f -sS "https://egaiclldgiqfmztzqdih.supabase.co/rest/v1/house_areas?select=id&limit=1" \
+            -H "apikey: sb_publishable_0tiRCzNqEJWGVWUxz84oDQ_0Jyn-7IE"
